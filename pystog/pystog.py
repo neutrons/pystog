@@ -12,13 +12,14 @@ class PyStoG(object):
 
         self.df_sq_master = pd.DataFrame()
         self.sq_title = "S(Q) Merged"
-        self.sq_lorch_title = "S(Q) Lorched"
+        self.ft_title = "FT term"
         self.sq_ft_title = "S(Q) FT"
         self.fq_rmc_title = "F(Q) RMC"
 
         self.df_gr_master = pd.DataFrame()
         self.gr_ft_title = "G(r) FT"
-        self.gr_lorch_title = "G(r) Lorched"
+        self.dr_ft_title = "D(r) FT"
+        self.gr_lorch_title = "G(r) FT Lorched"
         self.gr_title = "G(r) Merged"
         self.gr_rmc_title = "G(r) RMC"
 
@@ -103,12 +104,17 @@ class PyStoG(object):
     # -------------------------------------#
     # Transform Utilities
 
+    def extend_axis_to_low_end(self,x,decimals=4):
+        dx = x[1] - x[0]
+        x = np.linspace(dx, x[-1], int(x[-1]/dx), endpoint=True)
+        return np.around(x,decimals=decimals)
+
     def create_dr(self):
         self.dr = np.arange(self.Rdelta, self.Rmax + self.Rdelta, self.Rdelta)
 
+    '''
     def bit_merged(self):
-        self.bit( self.df_sq_master, self.sq_title,
-                  lorch=False, title=self.sq_lorch_title )
+        self.bit( self.df_sq_master, self.sq_title, lorch=False)
 
     def bit(self, df, col_name, **kwargs):
         if self.dr is None:
@@ -122,11 +128,11 @@ class PyStoG(object):
 
         self.df_gr_master[self.gr_title] = gofr
         self.df_gr_master = self.df_gr_master.set_index(r)
+    '''
 
     def transform(self, xin, yin, xout, lorch=False, df=None, title=None):
         xmax = max(xin)
-        dx = xout[1] - xout[0]
-        xout = np.linspace(dx, xout[-1], xout[-1]/dx, endpoint=True)
+        xout = self.extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
         if lorch:
@@ -172,8 +178,8 @@ class PyStoG(object):
                 term2 = (vp * np.sin(vp) + np.cos(vp) - 1.) / \
                     (r + PiOverQmax)**2.
                 F1 = (term1 - term2) / (2. * PiOverQmax)
-                F2 = np.sin(vm) / (r - PiOverQmax) - np.sin(vp) / \
-                    (r - PiOverQmax) / (2. * PiOverQmax)
+                F2 = (np.sin(vm) / (r - PiOverQmax) - np.sin(vp) / \
+                    (r + PiOverQmax) )/ (2. * PiOverQmax)
             else:
                 F1 = (2. * v * np.sin(v) - (v * v - 2.) *
                       np.cos(v) - 2.) / r / r / r
@@ -200,7 +206,8 @@ class PyStoG(object):
     def add_to_dataframe(self,x,y,df,title):
         df_temp = pd.DataFrame(y, columns=[title], index=x)
         df = pd.concat([df, df_temp], axis=1)
-
+        return df
+        
     def write_out_df(self, df, cols, filename):
         if df.empty:
             print("Empty dataframe.")
@@ -221,6 +228,11 @@ class PyStoG(object):
             filename = "%s.gr" % self.stem_name
         self.write_out_df(self.df_gr_master, [self.gr_title], filename)
 
+    def write_out_ft(self, filename=None):
+        if filename is None:
+            filename = "ft.dat"
+        self.write_out_df(self.df_sq_master, [self.ft_title], filename)
+
     def write_out_ft_sq(self, filename=None):
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
@@ -231,6 +243,15 @@ class PyStoG(object):
             filename = "%s_ft.gr" % self.stem_name
         self.write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
 
+    def write_out_ft_dr(self, filename=None):
+        if filename is None:
+            filename = "%s_ft.dr" % self.stem_name
+        self.write_out_df(self.df_gr_master, [self.dr_ft_title], filename)
+
+    def write_out_lorched_gr(self, filename=None):
+        if filename is None:
+            filename = "%s_ft_lorched.gr" % self.stem_name
+        self.write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("density", type=float,
@@ -259,6 +280,8 @@ if __name__ == "__main__":
     parser.add_argument("--lorch-flag", action="store_true",
                         default=False, dest="lorch_flag",
                         help="Apply Lorch function")
+    parser.add_argument("--final-scale", type=float,
+                        help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output"
     args = parser.parse_args()
 
     # Get each file's info and story in dictionary
@@ -281,23 +304,73 @@ if __name__ == "__main__":
                 "fourier_filter_cutoff" : args.fourier_filter_cutoff
     }
 
+    # Merge S(Q) files
     stog = PyStoG(files_info, **kwargs)
     stog.read_all_data(skiprows=3)
     stog.merge_data()
     stog.write_out_merged_sq()
-    stog.bit_merged()
+
+    # Initial S(Q) -> G(r) transform 
+    q    = stog.df_sq_master[stog.sq_title].index.values
+    sofq = stog.df_sq_master[stog.sq_title].values
+    stog.create_dr()
+    r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
+    stog.df_gr_master[stog.gr_title] = gofr
+    stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
-    print stog.get_lowR_mean_square()
+
+    #print stog.get_lowR_mean_square()
 
     # Work figuring out Fourier Filter
     r  = stog.df_gr_master[stog.gr_title].index.values
     gr = stog.df_gr_master[stog.gr_title].values
     r, gr = stog.apply_cropping(r, gr, 0.0, stog.fourier_filter_cutoff)
+
+    # Grab Q values
     q = stog.df_sq_master[stog.sq_title].index.values
-    q, sq_ft = stog.transform(r, gr+1., q, lorch=False)
-    gr_ft = ((sq_ft-1)*(stog.density*stog.density*(2.*np.pi)**3.))+1.
-    stog.add_to_dataframe(q,sq_ft,stog.df_sq_master,stog.sq_ft_title)
-    for x in stog.df_sq_master.index.values:
-        print x
+    qmin = min(q)
+    qmax = max(q)
+
+    # Extend the low Q-range -> 0.0
+    q_ft = stog.extend_axis_to_low_end(q)
+
+    # Calculate Fourier Correction
+    q_ft, sq_ft = stog.transform(r, gr+1., q_ft, lorch=False)
+    sq_ft = ((sq_ft-1)*(stog.density*stog.density*(2.*np.pi)**3.))+1.
+    stog.df_sq_master = stog.add_to_dataframe(q_ft,sq_ft,stog.df_sq_master,stog.ft_title)
+    stog.write_out_ft()
+
+    # Crop Fourier Correction to match the initial Q-range
+    q_ft, sq_ft = stog.apply_cropping(q_ft, sq_ft, qmin, qmax)
+    
+    # Apply Fourier Correction
+    q = stog.df_sq_master[stog.sq_title].index.values
+    sq = stog.df_sq_master[stog.sq_title].values
+    q, sq = stog.apply_cropping(q, sq, qmin, qmax)
+    sq = (sq - sq_ft) + 1
+    stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
     stog.write_out_ft_sq()
-    exit()
+
+
+    # Transform back to G(r) with Fourier Filter Correction
+    r  = stog.df_gr_master[stog.gr_title].index.values
+    r, gr_ft = stog.transform(q, sq, r, lorch=False)
+    stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
+    stog.write_out_ft_gr()
+
+    # Write out D(r) as well
+    dr_ft = (gr_ft-1)*r
+    stog.df_gr_master = stog.add_to_dataframe(r, dr_ft, stog.df_gr_master, stog.dr_ft_title)
+    stog.write_out_ft_dr()
+
+
+    # Apply Lorch
+    if args.lorch_flag:
+        r, gr_lorch = stog.transform(q, sq, r, lorch=True)
+        stog.df_gr_master = stog.add_to_dataframe(r, gr_lorch, stog.df_gr_master, stog.gr_lorch_title)
+        stog.write_out_lorched_gr()
+        
+    # Benchmarked to HERE against stog_new3
+    # merged_ft_lorched.gr is matching
+
+    

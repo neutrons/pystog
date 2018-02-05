@@ -16,7 +16,7 @@ Y
 0.0
 N
 N
-merged_ft.gr
+merged_lorched.gr
 1.0
 merged_rmc.fq
 merged_rmc.gr

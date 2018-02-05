@@ -286,15 +286,14 @@
        
  
        ftpts=0
-        print *, 'DEBUG LINES STILL HERE'
        do loop=1,lptout
        if (xout(loop) <= ftcut) then
        ftpts=ftpts+1
        ftxin(ftpts)=xout(loop)
        ftyin(ftpts)=yout(loop)+1
-!       print *, loop, xout(loop), ftxin(ftpts), yout(loop), ftyin(ftpts)
        endif
        enddo
+
 
        ftptsout=nint(maxx/xdiv)
 
@@ -306,25 +305,24 @@
        ftoffset=1
        write(10,*) ftptsout
        write(10,*) 'The FT correction function'
-        print *, 'DEBUG LINES STILL HERE'
        do loop=1,ftptsout
         ytemp = ftyout(loop)
        ftyout(loop)=((ftyout(loop)-1)*(rho*rho*(2*pi)**3))+1
-        print *, ftxout(loop), ytemp, ftyout(loop)
        write(10,*) ftxout(loop),ftyout(loop)
        if (nint(ftxout(loop)/xdiv) == nint(xin(1)/xdiv)) ftoffset=loop
        enddo
        close(10)
+
        if (ftoffset.eq.1) then 
        write(*,*) ftxout(loop),xin(1)
        stop 'FT binning problem'
        endif
        ftoffset=ftoffset-1
        
-        stop
-
        write(*,*) 'FT offset', ftoffset
-    
+   
+
+!      Apply fourier correction to S(Q) == y (after merging, scaling and shifting)
        do loop=1,lptin
 !       if (nint((ftxout(loop+ftoffset)-(xdiv/2))/xdiv) == nint((xin(loop)-(xdiv/2))/xdiv)) then
        if (nint(ftxout(loop+ftoffset)/xdiv) == nint(xin(loop)/xdiv)) then       
@@ -531,6 +529,9 @@
           F2=(SIN(V)-V*COS(V))/R/R
        endif
         yDS=(2./PI)*(F1*y(1)/xin(1)-F2)
+            if(LMOD) then
+                print *, R, F1, F2, y(1), xin(1), y(1)/xin(1), yDS
+            endif
                                    !D(R)-rho
         yout(NR)=yout(NR)+yDS
       END DO
