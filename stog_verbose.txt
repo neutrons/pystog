@@ -1,0 +1,30 @@
+ This is stog versionnew 3.1, oct 2011               
+Enter number of files to include: 2
+Enter file name: co2_2k_original.sq
+enter qmin and qmax: 0.8 28.0
+enter yoffset and yscale: 1 1
+enter Q offset: 0
+Enter file name: ch4_10k_original.sq
+enter qmin and qmax: 0.9 25.0
+enter yoffset and yscale: 1 1
+enter Q offset: 0
+ X div   2.0000000000000000E-002
+ number of points in combined spectrum        1359
+Enter file name for merged S(Q): merged.sq
+Output filename for G(r): merged.gr
+ stog> max r value ? 25
+ stog> number of r points ? 2500
+ stog> increment in r = 0.010
+ stog> window function (Y/N) [N] ? N
+ stog> number density (atoms/A3) ? 0.5
+Add values: 0.0
+(F(Q) must tend to 1.0 at high Q)
+ In stog bit
+Low-r mean-square value:  18.52    
+Try again [Y/N]: N
+Fourier filter data [Y/N]: N
+Please enter the final scale number: 1.0
+Filename for RMC S(Q): merged_rmc.fq
+Filename for RMC G(r): merged_rmc.gr
+RMC cuttoff, 1st peak min and max0.0 0.0 0.0
+

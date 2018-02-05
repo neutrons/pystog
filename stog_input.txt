@@ -1,0 +1,23 @@
+2
+co2_2k_original.sq
+0.8 28.0
+1 1
+0
+ch4_10k_original.sq
+0.9 25.0
+1 1
+0
+merged.sq
+merged.gr
+25
+2500
+N
+0.5
+0.0
+N
+N
+1.0
+merged_rmc.fq
+merged_rmc.gr
+0.0 0.0 0.0
+
