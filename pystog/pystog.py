@@ -17,10 +17,10 @@ class PyStoG(object):
         self.fq_rmc_title = "F(Q) RMC"
 
         self.df_gr_master = pd.DataFrame()
-        self.gr_ft_title = "G(r) FT"
+        self.gr_ft_title = "g(r) FT"
         self.dr_ft_title = "D(r) FT"
-        self.gr_lorch_title = "G(r) FT Lorched"
-        self.gr_title = "G(r) Merged"
+        self.gr_lorch_title = "g(r) FT Lorched"
+        self.gr_title = "g(r) Merged"
         self.gr_rmc_title = "G(r) RMC"
 
         self.files = files
@@ -155,7 +155,7 @@ class PyStoG(object):
         # Correct for omitted small Q-region
         yout = self.qmin_correction(xin, yin, xout, yout, lorch)
 
-        # Convert to G(r)
+        # Convert to G(r) -> g(r)
         FourPiRho = 4. * np.pi * self.density
         yout = yout / FourPiRho / xout + 1.
 
@@ -252,6 +252,17 @@ class PyStoG(object):
         if filename is None:
             filename = "%s_ft_lorched.gr" % self.stem_name
         self.write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
+
+    def write_out_rmc_fq(self, filename=None):
+        if filename is None:
+            filename = "%s_rmc.fq" % self.stem_name
+        self.write_out_df(self.df_sq_master, [self.fq_rmc_title], filename)
+
+    def write_out_rmc_gr(self, filename=None):
+        if filename is None:
+            filename = "%s_rmc.gr" % self.stem_name
+        self.write_out_df(self.df_gr_master, [self.gr_rmc_title], filename)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("density", type=float,
@@ -280,8 +291,8 @@ if __name__ == "__main__":
     parser.add_argument("--lorch-flag", action="store_true",
                         default=False, dest="lorch_flag",
                         help="Apply Lorch function")
-    parser.add_argument("--final-scale", type=float,
-                        help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output"
+    parser.add_argument("--final-scale", type=float, default=1.0, dest="final_scale",
+                        help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output")
     args = parser.parse_args()
 
     # Get each file's info and story in dictionary
@@ -310,7 +321,7 @@ if __name__ == "__main__":
     stog.merge_data()
     stog.write_out_merged_sq()
 
-    # Initial S(Q) -> G(r) transform 
+    # Initial S(Q) -> g(r) transform 
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
     stog.create_dr()
@@ -321,47 +332,56 @@ if __name__ == "__main__":
 
     #print stog.get_lowR_mean_square()
 
-    # Work figuring out Fourier Filter
-    r  = stog.df_gr_master[stog.gr_title].index.values
-    gr = stog.df_gr_master[stog.gr_title].values
-    r, gr = stog.apply_cropping(r, gr, 0.0, stog.fourier_filter_cutoff)
-
-    # Grab Q values
-    q = stog.df_sq_master[stog.sq_title].index.values
-    qmin = min(q)
-    qmax = max(q)
-
-    # Extend the low Q-range -> 0.0
-    q_ft = stog.extend_axis_to_low_end(q)
-
-    # Calculate Fourier Correction
-    q_ft, sq_ft = stog.transform(r, gr+1., q_ft, lorch=False)
-    sq_ft = ((sq_ft-1)*(stog.density*stog.density*(2.*np.pi)**3.))+1.
-    stog.df_sq_master = stog.add_to_dataframe(q_ft,sq_ft,stog.df_sq_master,stog.ft_title)
-    stog.write_out_ft()
-
-    # Crop Fourier Correction to match the initial Q-range
-    q_ft, sq_ft = stog.apply_cropping(q_ft, sq_ft, qmin, qmax)
-    
-    # Apply Fourier Correction
-    q = stog.df_sq_master[stog.sq_title].index.values
+    # Set the S(Q) and g(r) if no Fourier Filter
     sq = stog.df_sq_master[stog.sq_title].values
-    q, sq = stog.apply_cropping(q, sq, qmin, qmax)
-    sq = (sq - sq_ft) + 1
-    stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
-    stog.write_out_ft_sq()
+    gr_out = gofr
+
+    if args.fourier_filter_cutoff:
+        # Work figuring out Fourier Filter
+        r  = stog.df_gr_master[stog.gr_title].index.values
+        gr = stog.df_gr_master[stog.gr_title].values
+        r, gr = stog.apply_cropping(r, gr, 0.0, stog.fourier_filter_cutoff)
+
+        # Grab Q values
+        q = stog.df_sq_master[stog.sq_title].index.values
+        qmin = min(q)
+        qmax = max(q)
+
+        # Extend the low Q-range -> 0.0
+        q_ft = stog.extend_axis_to_low_end(q)
+
+        # Calculate Fourier Correction
+        q_ft, sq_ft = stog.transform(r, gr+1., q_ft, lorch=False)
+        sq_ft = ((sq_ft-1)*(stog.density*stog.density*(2.*np.pi)**3.))+1.
+        stog.df_sq_master = stog.add_to_dataframe(q_ft,sq_ft,stog.df_sq_master,stog.ft_title)
+        stog.write_out_ft()
+
+        # Crop Fourier Correction to match the initial Q-range
+        q_ft, sq_ft = stog.apply_cropping(q_ft, sq_ft, qmin, qmax)
+        
+        # Apply Fourier Correction
+        q = stog.df_sq_master[stog.sq_title].index.values
+        sq = stog.df_sq_master[stog.sq_title].values
+        q, sq = stog.apply_cropping(q, sq, qmin, qmax)
+        sq = (sq - sq_ft) + 1
+        stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
+        stog.write_out_ft_sq()
 
 
-    # Transform back to G(r) with Fourier Filter Correction
-    r  = stog.df_gr_master[stog.gr_title].index.values
-    r, gr_ft = stog.transform(q, sq, r, lorch=False)
-    stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
-    stog.write_out_ft_gr()
+        # Transform back to g(r) with Fourier Filter Correction
+        r  = stog.df_gr_master[stog.gr_title].index.values
+        r, gr_ft = stog.transform(q, sq, r, lorch=False)
+        stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
+        stog.write_out_ft_gr()
 
+        gr_out = gr_ft
+
+    '''
     # Write out D(r) as well
-    dr_ft = (gr_ft-1)*r
+    dr_ft = (gr_out-1)*r
     stog.df_gr_master = stog.add_to_dataframe(r, dr_ft, stog.df_gr_master, stog.dr_ft_title)
     stog.write_out_ft_dr()
+    '''
 
 
     # Apply Lorch
@@ -369,8 +389,18 @@ if __name__ == "__main__":
         r, gr_lorch = stog.transform(q, sq, r, lorch=True)
         stog.df_gr_master = stog.add_to_dataframe(r, gr_lorch, stog.df_gr_master, stog.gr_lorch_title)
         stog.write_out_lorched_gr()
+
+        gr_out = gr_lorch
         
     # Benchmarked to HERE against stog_new3
     # merged_ft_lorched.gr is matching
 
+    # Apply final scale number
+    fq_rmc = args.final_scale*(sq-1)
+    stog.df_sq_master = stog.add_to_dataframe(q, fq_rmc, stog.df_sq_master, stog.fq_rmc_title)
+    stog.write_out_rmc_fq()
+
+    gr_rmc = args.final_scale*(gr_out-1)
+    stog.df_gr_master = stog.add_to_dataframe(r, gr_rmc, stog.df_gr_master, stog.gr_rmc_title)
+    stog.write_out_rmc_gr()
     

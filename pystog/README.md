@@ -1,3 +1,3 @@
 Example:
-./pystog.py 0.5 -f test/co2_2k_original.sq 0.8 28.0 1 1 0 -f test/ch4_10k_original.sq 0.9 25.0 1 1 0 --Rmax 25 --Rpoints 2500 --lorch
-./pystog.py 0.5 -f test/co2_2k_original.sq 0.8 28.0 1 1 0 -f test/ch4_10k_original.sq 0.9 25.0 1 1 0 --Rmax 25 --Rpoints 2500 --fourier-filter-cutoff 1.5
+./pystog.py 0.5 -f ../fortran/co2_2k_original.sq 0.8 28.0 1 1 0 -f ../fortran/ch4_10k_original.sq 0.9 25.0 1 1 0 --Rmax 25 --Rpoints 2500 --lorch
+./pystog.py 0.5 -f ../fortran/co2_2k_original.sq 0.8 28.0 1 1 0 -f ../fortran/ch4_10k_original.sq 0.9 25.0 1 1 0 --Rmax 25 --Rpoints 2500 --fourier-filter-cutoff 1.5 --final-scale 5.0 --lorch-flag

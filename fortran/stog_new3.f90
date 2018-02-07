@@ -508,7 +508,6 @@
           SINUS1=SIN(xnew(N-1)*RP)
           SINUS=SIN(xnew(N)*RP)
         FS=FS+ (SINUS*ynew(N)+SINUS1*ynew(N-1))/2.0d0
-!        print *, N, xnew(N), SINUS, SINUS1, yw(N), yw(N-1), xnew(N)*(y(N)-1.d0), xnew(N-1)*(y(N-1)-1.d0), FS
        end do
         yout(NR)=FS*AFACT
       END DO
@@ -529,9 +528,6 @@
           F2=(SIN(V)-V*COS(V))/R/R
        endif
         yDS=(2./PI)*(F1*y(1)/xin(1)-F2)
-            if(LMOD) then
-                print *, R, F1, F2, y(1), xin(1), y(1)/xin(1), yDS
-            endif
                                    !D(R)-rho
         yout(NR)=yout(NR)+yDS
       END DO

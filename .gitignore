@@ -101,3 +101,6 @@ ENV/
 .mypy_cache/
 
 stog
+
+merged*
+*.dat

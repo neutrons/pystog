@@ -17,7 +17,7 @@ Y
 N
 N
 merged_lorched.gr
-1.0
+5.0
 merged_rmc.fq
 merged_rmc.gr
 0.0 0.0 0.0
