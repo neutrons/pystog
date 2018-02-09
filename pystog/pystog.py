@@ -153,11 +153,13 @@ class PyStoG(object):
             yout[i] = afactor * np.trapz(kernel, x=xin)
 
         # Correct for omitted small Q-region
+        self._before_omitted_correction = np.copy(yout)
         yout = self.qmin_correction(xin, yin, xout, yout, lorch)
 
         # Convert to G(r) -> g(r)
         FourPiRho = 4. * np.pi * self.density
         yout = yout / FourPiRho / xout + 1.
+        self._before_omitted_correction = self._before_omitted_correction / FourPiRho / xout + 1
 
         return xout, yout 
 
@@ -187,6 +189,8 @@ class PyStoG(object):
 
             correction[i] = (2 / np.pi) * (F1 * sofq_qmin / qmin - F2)
         gofr += correction
+    
+        self._omitted_correction = correction
 
         return gofr
 
@@ -326,6 +330,15 @@ if __name__ == "__main__":
     sofq = stog.df_sq_master[stog.sq_title].values
     stog.create_dr()
     r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
+
+    import matplotlib.pyplot as plt
+    plt.plot(r,gofr, label="G'(r) w/ corr.")
+    plt.plot(r,stog._before_omitted_correction, label="G'(r) w/o corr.")    
+    plt.plot(r,stog._omitted_correction, label="Correction")    
+    plt.legend()
+    plt.show()
+    exit()
+
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
