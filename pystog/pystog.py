@@ -5,7 +5,7 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 
-from pytransformer import Converter, Transformer, ReciprocalSpaceChoices
+from transformer import Converter, Transformer, ReciprocalSpaceChoices
 
 
 def parser_cli_args(args):

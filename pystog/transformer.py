@@ -103,7 +103,7 @@ class Transformer(object):
     def __init__(self):
         self.converter = Converter()
 
-    def _extend_axis_to_low_end(x,decimals=32):
+    def _extend_axis_to_low_end(self,x,decimals=32):
         dx = x[1] - x[0]
         if x[0] == 0.0:
             x[0] = 1e-6
@@ -125,10 +125,13 @@ class Transformer(object):
             kernel = factor * yin * np.sin(xin * x)
             yout[i] = np.trapz(kernel, x=xin)
 
-        if kwargs['OmittedXrangeCorrection']:
+        if 'OmittedXrangeCorrection' in kwargs:
             self.low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout
+
+    def low_x_correction(self):
+        pass
 
     #--------------------------------------#
     # Reciprocal -> Real Space Transforms  #
@@ -141,19 +144,19 @@ class Transformer(object):
         return r, gr
 
     def F_to_GK(self, q, fq, r, **kwargs):
-        r, gr = self.F_to_G(q, fq, r)
+        r, gr = self.F_to_G(q, fq, r, **kwargs)
         gr = self.converter.G_to_GK(r, gr, **kwargs)
         return r, gr
 
     def F_to_g(self, q, fq, r, **kwargs):
-        r, gr = self.F_to_G(q, fq, r)
+        r, gr = self.F_to_G(q, fq, r, **kwargs)
         gr = self.converter.G_to_g(r, gr, **kwargs)
         return r, gr
 
     # S(Q)
     def S_to_G(self, q, sq, r, **kwargs):
         fq = self.converter.S_to_F(q, sq)
-        r, gr = self.F_to_G(q, fq, r)
+        r, gr = self.F_to_G(q, fq, r, **kwargs)
         return r, gr
 
     def S_to_GK(self, q, sq, r, **kwargs):
@@ -169,7 +172,7 @@ class Transformer(object):
     # Keen's F(Q)
     def FK_to_G(self, q, fq_keen, r, **kwargs):
         fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr = self.F_to_G(q, fq, r)
+        r, gr = self.F_to_G(q, fq, r, **kwargs)
         return r, gr
 
     def FK_to_GK(self, q, fq_keen, r, **kwargs):
@@ -189,27 +192,27 @@ class Transformer(object):
     # G(R) = PDF
     def G_to_F(self, r, gr, q, **kwargs):
         q = self._extend_axis_to_low_end(q)
-        q, fq = self.fourier_transform(r, gr, q)
+        q, fq = self.fourier_transform(r, gr, q, **kwargs)
         return q, fq
 
     def G_to_S(self, r, gr, q, **kwargs):
-        q, fq = self.G_to_F(r, gr, q)
+        q, fq = self.G_to_F(r, gr, q, **kwargs)
         sq = self.converter.F_to_S(q, fq) 
         return q, sq
 
     def G_to_FK(self, r, gr, q, **kwargs):
-        q, fq = self.G_to_F(r, gr, q)
+        q, fq = self.G_to_F(r, gr, q, **kwargs)
         fq = self.converter.F_to_FK(q, fq, **kwargs)
         return q, fq
 
     # Keen's G(r)
     def GK_to_F(self, r, gr, q, **kwargs):
         gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_F(r, gr, q)
+        return self.G_to_F(r, gr, q, **kwargs)
 
     def GK_to_S(self, r, gr, q, **kwargs):
         gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_S(r, gr, q)
+        return self.G_to_S(r, gr, q, **kwargs)
 
     def GK_to_FK(self, r, gr, q, **kwargs):
         gr = self.converter.GK_to_G(r, gr, **kwargs)
@@ -219,11 +222,11 @@ class Transformer(object):
     # g(r)
     def g_to_F(self, r, gr, q, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_F(r, gr, q)
+        return self.G_to_F(r, gr, q, **kwargs)
 
     def g_to_S(self, r, gr, q, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_S(r, gr, q)
+        return self.G_to_S(r, gr, q, **kwargs)
 
     def g_to_FK(self, r, gr, q, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
@@ -281,6 +284,18 @@ if __name__ == "__main__":
                         help='Number density (units=atoms/angstroms^3)')
     parser.add_argument('--plot', action='store_true',
                         help='Show plot of before and after transformation')
+    parser.add_argument('--lorch', action='store_true', default=False,
+                        help='Apply Lorch Modifcation')
+
+    args = parser.parse_args()
+
+
+    # Read in data
+    data = get_data(args.input, 
+                    skiprows=args.skiprows,
+                    skipfooter=args.trim,
+                    xcol=args.xcol,
+                    ycol=args.ycol)
 
     args = parser.parse_args()
 
@@ -301,6 +316,7 @@ if __name__ == "__main__":
         kwargs['bcoh_sqrd'] = args.bcoh_sqrd
     if args.rho:
         kwargs['rho'] = args.rho
+    kwargs['lorch'] = args.lorch
 
     # Transform data to new form
     tf = TransformationFactory(args.transformation)
