@@ -1,9 +1,9 @@
 2
-co2_2k_original.sq
+../data/co2_2k_original.sq
 0.8 28.0
 1 1
 0
-ch4_10k_original.sq
+../data/ch4_10k_original.sq
 0.9 25.0
 1 1
 0

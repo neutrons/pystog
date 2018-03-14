@@ -1,10 +1,10 @@
  This is stog versionnew 3.1, oct 2011               
 Enter number of files to include: 2
-Enter file name: co2_2k_original.sq
+Enter file name: ../data/co2_2k_original.sq
 enter qmin and qmax: 0.8 28.0
 enter yoffset and yscale: 1 1
 enter Q offset: 0
-Enter file name: ch4_10k_original.sq
+Enter file name: ../data/ch4_10k_original.sq
 enter qmin and qmax: 0.9 25.0
 enter yoffset and yscale: 1 1
 enter Q offset: 0

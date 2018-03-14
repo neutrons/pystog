@@ -1,0 +1,28 @@
+{
+
+    "NumberDensity" : 0.5,
+    "Files" : [ 
+                { "Filename" : "../data/co2_2k_original.sq",
+                  "ReciprocalFunction" : "S(Q)",
+                  "Qmin" : 0.8,
+                  "Qmax" : 10.0,
+                  "Y" : { "Offset" : 1.0,
+                          "Scale"  : 1.0},
+                  "X" : { "Offset" : 0.0 }
+                },
+                { "Filename" : "../data/ch4_10k_original.sq",
+                  "ReciprocalFunction" : "S(Q)",
+                  "Qmin" : 0.9,
+                  "Qmax" : 25.0,
+                  "Y" : { "Offset" : 1.0,
+                          "Scale"  : 1.0},
+                  "X" : { "Offset" : 0.0 }
+                }
+              ],
+    "Rmax" : 25,
+    "Rpoints" : 2500,
+    "FourierFilter" : { "Cutoff" : 1.5 },
+    "<b_coh>^2" : 5.0,
+    "LorchFlag" : "True"
+}
+    

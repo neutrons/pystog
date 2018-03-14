@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-
+import json
 import numpy as np
 import pandas as pd
 import argparse
+import matplotlib.pyplot as plt
+
+from pytransformer import Converter, Transformer
 
 
 class PyStoG(object):
@@ -153,13 +156,11 @@ class PyStoG(object):
             yout[i] = afactor * np.trapz(kernel, x=xin)
 
         # Correct for omitted small Q-region
-        self._before_omitted_correction = np.copy(yout)
         yout = self.qmin_correction(xin, yin, xout, yout, lorch)
 
         # Convert to G(r) -> g(r)
         FourPiRho = 4. * np.pi * self.density
         yout = yout / FourPiRho / xout + 1.
-        self._before_omitted_correction = self._before_omitted_correction / FourPiRho / xout + 1
 
         return xout, yout 
 
@@ -269,7 +270,9 @@ class PyStoG(object):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("density", type=float,
+    parser.add_argument("--json", type=str, default=None,
+                        help="Read JSON input file for arguments")
+    parser.add_argument("--density", type=float,
                         help="Number density (atoms/angstroms^3")
     parser.add_argument("-f", "--filename", nargs='*', action='append',
                         default=list(), dest='filenames',
@@ -297,27 +300,38 @@ if __name__ == "__main__":
                         help="Apply Lorch function")
     parser.add_argument("--final-scale", type=float, default=1.0, dest="final_scale",
                         help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output")
+    parser.add_argument("--plot", action="store_true", default=False,
+                        help="Plots using matplotlib along the way")
     args = parser.parse_args()
 
-    # Get each file's info and story in dictionary
-    files_info = dict()
-    keys = ["filename", "xmin", "xmax", "yoffset", "yscale", "xoffset"]
-    types = [str, float, float, float, float, float]
-    for ifile, f in enumerate(args.filenames):
-        file_info = dict()
-        for ikey, (key, type_cast) in enumerate(zip(keys, types)):
-            file_info[key] = type_cast(f[ikey])
-        files_info[ifile] = file_info
+    
+    if args.json:
+        print("loading config from '%s'" % args.json)
+        with open(args.json, 'r') as f:
+            config = json.load(f)
 
-    # Get general StoG options
-    kwargs = {  "density" : args.density,
-                "stem_name" : args.stem_name,
-                "Rmax" : args.Rmax,
-                "Rpoints" : args.Rpoints, 
-                "Rdelta" : args.Rdelta,
-                "lorch_flag" : args.lorch_flag, 
-                "fourier_filter_cutoff" : args.fourier_filter_cutoff
-    }
+        
+
+    else:
+        # Get each file's info and story in dictionary
+        files_info = dict()
+        keys = ["filename", "xmin", "xmax", "yoffset", "yscale", "xoffset"]
+        types = [str, float, float, float, float, float]
+        for ifile, f in enumerate(args.filenames):
+            file_info = dict()
+            for ikey, (key, type_cast) in enumerate(zip(keys, types)):
+                file_info[key] = type_cast(f[ikey])
+            files_info[ifile] = file_info
+
+        # Get general StoG options
+        kwargs = {  "density" : args.density,
+                    "stem_name" : args.stem_name,
+                    "Rmax" : args.Rmax,
+                    "Rpoints" : args.Rpoints, 
+                    "Rdelta" : args.Rdelta,
+                    "lorch_flag" : args.lorch_flag, 
+                    "fourier_filter_cutoff" : args.fourier_filter_cutoff
+        }
 
     # Merge S(Q) files
     stog = PyStoG(files_info, **kwargs)
@@ -329,15 +343,19 @@ if __name__ == "__main__":
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
     stog.create_dr()
+
     r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
 
-    import matplotlib.pyplot as plt
-    plt.plot(r,gofr, label="G'(r) w/ corr.")
-    plt.plot(r,stog._before_omitted_correction, label="G'(r) w/o corr.")    
-    plt.plot(r,stog._omitted_correction, label="Correction")    
-    plt.legend()
-    plt.show()
-    exit()
+    r, gofr = stog.transform(q, sofq, stog.dr, lorch=True)
+
+
+    if args.plot:
+        plt.plot(r,gofr, label="G'(r) w/ corr.")
+        plt.plot(r,stog._omitted_correction, label="Correction")    
+        plt.xlabel("r")
+        plt.ylabel("G'(r)")
+        plt.legend()
+        plt.show()
 
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
@@ -376,14 +394,20 @@ if __name__ == "__main__":
         q = stog.df_sq_master[stog.sq_title].index.values
         sq = stog.df_sq_master[stog.sq_title].values
         q, sq = stog.apply_cropping(q, sq, qmin, qmax)
+        plt.plot(q, sq)
         sq = (sq - sq_ft) + 1
+        plt.plot(q, sq)
         stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
         stog.write_out_ft_sq()
 
 
         # Transform back to g(r) with Fourier Filter Correction
+        plt.plot(q, sq)
+        plt.show()
         r  = stog.df_gr_master[stog.gr_title].index.values
         r, gr_ft = stog.transform(q, sq, r, lorch=False)
+        plt.plot(r,gr_ft)
+        plt.show()
         stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
         stog.write_out_ft_gr()
 
@@ -415,5 +439,6 @@ if __name__ == "__main__":
 
     gr_rmc = args.final_scale*(gr_out-1)
     stog.df_gr_master = stog.add_to_dataframe(r, gr_rmc, stog.df_gr_master, stog.gr_rmc_title)
+    print("NOW HERE")
     stog.write_out_rmc_gr()
     
