@@ -346,9 +346,6 @@ if __name__ == "__main__":
 
     r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
 
-    r, gofr = stog.transform(q, sofq, stog.dr, lorch=True)
-
-
     if args.plot:
         plt.plot(r,gofr, label="G'(r) w/ corr.")
         plt.plot(r,stog._omitted_correction, label="Correction")    
