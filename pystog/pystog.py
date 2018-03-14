@@ -5,7 +5,7 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 
-from transformer import Converter, Transformer, ReciprocalSpaceChoices
+from transformer import Converter, Transformer, FourierFilter, ReciprocalSpaceChoices
 
 
 def parser_cli_args(args):
@@ -76,6 +76,7 @@ class PyStoG(object):
 
         self.converter = Converter()
         self.transformer = Transformer()
+        self.filter = FourierFilter()
 
     # -------------------------------------#
     # Reading and Merging Spectrum
@@ -105,7 +106,7 @@ class PyStoG(object):
         x = np.array(info['data']['x'])
         y = np.array(info['data']['y'])
 
-        x, y = self.apply_cropping(x, y, info['Qmin'], info['Qmax'])
+        x, y = self.transformer.apply_cropping(x, y, info['Qmin'], info['Qmax'])
         x, y = self.apply_scales_and_offset(x, y, 
                                             info['Y']['Scale'], 
                                             info['Y']['Offset'], 
@@ -120,11 +121,6 @@ class PyStoG(object):
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
         self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
         return df
-
-    def apply_cropping(self, x, y, xmin, xmax):
-        y = y[np.logical_and(x >= xmin, x <= xmax)]
-        x = x[np.logical_and(x >= xmin, x <= xmax)]
-        return x, y
 
     def apply_scales_and_offset(self, x, y, yscale, yoffset, xoffset):
         y = self.scale(y, yscale)
@@ -149,11 +145,6 @@ class PyStoG(object):
     # -------------------------------------#
     # Transform Utilities
 
-    def extend_axis_to_low_end(self,x,decimals=4):
-        dx = x[1] - x[0]
-        x = np.linspace(dx, x[-1], int(x[-1]/dx), endpoint=True)
-        return np.around(x,decimals=decimals)
-
     def create_dr(self):
         self.dr = np.arange(self.Rdelta, self.Rmax + self.Rdelta, self.Rdelta)
 
@@ -177,7 +168,7 @@ class PyStoG(object):
 
     def transform(self, xin, yin, xout, lorch=False, df=None, title=None):
         xmax = max(xin)
-        xout = self.extend_axis_to_low_end(xout)
+        xout = self.transformer._extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
         if lorch:
@@ -198,7 +189,7 @@ class PyStoG(object):
             yout[i] = afactor * np.trapz(kernel, x=xin)
 
         # Correct for omitted small Q-region
-        yout = self.qmin_correction(xin, yin, xout, yout, lorch)
+        #yout = self.qmin_correction(xin, yin, xout, yout, lorch)
 
         # Convert to G(r) -> g(r)
         FourPiRho = 4. * np.pi * self.density
@@ -238,64 +229,46 @@ class PyStoG(object):
         return gofr
 
     def fourier_filter(self):
+        kwargs = {'lorch' : False, 'rho' : self.density}
+        cutoff = self.fourier_filter_cutoff
 
-        # Work figuring out Fourier Filter
+        # Get reciprocal and real space data
         r  = self.df_gr_master[self.gr_title].index.values
         gr = self.df_gr_master[self.gr_title].values
-        r, gr = self.apply_cropping(r, gr, 0.0, self.fourier_filter_cutoff)
-
-        # Grab Q values
         q = self.df_sq_master[self.sq_title].index.values
-        qmin = min(q)
-        qmax = max(q)
+        sq = self.df_sq_master[self.sq_title].values
 
-        # Extend the low Q-range -> 0.0
-        q_ft = self.extend_axis_to_low_end(q)
+        # Fourier filter g(r)
+        q_ft, sq_ft, q, sq, r, gr = self.filter.g_using_S(r, gr, q, sq, cutoff, **kwargs)
 
-        # Calculate Fourier Correction
-        q_ft, sq_ft = self.transform(r, gr+1., q_ft, lorch=False)
-        sq_ft = ((sq_ft-1)*(self.density*self.density*(2.*np.pi)**3.))+1.
+        # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(q_ft,sq_ft,self.df_sq_master,self.ft_title)
         self.write_out_ft()
 
-        if self.plot_flag:
-            self.plot_sq(ylabel="FourierFilter(Q)", 
-                         title="Fourier Transform of the filtered low-r region below cutoff")
-
-        # Crop Fourier Correction to match the initial Q-range
-        q_ft, sq_ft = self.apply_cropping(q_ft, sq_ft, qmin, qmax)
-        
-        # Apply Fourier Correction
-        q = self.df_sq_master[self.sq_title].index.values
-        sq = self.df_sq_master[self.sq_title].values
-        q, sq = self.apply_cropping(q, sq, qmin, qmax)
-        sq = (sq - sq_ft) + 1
         self.df_sq_master = self.add_to_dataframe(q, sq, self.df_sq_master, self.sq_ft_title)
         self.write_out_ft_sq()
 
-
-        if self.plot_flag:
-            self.plot_sq(title="Fourier Filtered S(Q)")
-
-        # Transform back to g(r) with Fourier Filter Correction
-        r  = self.df_gr_master[self.gr_title].index.values
-        r, gr_ft = self.transform(q, sq, r, lorch=False)
-        self.df_gr_master = self.add_to_dataframe(r, gr_ft, self.df_gr_master, self.gr_ft_title)
+        self.df_gr_master = self.add_to_dataframe(r, gr, self.df_gr_master, self.gr_ft_title)
         self.write_out_ft_gr()
 
+        # Plot results
         if self.plot_flag:
-            self.plot_gr(title="Fourier Filtered G(r)")
+            df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference([self.sq_ft_title]) ]
+            self.plot_sq(df_sq, ylabel="FourierFilter(Q)", 
+                         title="Fourier Transform of the filtered low-r region below cutoff")
+            self.plot_sq(self.df_sq_master, title="Fourier Filtered S(Q)")
+            self.plot_gr(self.df_gr_master, title="Fourier Filtered G(r)")
 
-        return q, sq, r, gr_ft
-
+        return q, sq, r, gr
+        
     def apply_lorch(self,q,sq,r):
-        r, gr_lorch = self.transform(q, sq, r, lorch=True)
+        r, gr_lorch = self.transformer.S_to_g(q, sq, r, **{'lorch' : True, 'rho' : self.density} )
         self.df_gr_master = self.add_to_dataframe(r, gr_lorch, 
                                                   self.df_gr_master, self.gr_lorch_title)
         self.write_out_lorched_gr()
 
         if self.plot_flag:
-            self.plot_gr(title="Lorched G(r)")
+            self.plot_gr(self.df_gr_master, title="Lorched G(r)")
             plt.show()
 
         return r, gr_lorch
@@ -323,15 +296,15 @@ class PyStoG(object):
     # -------------------------------------#
     # Plot Utilities
 
-    def plot_sq(self,xlabel='Q', ylabel='S(Q)', title=''):
-        stog.df_sq_master.plot()
+    def plot_sq(self, df, xlabel='Q', ylabel='S(Q)', title=''):
+        df.plot()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
-    def plot_gr(self,xlabel='r', ylabel='G(r)', title=''):
-        stog.df_gr_master.plot()
+    def plot_gr(self, df, xlabel='r', ylabel='G(r)', title=''):
+        df.plot()
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
@@ -346,13 +319,6 @@ class PyStoG(object):
         plt.ylabel("S(Q)")
         ax1.set_title("Individual S(Q)")
         ax2.set_title("Merged S(Q)")
-        plt.show()
-
-    def plot_merged_gr(self):
-        stog.df_gr_master.plot()
-        plt.xlabel("r")
-        plt.ylabel("G(r)")
-        plt.title("Merged G(r)")
         plt.show()
 
     def plot_summary_sq(self):
@@ -508,13 +474,13 @@ if __name__ == "__main__":
 
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
-    r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
+    r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
 
     if kwargs["PlotFlag"]:
-        stog.plot_merged_gr()
+        stog.plot_gr(stog.df_gr_master, ylabel="g(r)", title="Merged g(r)")
 
     #print stog.get_lowR_mean_square()
 
