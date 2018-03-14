@@ -6,7 +6,14 @@ import argparse
 import numpy as np
 import pandas as pd
 
- 
+ReciprocalSpaceChoices = { "S(Q)" : "S(Q)",
+                           "F(Q)" : "=Q[S(Q) - 1]",
+                           "FK(Q)" : "Keen's F(Q)" }
+RealSpaceChoices = { "g(r)" : ' "little" g(r)',
+                     "G(r)" : "Pair Distribution Function",
+                     "GK(r)" : "Keen's G(r)" }
+
+
 # -------------------------------------#
 # Utilities
 

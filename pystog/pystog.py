@@ -5,12 +5,12 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 
-from pytransformer import Converter, Transformer
+from pytransformer import Converter, Transformer, ReciprocalSpaceChoices
 
 
 class PyStoG(object):
 
-    def __init__(self, files, **kwargs):
+    def __init__(self, **kwargs):
         self.df_individuals = pd.DataFrame()
 
         self.df_sq_master = pd.DataFrame()
@@ -26,20 +26,21 @@ class PyStoG(object):
         self.gr_title = "g(r) Merged"
         self.gr_rmc_title = "G(r) RMC"
 
-        self.files = files
+        self.files = kwargs["Files"]
         self.xmin = 100
         self.xmax = 0
 
         self.dr = None
 
-        self.density = kwargs["density"]
-        self.stem_name = kwargs["stem_name"]
-        self.Rmax = kwargs["Rmax"]
-        self.Rdelta = kwargs["Rmax"] / kwargs["Rpoints"]
-        self.fourier_filter_cutoff = kwargs["fourier_filter_cutoff"]
-        if kwargs["Rdelta"] is not None:
+        self.density = kwargs["NumberDensity"]
+        self.stem_name = kwargs["Outputs"]["StemName"]
+        self.Rmax = float(kwargs["Rmax"])
+        self.Rdelta = self.Rmax / kwargs["Rpoints"]
+        self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
+        if "Rdelta" in kwargs:
             self.Rdelta = kwargs["Rdelta"]
-        self.lorch_flag = kwargs["lorch_flag"]
+        self.lorch_flag = kwargs["LorchFlag"]
+        self.final_scale = kwargs["<b_coh>^2"]
 
     # -------------------------------------#
     # Reading and Merging Spectrum
@@ -49,13 +50,13 @@ class PyStoG(object):
             print("No files loaded for PyStog")
             return
 
-        for i, file_info in self.files.items():
+        for i, file_info in enumerate(self.files):
             file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
         return
 
     def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s*", **kwargs):
-        data = pd.read_csv(info['filename'],
+        data = pd.read_csv(info['Filename'],
                            sep=sep,
                            usecols=[xcol, ycol],
                            names=['x', 'y'],
@@ -69,9 +70,9 @@ class PyStoG(object):
         x = np.array(info['data']['x'])
         y = np.array(info['data']['y'])
 
-        x, y = self.apply_cropping(x, y, info['xmin'], info['xmax'])
+        x, y = self.apply_cropping(x, y, info['Qmin'], info['Qmax'])
         x, y = self.apply_scales_and_offset(
-            x, y, info['yscale'], info['yoffset'], info['xoffset'])
+            x, y, info['Y']['Scale'], info['Y']['Offset'], info['X']['Offset'])
 
         self.xmin = min(self.xmin, min(x))
         self.xmax = max(self.xmax, max(x))
@@ -268,6 +269,7 @@ class PyStoG(object):
             filename = "%s_rmc.gr" % self.stem_name
         self.write_out_df(self.df_gr_master, [self.gr_rmc_title], filename)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", type=str, default=None,
@@ -276,7 +278,8 @@ if __name__ == "__main__":
                         help="Number density (atoms/angstroms^3")
     parser.add_argument("-f", "--filename", nargs='*', action='append',
                         default=list(), dest='filenames',
-                        help="Filename, qmin, qmax, yoffset, yscale, Q offset")
+                        help="Filename, qmin, qmax, yoffset, yscale, Q offset, function type."+
+                             "Function Types are: %s" % json.dumps(ReciprocalSpaceChoices))
     parser.add_argument(
         "--stem-name",
         type=str,
@@ -308,33 +311,36 @@ if __name__ == "__main__":
     if args.json:
         print("loading config from '%s'" % args.json)
         with open(args.json, 'r') as f:
-            config = json.load(f)
-
-        
+            kwargs = json.load(f)
 
     else:
         # Get each file's info and story in dictionary
-        files_info = dict()
-        keys = ["filename", "xmin", "xmax", "yoffset", "yscale", "xoffset"]
-        types = [str, float, float, float, float, float]
-        for ifile, f in enumerate(args.filenames):
+        files_info = list() 
+        for f in args.filenames:
             file_info = dict()
-            for ikey, (key, type_cast) in enumerate(zip(keys, types)):
-                file_info[key] = type_cast(f[ikey])
-            files_info[ifile] = file_info
+            file_info["Filename"] = f[0]
+            file_info["Qmin"] = float(f[1])
+            file_info["Qmax"] = float(f[2])
+            file_info["Y"] = { "Offset" : float(f[3]), "Scale" : float(f[4]) }
+            file_info["X"] = { "Offset" : float(f[5]) }
+            file_info["ReciprocalFunction"] = f[6]
+            files_info.append(file_info)
 
         # Get general StoG options
-        kwargs = {  "density" : args.density,
-                    "stem_name" : args.stem_name,
+        kwargs = {  "Files" : files_info,
+                    "NumberDensity" : args.density,
                     "Rmax" : args.Rmax,
                     "Rpoints" : args.Rpoints, 
-                    "Rdelta" : args.Rdelta,
-                    "lorch_flag" : args.lorch_flag, 
-                    "fourier_filter_cutoff" : args.fourier_filter_cutoff
+                    "FourierFilter" : { "Cutoff" : args.fourier_filter_cutoff},
+                    "LorchFlag" : args.lorch_flag, 
+                    "Outputs" : { "StemName" : args.stem_name },
+                    "<b_coh>^2" : args.final_scale,
         }
+        if args.Rdelta:
+            kwargs["Rdelta"] = args.Rdelta
 
     # Merge S(Q) files
-    stog = PyStoG(files_info, **kwargs)
+    stog = PyStoG(**kwargs)
     stog.read_all_data(skiprows=3)
     stog.merge_data()
     stog.write_out_merged_sq()
@@ -364,7 +370,7 @@ if __name__ == "__main__":
     sq = stog.df_sq_master[stog.sq_title].values
     gr_out = gofr
 
-    if args.fourier_filter_cutoff:
+    if "FourierFilter" in kwargs:
         # Work figuring out Fourier Filter
         r  = stog.df_gr_master[stog.gr_title].index.values
         gr = stog.df_gr_master[stog.gr_title].values
@@ -391,20 +397,14 @@ if __name__ == "__main__":
         q = stog.df_sq_master[stog.sq_title].index.values
         sq = stog.df_sq_master[stog.sq_title].values
         q, sq = stog.apply_cropping(q, sq, qmin, qmax)
-        plt.plot(q, sq)
         sq = (sq - sq_ft) + 1
-        plt.plot(q, sq)
         stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
         stog.write_out_ft_sq()
 
 
         # Transform back to g(r) with Fourier Filter Correction
-        plt.plot(q, sq)
-        plt.show()
         r  = stog.df_gr_master[stog.gr_title].index.values
         r, gr_ft = stog.transform(q, sq, r, lorch=False)
-        plt.plot(r,gr_ft)
-        plt.show()
         stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
         stog.write_out_ft_gr()
 
@@ -419,7 +419,7 @@ if __name__ == "__main__":
 
 
     # Apply Lorch
-    if args.lorch_flag:
+    if kwargs["LorchFlag"]:
         r, gr_lorch = stog.transform(q, sq, r, lorch=True)
         stog.df_gr_master = stog.add_to_dataframe(r, gr_lorch, stog.df_gr_master, stog.gr_lorch_title)
         stog.write_out_lorched_gr()
@@ -430,12 +430,11 @@ if __name__ == "__main__":
     # merged_ft_lorched.gr is matching
 
     # Apply final scale number
-    fq_rmc = args.final_scale*(sq-1)
+    fq_rmc = kwargs["<b_coh>^2"]*(sq-1)
     stog.df_sq_master = stog.add_to_dataframe(q, fq_rmc, stog.df_sq_master, stog.fq_rmc_title)
     stog.write_out_rmc_fq()
 
-    gr_rmc = args.final_scale*(gr_out-1)
+    gr_rmc = kwargs["<b_coh>^2"]*(gr_out-1)
     stog.df_gr_master = stog.add_to_dataframe(r, gr_rmc, stog.df_gr_master, stog.gr_rmc_title)
-    print("NOW HERE")
     stog.write_out_rmc_gr()
     
