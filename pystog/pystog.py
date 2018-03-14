@@ -487,15 +487,15 @@ if __name__ == "__main__":
     stog.merge_data()
     stog.write_out_merged_sq()
 
-    # Initial S(Q) -> g(r) transform 
+    # Initialize S(Q)
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
 
     if kwargs["PlotFlag"]:
         stog.plot_merged_sq()
 
+    # Initial S(Q) -> g(r) transform 
     stog.create_dr()
-
     r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
@@ -510,6 +510,7 @@ if __name__ == "__main__":
     sq = stog.df_sq_master[stog.sq_title].values
     gr_out = gofr
 
+    # Apply Fourier Filter
     if "FourierFilter" in kwargs:
         q, sq, r, gr_out = stog.fourier_filter()
 
@@ -520,7 +521,7 @@ if __name__ == "__main__":
     stog.write_out_ft_dr()
     '''
 
-    # Apply Lorch
+    # Apply Lorch Modification
     if kwargs["LorchFlag"]:
         r, gr_out = stog.apply_lorch(q,sq,r)
 
