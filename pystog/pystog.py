@@ -8,6 +8,37 @@ import matplotlib.pyplot as plt
 from pytransformer import Converter, Transformer, ReciprocalSpaceChoices
 
 
+def parser_cli_args(args):
+    # Get each file's info and story in dictionary
+    files_info = list() 
+    for f in args.filenames:
+        file_info = dict()
+        file_info["Filename"] = f[0]
+        file_info["Qmin"] = float(f[1])
+        file_info["Qmax"] = float(f[2])
+        file_info["Y"] = { "Offset" : float(f[3]), "Scale" : float(f[4]) }
+        file_info["X"] = { "Offset" : float(f[5]) }
+        file_info["ReciprocalFunction"] = f[6]
+        files_info.append(file_info)
+
+    # Get general StoG options
+    kwargs = {  "Files" : files_info,
+                "NumberDensity" : args.density,
+                "Rmax" : args.Rmax,
+                "Rpoints" : args.Rpoints, 
+                "FourierFilter" : { "Cutoff" : args.fourier_filter_cutoff},
+                "LorchFlag" : args.lorch_flag, 
+                "PlotFlag" : args.plot, 
+                "Outputs" : { "StemName" : args.stem_name },
+                "<b_coh>^2" : args.final_scale,
+    }
+    if args.Rdelta:
+        kwargs["Rdelta"] = args.Rdelta
+
+    return kwargs
+
+
+
 class PyStoG(object):
 
     def __init__(self, **kwargs):
@@ -40,6 +71,7 @@ class PyStoG(object):
         if "Rdelta" in kwargs:
             self.Rdelta = kwargs["Rdelta"]
         self.lorch_flag = kwargs["LorchFlag"]
+        self.plot_flag = kwargs["PlotFlag"]
         self.final_scale = kwargs["<b_coh>^2"]
 
     # -------------------------------------#
@@ -196,6 +228,68 @@ class PyStoG(object):
 
         return gofr
 
+    def fourier_filter(self):
+
+        # Work figuring out Fourier Filter
+        r  = self.df_gr_master[self.gr_title].index.values
+        gr = self.df_gr_master[self.gr_title].values
+        r, gr = self.apply_cropping(r, gr, 0.0, self.fourier_filter_cutoff)
+
+        # Grab Q values
+        q = self.df_sq_master[self.sq_title].index.values
+        qmin = min(q)
+        qmax = max(q)
+
+        # Extend the low Q-range -> 0.0
+        q_ft = self.extend_axis_to_low_end(q)
+
+        # Calculate Fourier Correction
+        q_ft, sq_ft = self.transform(r, gr+1., q_ft, lorch=False)
+        sq_ft = ((sq_ft-1)*(self.density*self.density*(2.*np.pi)**3.))+1.
+        self.df_sq_master = self.add_to_dataframe(q_ft,sq_ft,self.df_sq_master,self.ft_title)
+        self.write_out_ft()
+
+        if self.plot_flag:
+            self.plot_sq(ylabel="FourierFilter(Q)", 
+                         title="Fourier Transform of the filtered low-r region below cutoff")
+
+        # Crop Fourier Correction to match the initial Q-range
+        q_ft, sq_ft = self.apply_cropping(q_ft, sq_ft, qmin, qmax)
+        
+        # Apply Fourier Correction
+        q = self.df_sq_master[self.sq_title].index.values
+        sq = self.df_sq_master[self.sq_title].values
+        q, sq = self.apply_cropping(q, sq, qmin, qmax)
+        sq = (sq - sq_ft) + 1
+        self.df_sq_master = self.add_to_dataframe(q, sq, self.df_sq_master, self.sq_ft_title)
+        self.write_out_ft_sq()
+
+        if self.plot_flag:
+            self.plot_sq(title="Fourier Filtered S(Q)")
+
+        # Transform back to g(r) with Fourier Filter Correction
+        r  = self.df_gr_master[self.gr_title].index.values
+        r, gr_ft = self.transform(q, sq, r, lorch=False)
+        self.df_gr_master = self.add_to_dataframe(r, gr_ft, self.df_gr_master, self.gr_ft_title)
+        self.write_out_ft_gr()
+
+        if self.plot_flag:
+            self.plot_gr(title="Fourier Filtered G(r)")
+
+        return q, sq, r, gr_ft
+
+    def apply_lorch(self,q,sq,r):
+        r, gr_lorch = self.transform(q, sq, r, lorch=True)
+        self.df_gr_master = self.add_to_dataframe(r, gr_lorch, 
+                                                  self.df_gr_master, self.gr_lorch_title)
+        self.write_out_lorched_gr()
+
+        if self.plot_flag:
+            self.plot_gr(title="Lorched G(r)")
+            plt.show()
+
+        return r, gr_lorch
+
     def get_lowR_mean_square(self):
         gofr = self.df_gr_master[self.gr_title].values
         return self.lowR_mean_square(self.dr, gofr)
@@ -205,6 +299,77 @@ class PyStoG(object):
         gofr_sq = np.multiply(gofr, gofr)
         average = sum(gofr_sq)
         return np.sqrt(average)
+
+    def add_keen_fq(self):
+        fq_rmc = self.final_scale*(sq-1)
+        self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
+        self.write_out_rmc_fq()
+
+    def add_keen_gr(self):
+        gr_rmc = self.final_scale*(gr_out-1)
+        self.df_gr_master = self.add_to_dataframe(r, gr_rmc, self.df_gr_master, self.gr_rmc_title)
+        self.write_out_rmc_gr()
+ 
+    # -------------------------------------#
+    # Plot Utilities
+
+    def plot_sq(self,xlabel='Q', ylabel='S(Q)', title=''):
+        stog.df_sq_master.plot()
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.show()
+
+    def plot_gr(self,xlabel='r', ylabel='G(r)', title=''):
+        stog.df_gr_master.plot()
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.show()
+
+
+    def plot_merged_sq(self):
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        self.df_individuals.plot(ax=ax1)
+        self.df_sq_master.plot(ax=ax2)
+        plt.xlabel("Q")
+        plt.ylabel("S(Q)")
+        ax1.set_title("Individual S(Q)")
+        ax2.set_title("Merged S(Q)")
+        plt.show()
+
+    def plot_merged_gr(self):
+        stog.df_gr_master.plot()
+        plt.xlabel("r")
+        plt.ylabel("G(r)")
+        plt.title("Merged G(r)")
+        plt.show()
+
+    def plot_summary_sq(self):
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference([self.fq_rmc_title]) ]
+        df_sq.plot(ax=ax1)
+        df_fq = self.df_sq_master.ix[ :, [self.fq_rmc_title] ]
+        df_fq.plot(ax=ax2)
+        plt.xlabel("Q")
+        ax1.set_ylabel("S(Q)")
+        ax1.set_title("StoG S(Q) functions")
+        ax2.set_ylabel("FK(Q)")
+        ax2.set_title("Keen's F(Q)")
+        plt.show()
+
+    def plot_summary_gr(self):
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        df_gr = self.df_gr_master.ix[ :, self.df_gr_master.columns.difference([self.gr_rmc_title]) ]
+        df_gr.plot(ax=ax1)
+        df_gk = self.df_gr_master.ix[ :, [self.gr_rmc_title] ]
+        df_gk.plot(ax=ax2)
+        plt.xlabel("r")
+        ax1.set_ylabel("S(Q)")
+        ax1.set_title("StoG G(r) functions")
+        ax2.set_ylabel("GK(r)")
+        ax2.set_title("Keen's G(r)")
+        plt.show()
 
     # -------------------------------------#
     # Output Utilities
@@ -314,31 +479,7 @@ if __name__ == "__main__":
             kwargs = json.load(f)
 
     else:
-        # Get each file's info and story in dictionary
-        files_info = list() 
-        for f in args.filenames:
-            file_info = dict()
-            file_info["Filename"] = f[0]
-            file_info["Qmin"] = float(f[1])
-            file_info["Qmax"] = float(f[2])
-            file_info["Y"] = { "Offset" : float(f[3]), "Scale" : float(f[4]) }
-            file_info["X"] = { "Offset" : float(f[5]) }
-            file_info["ReciprocalFunction"] = f[6]
-            files_info.append(file_info)
-
-        # Get general StoG options
-        kwargs = {  "Files" : files_info,
-                    "NumberDensity" : args.density,
-                    "Rmax" : args.Rmax,
-                    "Rpoints" : args.Rpoints, 
-                    "FourierFilter" : { "Cutoff" : args.fourier_filter_cutoff},
-                    "LorchFlag" : args.lorch_flag, 
-                    "PlotFlag" : args.plot, 
-                    "Outputs" : { "StemName" : args.stem_name },
-                    "<b_coh>^2" : args.final_scale,
-        }
-        if args.Rdelta:
-            kwargs["Rdelta"] = args.Rdelta
+        kwargs = parser_cli_args(args)
 
     # Merge S(Q) files
     stog = PyStoG(**kwargs)
@@ -346,21 +487,12 @@ if __name__ == "__main__":
     stog.merge_data()
     stog.write_out_merged_sq()
 
-    
-
     # Initial S(Q) -> g(r) transform 
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
 
     if kwargs["PlotFlag"]:
-        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
-        stog.df_individuals.plot(ax=ax1)
-        stog.df_sq_master.plot(ax=ax2)
-        plt.xlabel("Q")
-        plt.ylabel("S(Q)")
-        ax1.set_title("Individual S(Q)")
-        ax2.set_title("Merged S(Q)")
-        plt.show()
+        stog.plot_merged_sq()
 
     stog.create_dr()
 
@@ -370,11 +502,7 @@ if __name__ == "__main__":
     stog.write_out_merged_gr()
 
     if kwargs["PlotFlag"]:
-        stog.df_gr_master.plot()
-        plt.xlabel("r")
-        plt.ylabel("G(r)")
-        plt.title("Merged G(r)")
-        plt.show()
+        stog.plot_merged_gr()
 
     #print stog.get_lowR_mean_square()
 
@@ -383,67 +511,7 @@ if __name__ == "__main__":
     gr_out = gofr
 
     if "FourierFilter" in kwargs:
-        # Work figuring out Fourier Filter
-        r  = stog.df_gr_master[stog.gr_title].index.values
-        gr = stog.df_gr_master[stog.gr_title].values
-        r, gr = stog.apply_cropping(r, gr, 0.0, stog.fourier_filter_cutoff)
-
-        # Grab Q values
-        q = stog.df_sq_master[stog.sq_title].index.values
-        qmin = min(q)
-        qmax = max(q)
-
-        # Extend the low Q-range -> 0.0
-        q_ft = stog.extend_axis_to_low_end(q)
-
-        # Calculate Fourier Correction
-        q_ft, sq_ft = stog.transform(r, gr+1., q_ft, lorch=False)
-        sq_ft = ((sq_ft-1)*(stog.density*stog.density*(2.*np.pi)**3.))+1.
-        stog.df_sq_master = stog.add_to_dataframe(q_ft,sq_ft,stog.df_sq_master,stog.ft_title)
-        stog.write_out_ft()
-
-        if kwargs["PlotFlag"]:
-            stog.df_sq_master.plot()
-            plt.xlabel("Q")
-            plt.ylabel("FourierFilter(Q)")
-            plt.title("Fourier Transform of the filtered low-r region below cutoff")
-            plt.show()
-
-
-        # Crop Fourier Correction to match the initial Q-range
-        q_ft, sq_ft = stog.apply_cropping(q_ft, sq_ft, qmin, qmax)
-        
-        # Apply Fourier Correction
-        q = stog.df_sq_master[stog.sq_title].index.values
-        sq = stog.df_sq_master[stog.sq_title].values
-        q, sq = stog.apply_cropping(q, sq, qmin, qmax)
-        sq = (sq - sq_ft) + 1
-        stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
-        stog.write_out_ft_sq()
-
-        if kwargs["PlotFlag"]:
-            stog.df_sq_master.plot()
-            plt.xlabel("Q")
-            plt.ylabel("S(Q)")
-            plt.title("Fourier Filtered S(Q)")
-            plt.show()
-
-
-        # Transform back to g(r) with Fourier Filter Correction
-        r  = stog.df_gr_master[stog.gr_title].index.values
-        r, gr_ft = stog.transform(q, sq, r, lorch=False)
-        stog.df_gr_master = stog.add_to_dataframe(r, gr_ft, stog.df_gr_master, stog.gr_ft_title)
-        stog.write_out_ft_gr()
-
-        gr_out = gr_ft
-
-        if kwargs["PlotFlag"]:
-            stog.df_gr_master.plot()
-            plt.xlabel("r")
-            plt.ylabel("G(r)")
-            plt.title("Fourier Filtered G(r)")
-            plt.show()
-
+        q, sq, r, gr_out = stog.fourier_filter()
 
     '''
     # Write out D(r) as well
@@ -452,56 +520,14 @@ if __name__ == "__main__":
     stog.write_out_ft_dr()
     '''
 
-
     # Apply Lorch
     if kwargs["LorchFlag"]:
-        r, gr_lorch = stog.transform(q, sq, r, lorch=True)
-        stog.df_gr_master = stog.add_to_dataframe(r, gr_lorch, stog.df_gr_master, stog.gr_lorch_title)
-        stog.write_out_lorched_gr()
-
-        gr_out = gr_lorch
-
-        if kwargs["PlotFlag"]:
-            stog.df_gr_master.plot()
-            plt.xlabel("r")
-            plt.ylabel("G(r)")
-            plt.title("Lorched G(r)")
-            plt.show()
-
-        
-    # Benchmarked to HERE against stog_new3
-    # merged_ft_lorched.gr is matching
+        r, gr_out = stog.apply_lorch(q,sq,r)
 
     # Apply final scale number
-    fq_rmc = kwargs["<b_coh>^2"]*(sq-1)
-    stog.df_sq_master = stog.add_to_dataframe(q, fq_rmc, stog.df_sq_master, stog.fq_rmc_title)
-    stog.write_out_rmc_fq()
-
-    gr_rmc = kwargs["<b_coh>^2"]*(gr_out-1)
-    stog.df_gr_master = stog.add_to_dataframe(r, gr_rmc, stog.df_gr_master, stog.gr_rmc_title)
-    stog.write_out_rmc_gr()
-    
+    stog.add_keen_fq()
+    stog.add_keen_gr()
+   
     if kwargs["PlotFlag"]:
-        df_sq = stog.df_sq_master.ix[ :, stog.df_sq_master.columns.difference([stog.fq_rmc_title]) ]
-        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
-        df_sq.plot(ax=ax1)
-        ax2.plot(q, fq_rmc)
-        plt.xlabel("Q")
-        ax1.set_ylabel("S(Q)")
-        ax1.set_title("StoG S(Q) functions")
-        ax2.set_ylabel("FK(Q)")
-        ax2.set_title("Keen's F(Q)")
-        plt.show()
-
-        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
-        df_gr = stog.df_gr_master.ix[ :, stog.df_gr_master.columns.difference([stog.gr_rmc_title]) ]
-        df_gr.plot(ax=ax1)
-        ax2.plot(r, gr_rmc)
-        plt.xlabel("r")
-        ax1.set_ylabel("S(Q)")
-        ax1.set_title("StoG G(r) functions")
-        ax2.set_ylabel("GK(r)")
-        ax2.set_title("Keen's G(r)")
-        plt.show()
-
-    exit()
+        stog.plot_summary_sq()
+        stog.plot_summary_gr()
