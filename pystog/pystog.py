@@ -333,6 +333,7 @@ if __name__ == "__main__":
                     "Rpoints" : args.Rpoints, 
                     "FourierFilter" : { "Cutoff" : args.fourier_filter_cutoff},
                     "LorchFlag" : args.lorch_flag, 
+                    "PlotFlag" : args.plot, 
                     "Outputs" : { "StemName" : args.stem_name },
                     "<b_coh>^2" : args.final_scale,
         }
@@ -345,24 +346,35 @@ if __name__ == "__main__":
     stog.merge_data()
     stog.write_out_merged_sq()
 
+    
+
     # Initial S(Q) -> g(r) transform 
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
+
+    if kwargs["PlotFlag"]:
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        stog.df_individuals.plot(ax=ax1)
+        stog.df_sq_master.plot(ax=ax2)
+        plt.xlabel("Q")
+        plt.ylabel("S(Q)")
+        ax1.set_title("Individual S(Q)")
+        ax2.set_title("Merged S(Q)")
+        plt.show()
+
     stog.create_dr()
 
     r, gofr = stog.transform(q, sofq, stog.dr, lorch=False)
-
-    if args.plot:
-        plt.plot(r,gofr, label="G'(r) w/ corr.")
-        plt.plot(r,stog._omitted_correction, label="Correction")    
-        plt.xlabel("r")
-        plt.ylabel("G'(r)")
-        plt.legend()
-        plt.show()
-
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
+
+    if kwargs["PlotFlag"]:
+        stog.df_gr_master.plot()
+        plt.xlabel("r")
+        plt.ylabel("G(r)")
+        plt.title("Merged G(r)")
+        plt.show()
 
     #print stog.get_lowR_mean_square()
 
@@ -390,6 +402,14 @@ if __name__ == "__main__":
         stog.df_sq_master = stog.add_to_dataframe(q_ft,sq_ft,stog.df_sq_master,stog.ft_title)
         stog.write_out_ft()
 
+        if kwargs["PlotFlag"]:
+            stog.df_sq_master.plot()
+            plt.xlabel("Q")
+            plt.ylabel("FourierFilter(Q)")
+            plt.title("Fourier Transform of the filtered low-r region below cutoff")
+            plt.show()
+
+
         # Crop Fourier Correction to match the initial Q-range
         q_ft, sq_ft = stog.apply_cropping(q_ft, sq_ft, qmin, qmax)
         
@@ -401,6 +421,13 @@ if __name__ == "__main__":
         stog.df_sq_master = stog.add_to_dataframe(q, sq, stog.df_sq_master, stog.sq_ft_title)
         stog.write_out_ft_sq()
 
+        if kwargs["PlotFlag"]:
+            stog.df_sq_master.plot()
+            plt.xlabel("Q")
+            plt.ylabel("S(Q)")
+            plt.title("Fourier Filtered S(Q)")
+            plt.show()
+
 
         # Transform back to g(r) with Fourier Filter Correction
         r  = stog.df_gr_master[stog.gr_title].index.values
@@ -409,6 +436,14 @@ if __name__ == "__main__":
         stog.write_out_ft_gr()
 
         gr_out = gr_ft
+
+        if kwargs["PlotFlag"]:
+            stog.df_gr_master.plot()
+            plt.xlabel("r")
+            plt.ylabel("G(r)")
+            plt.title("Fourier Filtered G(r)")
+            plt.show()
+
 
     '''
     # Write out D(r) as well
@@ -425,6 +460,14 @@ if __name__ == "__main__":
         stog.write_out_lorched_gr()
 
         gr_out = gr_lorch
+
+        if kwargs["PlotFlag"]:
+            stog.df_gr_master.plot()
+            plt.xlabel("r")
+            plt.ylabel("G(r)")
+            plt.title("Lorched G(r)")
+            plt.show()
+
         
     # Benchmarked to HERE against stog_new3
     # merged_ft_lorched.gr is matching
@@ -438,3 +481,27 @@ if __name__ == "__main__":
     stog.df_gr_master = stog.add_to_dataframe(r, gr_rmc, stog.df_gr_master, stog.gr_rmc_title)
     stog.write_out_rmc_gr()
     
+    if kwargs["PlotFlag"]:
+        df_sq = stog.df_sq_master.ix[ :, stog.df_sq_master.columns.difference([stog.fq_rmc_title]) ]
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        df_sq.plot(ax=ax1)
+        ax2.plot(q, fq_rmc)
+        plt.xlabel("Q")
+        ax1.set_ylabel("S(Q)")
+        ax1.set_title("StoG S(Q) functions")
+        ax2.set_ylabel("FK(Q)")
+        ax2.set_title("Keen's F(Q)")
+        plt.show()
+
+        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+        df_gr = stog.df_gr_master.ix[ :, stog.df_gr_master.columns.difference([stog.gr_rmc_title]) ]
+        df_gr.plot(ax=ax1)
+        ax2.plot(r, gr_rmc)
+        plt.xlabel("r")
+        ax1.set_ylabel("S(Q)")
+        ax1.set_title("StoG G(r) functions")
+        ax2.set_ylabel("GK(r)")
+        ax2.set_title("Keen's G(r)")
+        plt.show()
+
+    exit()
