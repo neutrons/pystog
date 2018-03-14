@@ -54,10 +54,13 @@ class Converter(object):
         return q*(sq - 1.)
 
     def FK_to_F(self, q, fq_keen, **kwargs):
-        return q * fq_keen / kwargs['bcoh_sqrd']
+        return q * fq_keen / kwargs['<b_coh>^2']
 
     def F_to_FK(self, q, fq, **kwargs):
-        return kwargs['bcoh_sqrd'] * fq / q 
+        mask = ( q != 0.0)
+        fq_new = np.zeros_like(fq)
+        fq_new[mask] = fq[mask] / q[mask] 
+        return kwargs['<b_coh>^2'] * fq_new
 
     def S_to_FK(self, q, sq, **kwargs):
         fq = self.S_to_F(q,sq)
@@ -71,7 +74,7 @@ class Converter(object):
 
     # G(r) = PDF
     def G_to_GK(self, r, gr, **kwargs):
-        factor = kwargs['bcoh_sqrd'] / (4. * np.pi * kwargs['rho']) 
+        factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho']) 
         return factor * ( gr / r )
 
     def G_to_g(self, r, gr, **kwargs):
@@ -80,7 +83,7 @@ class Converter(object):
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, **kwargs):
-        factor = (4. * np.pi * kwargs['rho']) / kwargs['bcoh_sqrd']
+        factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
         return  factor * r * gr
 
     def GK_to_g(self, r, gr, **kwargs):
@@ -126,11 +129,11 @@ class Transformer(object):
             yout[i] = np.trapz(kernel, x=xin)
 
         if 'OmittedXrangeCorrection' in kwargs:
-            self.low_x_correction(xin, yin, xout, yout, **kwargs)
+            self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout
 
-    def low_x_correction(self):
+    def _low_x_correction(self):
         pass
 
     #--------------------------------------#
@@ -240,6 +243,7 @@ transform_functions =  inspect.getmembers(tf, predicate=inspect.ismethod)
 transform_dict = { entry[0] : entry[1] for entry in transform_functions }
 transform_dict.pop('fourier_transform')
 transform_dict.pop('_extend_axis_to_low_end')
+transform_dict.pop('_low_x_correction')
 transform_dict.pop('__init__')
 
 cv = Converter()
@@ -313,7 +317,7 @@ if __name__ == "__main__":
     # Add extra  key-word arguments needed for some conversions
     kwargs = dict()
     if args.bcoh_sqrd:
-        kwargs['bcoh_sqrd'] = args.bcoh_sqrd
+        kwargs['<b_coh>^2'] = args.bcoh_sqrd
     if args.rho:
         kwargs['rho'] = args.rho
     kwargs['lorch'] = args.lorch

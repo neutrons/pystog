@@ -74,6 +74,9 @@ class PyStoG(object):
         self.plot_flag = kwargs["PlotFlag"]
         self.final_scale = kwargs["<b_coh>^2"]
 
+        self.converter = Converter()
+        self.transformer = Transformer()
+
     # -------------------------------------#
     # Reading and Merging Spectrum
 
@@ -98,14 +101,20 @@ class PyStoG(object):
         data = self.add_dataset(info, **kwargs)
         return data
 
-    def add_dataset(self, info, **kwargs):
+    def add_dataset(self, info, decimals=4, **kwargs):
         x = np.array(info['data']['x'])
         y = np.array(info['data']['y'])
 
         x, y = self.apply_cropping(x, y, info['Qmin'], info['Qmax'])
-        x, y = self.apply_scales_and_offset(
-            x, y, info['Y']['Scale'], info['Y']['Offset'], info['X']['Offset'])
+        x, y = self.apply_scales_and_offset(x, y, 
+                                            info['Y']['Scale'], 
+                                            info['Y']['Offset'], 
+                                            info['X']['Offset'])
 
+        if info["ReciprocalFunction"] == "F(Q)":
+            y = self.converter.F_to_S(x, y)
+        elif info["ReciprocalFunction"] == "FK(Q)":
+            y = self.converter.FK_to_S(x, y, **{'<b_coh>^2' : self.final_scale} )
         self.xmin = min(self.xmin, min(x))
         self.xmax = max(self.xmax, max(x))
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
@@ -263,6 +272,7 @@ class PyStoG(object):
         sq = (sq - sq_ft) + 1
         self.df_sq_master = self.add_to_dataframe(q, sq, self.df_sq_master, self.sq_ft_title)
         self.write_out_ft_sq()
+
 
         if self.plot_flag:
             self.plot_sq(title="Fourier Filtered S(Q)")
@@ -478,6 +488,7 @@ if __name__ == "__main__":
         with open(args.json, 'r') as f:
             kwargs = json.load(f)
 
+
     else:
         kwargs = parser_cli_args(args)
 
@@ -493,6 +504,7 @@ if __name__ == "__main__":
 
     if kwargs["PlotFlag"]:
         stog.plot_merged_sq()
+
 
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
