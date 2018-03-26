@@ -8,7 +8,8 @@ import pandas as pd
 
 ReciprocalSpaceChoices = { "S(Q)" : "S(Q)",
                            "F(Q)" : "=Q[S(Q) - 1]",
-                           "FK(Q)" : "Keen's F(Q)" }
+                           "FK(Q)" : "Keen's F(Q)",
+                           "DCS(Q)" : "Differential Cross-Section" }
 RealSpaceChoices = { "g(r)" : ' "little" g(r)',
                      "G(r)" : "Pair Distribution Function",
                      "GK(r)" : "Keen's G(r)" }
@@ -45,16 +46,12 @@ class Converter(object):
     def __init__(self):
         pass
 
+    #----------------------------#
     # Reciprocal Space Conversions
 
+    # F(Q) = Q[S(Q) - 1]
     def F_to_S(self, q, fq):
         return (fq / q) + 1.
-
-    def S_to_F(self, q, sq):
-        return q*(sq - 1.)
-
-    def FK_to_F(self, q, fq_keen, **kwargs):
-        return q * fq_keen / kwargs['<b_coh>^2']
 
     def F_to_FK(self, q, fq, **kwargs):
         mask = ( q != 0.0)
@@ -62,14 +59,46 @@ class Converter(object):
         fq_new[mask] = fq[mask] / q[mask] 
         return kwargs['<b_coh>^2'] * fq_new
 
+    def F_to_DCS(self, q, fq, **kwargs):
+        fq = self.F_to_FK(q, fq, **kwargs)
+        return self.FK_to_DCS(q, fq, **kwargs)
+
+    # S(Q)
+    def S_to_F(self, q, sq):
+        return q*(sq - 1.)
+
     def S_to_FK(self, q, sq, **kwargs):
         fq = self.S_to_F(q,sq)
         return self.F_to_FK(q, fq, **kwargs)
+
+    def S_to_DCS(self, q, sq, **kwargs):
+        fq = self.S_to_FK(q, sq, **kwargs)
+        return self.FK_to_DCS(q, fq, **kwargs)
+
+    # Keen's F(Q)
+    def FK_to_F(self, q, fq_keen, **kwargs):
+        return q * fq_keen / kwargs['<b_coh>^2']
 
     def FK_to_S(self, q, fq_keen, **kwargs):
         fq = self.FK_to_F(q, fq_keen, **kwargs)
         return self.F_to_S(q, fq)
 
+    def FK_to_DCS(self, q, fq, **kwargs):
+        return fq + kwargs['<b_tot^2>'] 
+
+    # Differential cross-section = d_simga / d_Omega 
+    def DCS_to_F(self, q, dcs, **kwargs):
+        fq = self.DCS_to_FK(q, dcs, **kwargs)
+        return self.FK_to_F(q, fq, **kwargs)
+
+    def DCS_to_S(self, q, dcs, **kwargs):
+        fq = self.DCS_to_FK(q, dcs, **kwargs)
+        return self.FK_to_S(q, fq, **kwargs)
+
+    def DCS_to_FK(self, q, dcs, **kwargs):
+        return dcs - kwargs['<b_tot^2>'] 
+
+    #----------------------------#
     # Real Space Conversions
 
     # G(r) = PDF
@@ -147,7 +176,7 @@ class Transformer(object):
     # Reciprocal -> Real Space Transforms  #
     #--------------------------------------#
 
-    # F(Q) = Q(SQ-1)
+    # F(Q) = Q[S(Q) - 1]
     def F_to_G(self, q, fq, r, **kwargs):
         r, gr = self.fourier_transform(q, fq, r, **kwargs)
         gr = 2./ np.pi * gr
@@ -195,6 +224,22 @@ class Transformer(object):
         r, gr =  self.F_to_g(q, fq, r, **kwargs)
         return r, gr
 
+    # Differential cross-section = d_simga / d_Omega 
+    def DCS_to_G(self, q, dcs, r, **kwargs):
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
+        r, gr = self.F_to_G(q, fq, r, **kwargs)
+        return r, gr
+
+    def DCS_to_GK(self, q, dcs, r, **kwargs):
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
+        r, gr = self.F_to_GK(q, fq, r, **kwargs)
+        return r, gr
+
+    def DCS_to_g(self, q, dcs, r, **kwargs):
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
+        r, gr = self.F_to_g(q, fq, r, **kwargs)
+        return r, gr
+
     #--------------------------------------#
     # Real -> Reciprocal Space Transforms  #
     #--------------------------------------#
@@ -215,6 +260,11 @@ class Transformer(object):
         fq = self.converter.F_to_FK(q, fq, **kwargs)
         return q, fq
 
+    def G_to_DCS(self, r, gr, q, **kwargs):
+        q, fq = self.G_to_F(r, gr, q, **kwargs)
+        dcs = self.converter.F_to_DCS(q, fq, **kwargs)
+        return q, dcs
+
     # Keen's G(r)
     def GK_to_F(self, r, gr, q, **kwargs):
         gr = self.converter.GK_to_G(r, gr, **kwargs)
@@ -226,8 +276,11 @@ class Transformer(object):
 
     def GK_to_FK(self, r, gr, q, **kwargs):
         gr = self.converter.GK_to_G(r, gr, **kwargs)
-        q, fq = self.G_to_FK(r, gr, q, **kwargs)
-        return q, fq
+        return self.G_to_FK(r, gr, q, **kwargs)
+
+    def GK_to_DCS(self, r, gr, q, **kwargs):
+        gr = self.converter.GK_to_G(r, gr, **kwargs)
+        return self.G_to_DCS(r, gr, q, **kwargs)
 
     # g(r)
     def g_to_F(self, r, gr, q, **kwargs):
@@ -241,6 +294,10 @@ class Transformer(object):
     def g_to_FK(self, r, gr, q, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
         return self.G_to_FK(r, gr, q, **kwargs)
+
+    def g_to_DCS(self, r, gr, q, **kwargs):
+        gr = self.converter.g_to_G(r, gr, **kwargs)
+        return self.G_to_DCS(r, gr, q, **kwargs)
         
 class FourierFilter(object):
     def __init__(self):
@@ -269,26 +326,20 @@ class FourierFilter(object):
         sq_ft = self.converter.F_to_S(q_ft, fq_ft)
         sq = self.converter.F_to_S(q, fq)
         return q_ft, sq_ft, q, sq, r, gr
-        '''
-        qmin = min(q
-        qmax = max(q)
-        r_tmp, gr_tmp = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
-
-        q_ft = self.transformer._extend_axis_to_low_end(q)
-        q_ft, sq_ft = self.transformer.G_to_S(r_tmp, gr_tmp, q_ft, **kwargs)
-        q_ft, sq_ft = self.transformer.apply_cropping(q_ft, sq_ft, qmin, qmax)
-
-        q, sq = self.transformer.apply_cropping(q, sq, qmin, qmax)
-        sq = (sq - sq_ft) + 1.
-        r, gr = self.transformer.S_to_G(q, sq, r, **kwargs)
-        '''
 
     def G_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        fq = self.converter.FK_to_F(q, sq, **kwargs)
+        fq = self.converter.FK_to_F(q, fq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr = self.G_using_F(r, gr, q, fq, cutoff, **kwargs)
         fq_ft = self.converter.F_to_FK(q_ft, fq_ft, **kwargs)
         fq = self.converter.F_to_FK(q, fq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
+
+    def G_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr = self.G_using_F(r, gr, q, fq, cutoff, **kwargs)
+        dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, **kwargs)
+        dcs = self.converter.F_to_DCS(q, fq, **kwargs)
+        return q_ft, dcs_ft, q, dcs, r, gr
 
     # Keen's G(r)
     def GK_using_F(self, r, gr, q, fq, cutoff, **kwargs):
@@ -309,6 +360,12 @@ class FourierFilter(object):
         gr = self.converter.G_to_GK(r, gr, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
  
+    def GK_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
+        gr = self.converter.GK_to_G(r, gr, **kwargs)
+        q_ft, dcs_ft, q, dcs, r, gr = self.G_using_DCS(r, gr, q, dcs, cutoff, **kwargs)
+        gr = self.converter.G_to_GK(r, gr, **kwargs)
+        return q_ft, dcs_ft, q, dcs, r, gr
+
     # g(r)
     def g_using_F(self, r, gr, q, fq, cutoff, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
@@ -328,6 +385,11 @@ class FourierFilter(object):
         gr = self.converter.G_to_g(r, gr, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
        
+    def g_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
+        gr = self.converter.g_to_G(r, gr, **kwargs)
+        q_ft, dcs_ft, q, dcs, r, gr = self.G_using_DCS(r, gr, q, dcs, cutoff, **kwargs)
+        gr = self.converter.G_to_g(r, gr, **kwargs)
+        return q_ft, dcs_ft, q, dcs, r, gr
       
 # -------------------------------------#
 # Converter / Transform Factory
@@ -375,24 +437,16 @@ if __name__ == "__main__":
                         help='Set x-col for filename')
     parser.add_argument('--ycol', type=int, default=1,
                         help='Set y-col for filename')
-    parser.add_argument('-b', '--<bcoh>^2', type=float, default=None, dest='bcoh_sqrd',
+    parser.add_argument('--bcoh-sqrd', type=float, default=None, dest='bcoh_sqrd',
                         help='Squared mean coherent scattering length (units=fm^2)')
+    parser.add_argument('--btot-sqrd', type=float, default=None, dest='btot_sqrd',
+                        help='Mean squared total scattering length (units=fm^2)')
     parser.add_argument('--rho', type=float, default=None, dest='rho',
                         help='Number density (units=atoms/angstroms^3)')
     parser.add_argument('--plot', action='store_true',
                         help='Show plot of before and after transformation')
     parser.add_argument('--lorch', action='store_true', default=False,
                         help='Apply Lorch Modifcation')
-
-    args = parser.parse_args()
-
-
-    # Read in data
-    data = get_data(args.input, 
-                    skiprows=args.skiprows,
-                    skipfooter=args.trim,
-                    xcol=args.xcol,
-                    ycol=args.ycol)
 
     args = parser.parse_args()
 
@@ -413,6 +467,8 @@ if __name__ == "__main__":
         kwargs['<b_coh>^2'] = args.bcoh_sqrd
     if args.rho:
         kwargs['rho'] = args.rho
+    if args.btot_sqrd:
+        kwargs['<b_tot^2>'] = args.btot_sqrd
     kwargs['lorch'] = args.lorch
 
     # Transform data to new form

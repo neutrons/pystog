@@ -30,7 +30,7 @@ def parser_cli_args(args):
                 "LorchFlag" : args.lorch_flag, 
                 "PlotFlag" : args.plot, 
                 "Outputs" : { "StemName" : args.stem_name },
-                "<b_coh>^2" : args.final_scale,
+                "<b_coh>^2" : args.bcoh_sqrd,
     }
     if args.Rdelta:
         kwargs["Rdelta"] = args.Rdelta
@@ -72,7 +72,9 @@ class PyStoG(object):
             self.Rdelta = kwargs["Rdelta"]
         self.lorch_flag = kwargs["LorchFlag"]
         self.plot_flag = kwargs["PlotFlag"]
-        self.final_scale = kwargs["<b_coh>^2"]
+        self.bcoh_sqrd = kwargs["<b_coh>^2"]
+        if "<b_tot^2>" in kwargs:
+            self.btot_sqrd = kwargs["<b_tot^2>"]
 
         self.converter = Converter()
         self.transformer = Transformer()
@@ -115,7 +117,9 @@ class PyStoG(object):
         if info["ReciprocalFunction"] == "F(Q)":
             y = self.converter.F_to_S(x, y)
         elif info["ReciprocalFunction"] == "FK(Q)":
-            y = self.converter.FK_to_S(x, y, **{'<b_coh>^2' : self.final_scale} )
+            y = self.converter.FK_to_S(x, y, **{'<b_coh>^2' : self.bcoh_sqrd} )
+        elif info["ReciprocalFunction"] == "DCS(Q)":
+            y = self.converter.DCS_to_S(x, y, **{'<b_coh>^2' : self.bcoh_sqrd, '<b_tot^2>' : self.btot_sqrd} )
         self.xmin = min(self.xmin, min(x))
         self.xmax = max(self.xmax, max(x))
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
@@ -284,12 +288,12 @@ class PyStoG(object):
         return np.sqrt(average)
 
     def add_keen_fq(self):
-        fq_rmc = self.final_scale*(sq-1)
+        fq_rmc = self.bcoh_sqrd*(sq-1)
         self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
         self.write_out_rmc_fq()
 
     def add_keen_gr(self):
-        gr_rmc = self.final_scale*(gr_out-1)
+        gr_rmc = self.bcoh_sqrd*(gr_out-1)
         self.df_gr_master = self.add_to_dataframe(r, gr_rmc, self.df_gr_master, self.gr_rmc_title)
         self.write_out_rmc_gr()
  
@@ -442,8 +446,10 @@ if __name__ == "__main__":
     parser.add_argument("--lorch-flag", action="store_true",
                         default=False, dest="lorch_flag",
                         help="Apply Lorch function")
-    parser.add_argument("--final-scale", type=float, default=1.0, dest="final_scale",
+    parser.add_argument("--bcoh_sqrd", type=float, default=1.0, dest="bcoh_sqrd",
                         help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output")
+    parser.add_argument("--btot_sqrd", type=float, default=1.0, dest="btot_sqrd",
+                        help="The (sum c*b^2) term needed for DCS(Q) input")
     parser.add_argument("--plot", action="store_true", default=False,
                         help="Plots using matplotlib along the way")
     args = parser.parse_args()
