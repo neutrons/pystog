@@ -24,6 +24,14 @@
                   "Y" : { "Offset" : 0.0,
                           "Scale"  : 1.0},
                   "X" : { "Offset" : 0.0 }
+                },
+                { "Filename" : "../data/argon.dcs",
+                  "ReciprocalFunction" : "DCS(Q)",
+                  "Qmin" : 5.0,
+                  "Qmax" : 25.0,
+                  "Y" : { "Offset" : 0.0,
+                          "Scale"  : 1.0},
+                  "X" : { "Offset" : 0.0 }
                 }
               ],
     "NumberDensity" : 0.02138,
@@ -31,6 +39,7 @@
     "Rpoints" : 2500,
     "FourierFilter" : { "Cutoff" : 6.3},
     "<b_coh>^2" : 3.644,
+    "<b_tot^2>" : 5.435,
     "LorchFlag" : false,
     "PlotFlag" : true,
     "Outputs" : { "StemName" : "merged_argon" }
