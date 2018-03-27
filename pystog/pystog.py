@@ -30,7 +30,7 @@ def parser_cli_args(args):
                 "LorchFlag" : args.lorch_flag, 
                 "PlotFlag" : args.plot, 
                 "Outputs" : { "StemName" : args.stem_name },
-                "Merging" : {"Y" : {"Offset" : args.merging[0], "Scale" : args.merging[1]} }
+                "Merging" : {"Y" : {"Offset" : args.merging[0], "Scale" : args.merging[1]} },
                 "<b_coh>^2" : args.bcoh_sqrd,
     }
     if args.Rdelta:
