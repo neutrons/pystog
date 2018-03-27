@@ -75,11 +75,14 @@ class PyStoG(object):
         self.density = kwargs["NumberDensity"]
         self.stem_name = kwargs["Outputs"]["StemName"]
         self.Rmax = float(kwargs["Rmax"])
-        self.Rdelta = self.Rmax / kwargs["Rpoints"]
         if "FourierFilter" in kwargs:
             self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
         if "Rdelta" in kwargs:
             self.Rdelta = kwargs["Rdelta"]
+        elif "Rpoints" in kwargs:
+            self.Rdelta = self.Rmax / kwargs["Rpoints"]
+        else:
+            raise Exception("ERROR: Need either Rpoints or Rdelta")
         self.lorch_flag = kwargs["LorchFlag"]
         self.plot_flag = kwargs["PlotFlag"]
         self.bcoh_sqrd = kwargs["<b_coh>^2"]
