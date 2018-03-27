@@ -5,7 +5,8 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 
-from transformer import Converter, Transformer, FourierFilter, ReciprocalSpaceChoices
+from transformer import Converter, Transformer, FourierFilter
+from transformer import RealSpaceChoices, ReciprocalSpaceChoices
 
 
 def parser_cli_args(args):
@@ -32,6 +33,8 @@ def parser_cli_args(args):
                 "Outputs" : { "StemName" : args.stem_name },
                 "Merging" : {"Y" : {"Offset" : args.merging[0], "Scale" : args.merging[1]} },
                 "<b_coh>^2" : args.bcoh_sqrd,
+                "<b_tot^2>" : args.btot_sqrd,
+                "RealSpaceFunction" : args.real_space_function,
     }
     if args.Rdelta:
         kwargs["Rdelta"] = args.Rdelta
@@ -51,11 +54,16 @@ class PyStoG(object):
         self.sq_ft_title = "S(Q) FT"
         self.fq_rmc_title = "F(Q) RMC"
 
+        if "RealSpaceFunction" in kwargs:
+            self.real_space_function = str(kwargs["RealSpaceFunction"])
+        else:
+            self.real_space_function = "g(r)"
+
         self.df_gr_master = pd.DataFrame()
-        self.gr_ft_title = "g(r) FT"
+        self.gr_ft_title = "%s FT" % self.real_space_function
         self.dr_ft_title = "D(r) FT"
-        self.gr_lorch_title = "g(r) FT Lorched"
-        self.gr_title = "g(r) Merged"
+        self.gr_lorch_title = "%s FT Lorched" % self.real_space_function
+        self.gr_title = "%s Merged" % self.real_space_function
         self.gr_rmc_title = "G(r) RMC"
 
         self.files = kwargs["Files"]
@@ -77,10 +85,12 @@ class PyStoG(object):
         self.bcoh_sqrd = kwargs["<b_coh>^2"]
         if "<b_tot^2>" in kwargs:
             self.btot_sqrd = kwargs["<b_tot^2>"]
+
         if "Merging" in kwargs:
             self.merging = kwargs["Merging"]
         else:
             self.merging = {"Y" : {"Offset" : 0.0, "Scale" : 1.0} }
+
 
         self.converter = Converter()
         self.transformer = Transformer()
@@ -187,37 +197,6 @@ class PyStoG(object):
         self.df_gr_master = self.df_gr_master.set_index(r)
     '''
 
-    def transform(self, xin, yin, xout, lorch=False, df=None, title=None):
-        xmax = max(xin)
-        xout = self.transformer._extend_axis_to_low_end(xout)
-
-        factor = np.full_like(yin, 1.0)
-        if lorch:
-            PiOverXmax = np.pi / xmax
-            factor = np.sin(PiOverXmax * xin) / (PiOverXmax * xin)
-
-        x_by_y_minus_one = (yin- 1) * xin
-
-        if title is not None:
-            y_temp = (factor * x_by_y_minus_one) / xin + 1
-            df_temp = pd.DataFrame(y_temp, columns=[title], index=xin)
-            df = pd.concat([df, df_temp], axis=1)
-
-        afactor = 2. / np.pi
-        yout = np.zeros_like(xout)
-        for i, x  in enumerate(xout):
-            kernel = factor * x_by_y_minus_one * np.sin(xin * x)
-            yout[i] = afactor * np.trapz(kernel, x=xin)
-
-        # Correct for omitted small Q-region
-        #yout = self.qmin_correction(xin, yin, xout, yout, lorch)
-
-        # Convert to G(r) -> g(r)
-        FourPiRho = 4. * np.pi * self.density
-        yout = yout / FourPiRho / xout + 1.
-
-        return xout, yout 
-
     def qmin_correction(self, q, sofq, dr, gofr, lorch):
         qmin = min(q)
         qmax = max(q)
@@ -260,7 +239,14 @@ class PyStoG(object):
         sq = self.df_sq_master[self.sq_title].values
 
         # Fourier filter g(r)
-        q_ft, sq_ft, q, sq, r, gr = self.filter.g_using_S(r, gr, q, sq, cutoff, **kwargs)
+        if self.real_space_function == "g(r)":
+            q_ft, sq_ft, q, sq, r, gr = self.filter.g_using_S(r, gr, q, sq, cutoff, **kwargs)
+        elif self.real_space_function == "G(r)":
+            q_ft, sq_ft, q, sq, r, gr = self.filter.G_using_S(r, gr, q, sq, cutoff, **kwargs)
+        elif self.real_space_function == "GK(r)":
+            q_ft, sq_ft, q, sq, r, gr = self.filter.GK_using_S(r, gr, q, sq, cutoff, **kwargs)
+        else:
+            raise Exception("ERROR: Unknown real space function %s" % self.real_space_function)
 
         # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(q_ft,sq_ft,self.df_sq_master,self.ft_title)
@@ -278,18 +264,26 @@ class PyStoG(object):
             self.plot_sq(df_sq, ylabel="FourierFilter(Q)", 
                          title="Fourier Transform of the filtered low-r region below cutoff")
             self.plot_sq(self.df_sq_master, title="Fourier Filtered S(Q)")
-            self.plot_gr(self.df_gr_master, title="Fourier Filtered G(r)")
+            self.plot_gr(self.df_gr_master, title="Fourier Filtered %s" % self.real_space_function)
 
         return q, sq, r, gr
         
     def apply_lorch(self,q,sq,r):
-        r, gr_lorch = self.transformer.S_to_g(q, sq, r, **{'lorch' : True, 'rho' : self.density} )
+        if self.real_space_function == "g(r)":
+            r, gr_lorch = self.transformer.S_to_g(q, sq, r, **{'lorch' : True, 'rho' : self.density} )
+        elif self.real_space_function == "G(r)":
+            r, gr_lorch = self.transformer.S_to_G(q, sq, r, **{'lorch' : True} )
+        elif self.real_space_function == "GK(r)":
+            r, gr_lorch = self.transformer.S_to_GK(q, sq, r, **{'lorch' : True, 'rho' : self.density} )
+        else:
+            raise Exception("ERROR: Unknown real space function %s" % self.real_space_function)
+
         self.df_gr_master = self.add_to_dataframe(r, gr_lorch, 
                                                   self.df_gr_master, self.gr_lorch_title)
         self.write_out_lorched_gr()
 
         if self.plot_flag:
-            self.plot_gr(self.df_gr_master, title="Lorched G(r)")
+            self.plot_gr(self.df_gr_master, title="Lorched %s" % self.real_space_function)
             plt.show()
 
         return r, gr_lorch
@@ -304,12 +298,12 @@ class PyStoG(object):
         average = sum(gofr_sq)
         return np.sqrt(average)
 
-    def add_keen_fq(self):
+    def add_keen_fq(self,q,sq):
         fq_rmc = self.bcoh_sqrd*(sq-1)
         self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
         self.write_out_rmc_fq()
 
-    def add_keen_gr(self):
+    def add_keen_gr(self, r, gr_out):
         gr_rmc = self.bcoh_sqrd*(gr_out-1)
         self.df_gr_master = self.add_to_dataframe(r, gr_rmc, self.df_gr_master, self.gr_rmc_title)
         self.write_out_rmc_gr()
@@ -362,8 +356,8 @@ class PyStoG(object):
         df_gk = self.df_gr_master.ix[ :, [self.gr_rmc_title] ]
         df_gk.plot(ax=ax2)
         plt.xlabel("r")
-        ax1.set_ylabel("G(r)")
-        ax1.set_title("StoG G(r) functions")
+        ax1.set_ylabel(self.real_space_function)
+        ax1.set_title("StoG %s functions" % self.real_space_function)
         ax2.set_ylabel("GK(r)")
         ax2.set_title("Keen's G(r)")
         plt.show()
@@ -453,6 +447,8 @@ if __name__ == "__main__":
         type=float,
         default=50.0,
         help="Maximum value in angstroms for real-space functions")
+    parser.add_argument("--real-space-function", type=str, default="g(r)", dest="real_space_function",
+                        help="Real-space function typej. Choices are: %s" % json.dumps(RealSpaceChoices))
     parser.add_argument("--Rpoints", type=int, default=5000,
                         help="Number of points in R for real-space functions")
     parser.add_argument("--Rdelta", type=float, default=None,
@@ -499,13 +495,21 @@ if __name__ == "__main__":
 
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
-    r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+    if stog.real_space_function == "g(r)":
+        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+    elif stog.real_space_function == "G(r)":
+        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **{'lorch' : False} )
+    elif stog.real_space_function == "GK(r)":
+        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+    else:
+        raise Exception("ERROR: Unknown real space function %s" % stog.real_space_function)
+
     stog.df_gr_master[stog.gr_title] = gofr
     stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
 
     if kwargs["PlotFlag"]:
-        stog.plot_gr(stog.df_gr_master, ylabel="g(r)", title="Merged g(r)")
+        stog.plot_gr(stog.df_gr_master, ylabel=stog.real_space_function, title="Merged %s" % stog.real_space_function)
 
     #print stog.get_lowR_mean_square()
 
@@ -517,20 +521,13 @@ if __name__ == "__main__":
     if "FourierFilter" in kwargs:
         q, sq, r, gr_out = stog.fourier_filter()
 
-    '''
-    # Write out D(r) as well
-    dr_ft = (gr_out-1)*r
-    stog.df_gr_master = stog.add_to_dataframe(r, dr_ft, stog.df_gr_master, stog.dr_ft_title)
-    stog.write_out_ft_dr()
-    '''
-
     # Apply Lorch Modification
     if kwargs["LorchFlag"]:
         r, gr_out = stog.apply_lorch(q,sq,r)
 
     # Apply final scale number
-    stog.add_keen_fq()
-    stog.add_keen_gr()
+    stog.add_keen_fq(q,sq)
+    stog.add_keen_gr(r,gr_out)
    
     if kwargs["PlotFlag"]:
         stog.plot_summary_sq()

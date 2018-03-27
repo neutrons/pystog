@@ -34,6 +34,7 @@
                   "X" : { "Offset" : 0.0 }
                 }
               ],
+    "RealSpaceFunction" : "G(r)",
     "NumberDensity" : 0.02138,
     "Rmax" : 25,
     "Rpoints" : 2500,
