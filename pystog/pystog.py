@@ -303,8 +303,16 @@ class PyStoG(object):
         self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
         self.write_out_rmc_fq()
 
-    def add_keen_gr(self, r, gr_out):
-        gr_rmc = self.bcoh_sqrd*(gr_out-1)
+    def add_keen_gr(self, r, gr, **kwargs):
+        if stog.real_space_function == "g(r)":
+            r, gr_rmc = self.converter.g_to_GK(r, gr, **kwargs)
+        elif stog.real_space_function == "G(r)":
+            r, gr_rmc = self.converter.G_to_GK(r, gr, **kwargs )
+        elif stog.real_space_function == "GK(r)":
+            gr_rmc = gr
+        else:
+            raise Exception("ERROR: Unknown real space function %s" % self.real_space_function)
+        
         self.df_gr_master = self.add_to_dataframe(r, gr_rmc, self.df_gr_master, self.gr_rmc_title)
         self.write_out_rmc_gr()
  
