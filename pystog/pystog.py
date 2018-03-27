@@ -31,6 +31,7 @@ def parser_cli_args(args):
                 "PlotFlag" : args.plot, 
                 "Outputs" : { "StemName" : args.stem_name },
                 "<b_coh>^2" : args.final_scale,
+                "Merging" : {"Y" : {"Offset" : args.merging[0], "Scale" : args.merging[1]} }
     }
     if args.Rdelta:
         kwargs["Rdelta"] = args.Rdelta
@@ -73,6 +74,10 @@ class PyStoG(object):
         self.lorch_flag = kwargs["LorchFlag"]
         self.plot_flag = kwargs["PlotFlag"]
         self.final_scale = kwargs["<b_coh>^2"]
+        if "Merging" in kwargs:
+            self.merging = kwargs["Merging"]
+        else:
+            self.merging = {"Y" : {"Offset" : 0.0, "Scale" : 1.0} }
 
         self.converter = Converter()
         self.transformer = Transformer()
@@ -132,6 +137,17 @@ class PyStoG(object):
         # Sum over single S(Q) columns into a merged S(Q)
         self.df_sq_master[self.sq_title] = self.df_individuals.iloc[:, :].mean(
             axis=1)
+
+        x = self.df_sq_master[self.sq_title].index.values
+        y = self.df_sq_master[self.sq_title].values
+
+        x, y = self.apply_scales_and_offset(x, y, 
+                                     self.merging['Y']['Scale'],
+                                     self.merging['Y']['Offset'],
+                                     0.0)
+
+        self.df_sq_master[self.sq_title] = y
+        
         return
 
     def offset(self, data, offset):
@@ -446,6 +462,8 @@ if __name__ == "__main__":
                         help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output")
     parser.add_argument("--plot", action="store_true", default=False,
                         help="Plots using matplotlib along the way")
+    parser.add_argument("--merging", nargs=2, type=float, default=[0.0,1.0],
+                        help="Offset and Scale to apply to the merged S(Q)")
     args = parser.parse_args()
 
     
