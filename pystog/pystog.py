@@ -68,7 +68,8 @@ class PyStoG(object):
         self.stem_name = kwargs["Outputs"]["StemName"]
         self.Rmax = float(kwargs["Rmax"])
         self.Rdelta = self.Rmax / kwargs["Rpoints"]
-        self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
+        if "FourierFilter" in kwargs:
+            self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
         if "Rdelta" in kwargs:
             self.Rdelta = kwargs["Rdelta"]
         self.lorch_flag = kwargs["LorchFlag"]
@@ -361,7 +362,7 @@ class PyStoG(object):
         df_gk = self.df_gr_master.ix[ :, [self.gr_rmc_title] ]
         df_gk.plot(ax=ax2)
         plt.xlabel("r")
-        ax1.set_ylabel("S(Q)")
+        ax1.set_ylabel("G(r)")
         ax1.set_title("StoG G(r) functions")
         ax2.set_ylabel("GK(r)")
         ax2.set_title("Keen's G(r)")
