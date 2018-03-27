@@ -303,11 +303,12 @@ class PyStoG(object):
         self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
         self.write_out_rmc_fq()
 
-    def add_keen_gr(self, r, gr, **kwargs):
+    def add_keen_gr(self, r, gr):
+        kwargs = {'rho' : self.density,  "<b_coh>^2" : self.bcoh_sqrd }
         if stog.real_space_function == "g(r)":
-            r, gr_rmc = self.converter.g_to_GK(r, gr, **kwargs)
+            gr_rmc = self.converter.g_to_GK(r, gr, **kwargs)
         elif stog.real_space_function == "G(r)":
-            r, gr_rmc = self.converter.G_to_GK(r, gr, **kwargs )
+            gr_rmc = self.converter.G_to_GK(r, gr, **kwargs )
         elif stog.real_space_function == "GK(r)":
             gr_rmc = gr
         else:
