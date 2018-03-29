@@ -46,10 +46,18 @@ def parser_cli_args(args):
 class PyStoG(object):
 
     def __init__(self, **kwargs):
+        self._plot_kwargs = {'figsize' : (16,8),
+                             'style'   : '-',
+                             'ms'      :  1,
+                             'lw'      :  1,
+        }
+
         self.df_individuals = pd.DataFrame()
+        self.df_sq_individuals = pd.DataFrame()
 
         self.df_sq_master = pd.DataFrame()
         self.sq_title = "S(Q) Merged"
+        self.qsq_minus_one_title = "Q[S(Q)-1] Merged"
         self.ft_title = "FT term"
         self.sq_ft_title = "S(Q) FT"
         self.fq_rmc_title = "F(Q) RMC"
@@ -132,6 +140,10 @@ class PyStoG(object):
                                             info['Y']['Scale'], 
                                             info['Y']['Offset'], 
                                             info['X']['Offset'])
+        
+        if info["ReciprocalFunction"] != "S(Q)":
+            df = pd.DataFrame(y, columns=['%s_%d' % (info['ReciprocalFunction'], info['index'])], index=x)
+            self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
 
         if info["ReciprocalFunction"] == "F(Q)":
             y = self.converter.F_to_S(x, y)
@@ -139,10 +151,11 @@ class PyStoG(object):
             y = self.converter.FK_to_S(x, y, **{'<b_coh>^2' : self.bcoh_sqrd} )
         elif info["ReciprocalFunction"] == "DCS(Q)":
             y = self.converter.DCS_to_S(x, y, **{'<b_coh>^2' : self.bcoh_sqrd, '<b_tot^2>' : self.btot_sqrd} )
+
         self.xmin = min(self.xmin, min(x))
         self.xmax = max(self.xmax, max(x))
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
-        self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
+        self.df_sq_individuals = pd.concat([self.df_sq_individuals, df], axis=1)
         return df
 
     def apply_scales_and_offset(self, x, y, yscale, yoffset, xoffset):
@@ -153,7 +166,7 @@ class PyStoG(object):
 
     def merge_data(self):
         # Sum over single S(Q) columns into a merged S(Q)
-        self.df_sq_master[self.sq_title] = self.df_individuals.iloc[:, :].mean(
+        self.df_sq_master[self.sq_title] = self.df_sq_individuals.iloc[:, :].mean(
             axis=1)
 
         x = self.df_sq_master[self.sq_title].index.values
@@ -181,24 +194,6 @@ class PyStoG(object):
 
     def create_dr(self):
         self.dr = np.arange(self.Rdelta, self.Rmax + self.Rdelta, self.Rdelta)
-
-    '''
-    def bit_merged(self):
-        self.bit( self.df_sq_master, self.sq_title, lorch=False)
-
-    def bit(self, df, col_name, **kwargs):
-        if self.dr is None:
-            self.create_dr()
-
-        q = df.index.values
-        sofq = df[col_name].values
-
-        kwargs['df'] = df
-        r, gofr = self.transform(q, sofq, self.dr, **kwargs)
-
-        self.df_gr_master[self.gr_title] = gofr
-        self.df_gr_master = self.df_gr_master.set_index(r)
-    '''
 
     def qmin_correction(self, q, sofq, dr, gofr, lorch):
         qmin = min(q)
@@ -287,7 +282,6 @@ class PyStoG(object):
 
         if self.plot_flag:
             self.plot_gr(self.df_gr_master, title="Lorched %s" % self.real_space_function)
-            plt.show()
 
         return r, gr_lorch
 
@@ -324,36 +318,58 @@ class PyStoG(object):
     # Plot Utilities
 
     def plot_sq(self, df, xlabel='Q', ylabel='S(Q)', title=''):
-        df.plot()
+        df.plot(**self._plot_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
     def plot_gr(self, df, xlabel='r', ylabel='G(r)', title=''):
-        df.plot()
+        df.plot(**self._plot_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
-
     def plot_merged_sq(self):
-        fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
-        self.df_individuals.plot(ax=ax1)
-        self.df_sq_master.plot(ax=ax2)
+        plot_kwargs = self._plot_kwargs.copy()
+        plot_kwargs['style'] = 'o-'
+        plot_kwargs['lw'] = 0.5
+
+        fig, axes = plt.subplots(2, 2,sharex=True)
         plt.xlabel("Q")
-        plt.ylabel("S(Q)")
-        ax1.set_title("Individual S(Q)")
-        ax2.set_title("Merged S(Q)")
+
+        # Plot the inividual reciprocal functions
+        if self.df_individuals.empty:
+            self.df_sq_individuals.plot(ax=axes[0,0],**plot_kwargs)
+        else: 
+            self.df_individuals.plot(ax=axes[0,0],**plot_kwargs)
+
+        # Plot the inividual S(Q) functions
+        self.df_sq_individuals.plot(ax=axes[0,1],**plot_kwargs)
+        axes[0,1].set_ylabel("S(Q)")
+        axes[0,1].set_title("Individual S(Q)")
+
+        # Plot the merged S(Q)
+        df_sq = self.df_sq_master.ix[ :, [self.sq_title] ]
+        df_sq.plot(ax=axes[1,0],**plot_kwargs)
+        axes[1,0].set_title("Merged S(Q)")
+        axes[1,0].set_ylabel("S(Q)")
+
+        # Plot the merged Q[S(Q)-1]
+        df_fq = self.df_sq_master.ix[ :, [self.qsq_minus_one_title] ]
+        df_fq.plot(ax=axes[1,1],**plot_kwargs)
+        axes[1,1].set_title("Merged Q[S(Q)-1]")
+        axes[1,1].set_ylabel("Q[S(Q)-1]")
+
         plt.show()
 
     def plot_summary_sq(self):
         fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
         df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference([self.fq_rmc_title]) ]
-        df_sq.plot(ax=ax1)
+        df_sq.plot(ax=ax1,**self._plot_kwargs)
         df_fq = self.df_sq_master.ix[ :, [self.fq_rmc_title] ]
-        df_fq.plot(ax=ax2)
+        df_fq.plot(ax=ax2,**self._plot_kwargs)
         plt.xlabel("Q")
         ax1.set_ylabel("S(Q)")
         ax1.set_title("StoG S(Q) functions")
@@ -364,9 +380,9 @@ class PyStoG(object):
     def plot_summary_gr(self):
         fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
         df_gr = self.df_gr_master.ix[ :, self.df_gr_master.columns.difference([self.gr_rmc_title]) ]
-        df_gr.plot(ax=ax1)
+        df_gr.plot(ax=ax1,**self._plot_kwargs)
         df_gk = self.df_gr_master.ix[ :, [self.gr_rmc_title] ]
-        df_gk.plot(ax=ax2)
+        df_gk.plot(ax=ax2,**self._plot_kwargs)
         plt.xlabel("r")
         ax1.set_ylabel(self.real_space_function)
         ax1.set_title("StoG %s functions" % self.real_space_function)
@@ -500,6 +516,10 @@ if __name__ == "__main__":
     # Initialize S(Q)
     q    = stog.df_sq_master[stog.sq_title].index.values
     sofq = stog.df_sq_master[stog.sq_title].values
+
+    # Also save Q[S(Q) - 1]
+    fofq = stog.converter.S_to_F(q, sofq)
+    stog.df_sq_master[stog.qsq_minus_one_title] = fofq
 
     if kwargs["PlotFlag"]:
         stog.plot_merged_sq()
