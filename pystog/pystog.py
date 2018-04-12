@@ -522,6 +522,13 @@ if __name__ == "__main__":
 
     # Also save Q[S(Q) - 1]
     fofq = stog.converter.S_to_F(q, sofq)
+    if "F(Q)" in kwargs["Merging"]:
+        fofq_opts = kwargs["Merging"]["F(Q)"]
+        if "Y" in fofq_opts:
+            if "Scale" in fofq_opts["Y"]:
+                fofq *= fofq_opts["Y"]["Scale"]
+            if "Offset" in fofq_opts["Y"]:
+                fofq += fofq_opts["Y"]["Offset"]
     stog.df_sq_master[stog.qsq_minus_one_title] = fofq
 
     if kwargs["PlotFlag"]:
@@ -531,11 +538,11 @@ if __name__ == "__main__":
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
     if stog.real_space_function == "g(r)":
-        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.F_to_g(q, fofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
     elif stog.real_space_function == "G(r)":
-        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **{'lorch' : False} )
+        r, gofr = stog.transformer.F_to_G(q, fofq, stog.dr, **{'lorch' : False} )
     elif stog.real_space_function == "GK(r)":
-        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.F_to_GK(q, fofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
     else:
         raise Exception("ERROR: Unknown real space function %s" % stog.real_space_function)
 
