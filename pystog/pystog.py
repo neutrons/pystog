@@ -530,6 +530,8 @@ if __name__ == "__main__":
             if "Offset" in fofq_opts["Y"]:
                 fofq += fofq_opts["Y"]["Offset"]
     stog.df_sq_master[stog.qsq_minus_one_title] = fofq
+    sofq = stog.converter.F_to_S(q, fofq)
+    stog.df_sq_master[stog.sq_title] = sofq
 
     if kwargs["PlotFlag"]:
         stog.plot_merged_sq()
@@ -538,11 +540,11 @@ if __name__ == "__main__":
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
     if stog.real_space_function == "g(r)":
-        r, gofr = stog.transformer.F_to_g(q, fofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
     elif stog.real_space_function == "G(r)":
-        r, gofr = stog.transformer.F_to_G(q, fofq, stog.dr, **{'lorch' : False} )
+        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **{'lorch' : False} )
     elif stog.real_space_function == "GK(r)":
-        r, gofr = stog.transformer.F_to_GK(q, fofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
     else:
         raise Exception("ERROR: Unknown real space function %s" % stog.real_space_function)
 
