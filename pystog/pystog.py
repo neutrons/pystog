@@ -258,10 +258,13 @@ class PyStoG(object):
 
         # Plot results
         if self.plot_flag:
-            df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference([self.sq_ft_title]) ]
+            exclude_list = [self.qsq_minus_one_title, self.sq_ft_title ]
+            df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference(exclude_list) ]
             self.plot_sq(df_sq, ylabel="FourierFilter(Q)", 
                          title="Fourier Transform of the filtered low-r region below cutoff")
-            self.plot_sq(self.df_sq_master, title="Fourier Filtered S(Q)")
+            exclude_list = [self.qsq_minus_one_title ]
+            df_sq = self.df_sq_master.ix[ :, self.df_sq_master.columns.difference(exclude_list) ]
+            self.plot_sq(df_sq, title="Fourier Filtered S(Q)")
             self.plot_gr(self.df_gr_master, title="Fourier Filtered %s" % self.real_space_function)
 
         return q, sq, r, gr
