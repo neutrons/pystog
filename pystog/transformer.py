@@ -337,53 +337,54 @@ class FourierFilter(object):
         self.converter = Converter()
         self.transformer = Transformer()
 
-    # G(R) = PDF
-    def G_using_F(self, r, gr, q, fq, cutoff, **kwargs):
+    # g(r)
+    def g_using_F(self, r, gr, q, fq, cutoff, **kwargs):
+        # setup qmin, qmax, and get low-r region to back transform
         qmin = min(q)
         qmax = max(q)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
         r_tmp, gr_tmp_initial = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
 
+        # Shift low-r so it goes to 1 at "high-r" for this section. Reduces the sinc function issue.
         gr_tmp = gr_tmp_initial + 1
 
+        # Transform the shifted low-r region to F(Q) to get F(Q)_ft
         q_ft = self.transformer._extend_axis_to_low_end(q)
         q_ft, fq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q_ft, **kwargs)
         q_ft, fq_ft = self.transformer.apply_cropping(q_ft, fq_ft, qmin, qmax)
 
+        # Subtract F(Q)_ft from original F(Q) = delta_F(Q) 
         q, fq = self.transformer.apply_cropping(q, fq, qmin, qmax)
         fq_original = fq
         fq = (fq - fq_ft) 
 
-        sq_original = self.converter.F_to_S(q, fq_original)
-        sq          = self.converter.F_to_S(q, fq)
-        sq_ft       = self.converter.F_to_S(q_ft, fq_ft)
+        # Transform delta_F(Q) for g(r) with low-r removed
+        r, gr = self.transformer.F_to_g(q, fq, r, **kwargs)
 
-        r, gr = self.transformer.F_to_G(q, fq, r, **kwargs)
-
+        return q_ft, fq_ft, q, fq, r, gr
+       
+    def g_using_S(self, r, gr, q, sq, cutoff, **kwargs):
+        fq = self.converter.S_to_F(q, sq)
+        q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
+        sq_ft = self.converter.F_to_S(q_ft, fq_ft)
+        return q_ft, sq_ft, q, sq, r, gr
+       
+    def g_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
+        fq = self.converter.FK_to_F(q, fq)
+        q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
+        fq_ft = self.converter.F_to_FK(q_ft, fq_ft)
+        return q_ft, fq_ft, q, fq, r, gr
+       
+    def g_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
+        fq = self.converter.DCS_to_F(q, dcs)
+        q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
+        dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft)
         return q_ft, fq_ft, q, fq, r, gr
 
     # G(R) = PDF
-    def G_using_F_second_option_for_method(self, r, gr, q, fq, cutoff, **kwargs):
-        qmin = min(q)
-        qmax = max(q)
-        r_tmp, gr_tmp_initial = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
-
-        gr_tmp = gr_tmp_initial + 1
-
-        sq = self.converter.F_to_S(q, fq)
-        q_ft = self.transformer._extend_axis_to_low_end(q)
-        q_ft, sq_ft = self.transformer.G_to_S(r_tmp, gr_tmp, q_ft, **kwargs)
-
-        q_ft, sq_ft = self.transformer.apply_cropping(q_ft, sq_ft, qmin, qmax)
-        q, sq = self.transformer.apply_cropping(q, sq, qmin, qmax)
-
-        sq_original = sq
-        sq = (sq - sq_ft) + 1.
-
-        fq = self.converter.S_to_F(q, sq)
-        fq_ft = self.converter.S_to_F(q, sq_ft)
-
-        r, gr = self.transformer.F_to_G(q, fq, r, **kwargs)
+    def G_using_F(self, r, gr, q, fq, cutoff, **kwargs):
+        gr = self.converter.G_to_g(r, gr, **kwargs) 
+        q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
+        gr = self.converter.g_to_G(r, gr, **kwargs) 
         return q_ft, fq_ft, q, fq, r, gr
 
     def G_using_S(self, r, gr, q, sq, cutoff, **kwargs):
@@ -409,54 +410,32 @@ class FourierFilter(object):
 
     # Keen's G(r)
     def GK_using_F(self, r, gr, q, fq, cutoff, **kwargs):
-        gr = self.converter.GK_to_G(r, gr, **kwargs) 
-        q_ft, fq_ft, q, fq, r, gr = self.G_using_F(r, gr, q, fq, cutoff, **kwargs)
-        gr = self.converter.G_to_GK(r, gr, **kwargs) 
+        gr = self.converter.GK_to_g(r, gr, **kwargs) 
+        q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
+        gr = self.converter.g_to_GK(r, gr, **kwargs) 
         return q_ft, fq_ft, q, fq, r, gr
 
     def GK_using_S(self, r, gr, q, sq, cutoff, **kwargs):
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        q_ft, sq_ft, q, sq, r, gr = self.G_using_S(r, gr, q, sq, cutoff, **kwargs)
-        gr = self.converter.G_to_GK(r, gr, **kwargs)
+        fq = self.converter.S_to_F(q, sq)
+        q_ft, sq_ft, q, sq, r, gr = self.GK_using_F(r, gr, q, sq, cutoff, **kwargs)
+        sq_ft = self.converter.F_to_S(q_ft, fq_ft)
+        sq = self.converter.F_to_S(q, fq)
         return q_ft, sq_ft, q, sq, r, gr
  
     def GK_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr = self.G_using_FK(r, gr, q, fq, cutoff, **kwargs)
-        gr = self.converter.G_to_GK(r, gr, **kwargs)
+        fq = self.converter.FK_to_F(q, sq)
+        q_ft, fq_ft, q, fq, r, gr = self.GK_using_F(r, gr, q, fq, cutoff, **kwargs)
+        fq_ft = self.converter.F_to_FK(q_ft, fq_ft, **kwargs)
+        fq = self.converter.F_to_FK(q, fq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
  
     def GK_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        q_ft, dcs_ft, q, dcs, r, gr = self.G_using_DCS(r, gr, q, dcs, cutoff, **kwargs)
-        gr = self.converter.G_to_GK(r, gr, **kwargs)
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr = self.GK_using_F(r, gr, q, fq, cutoff, **kwargs)
+        dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, **kwargs)
+        dcs = self.converter.F_to_DCS(q, fq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr
 
-    # g(r)
-    def g_using_F(self, r, gr, q, fq, cutoff, **kwargs):
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr = self.G_using_F(r, gr, q, fq, cutoff, **kwargs)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
-        return q_ft, sq_ft, q, sq, r, gr
-       
-    def g_using_S(self, r, gr, q, sq, cutoff, **kwargs):
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        q_ft, sq_ft, q, sq, r, gr = self.G_using_S(r, gr, q, sq, cutoff, **kwargs)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
-        return q_ft, sq_ft, q, sq, r, gr
-       
-    def g_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr = self.G_using_FK(r, gr, q, fq, cutoff, **kwargs)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
-        return q_ft, fq_ft, q, fq, r, gr
-       
-    def g_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        q_ft, dcs_ft, q, dcs, r, gr = self.G_using_DCS(r, gr, q, dcs, cutoff, **kwargs)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
-        return q_ft, dcs_ft, q, dcs, r, gr
-      
 # -------------------------------------#
 # Converter / Transform Factory
 tf = Transformer()
