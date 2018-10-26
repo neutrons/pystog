@@ -35,6 +35,7 @@ def parser_cli_args(args):
                 "<b_coh>^2" : args.bcoh_sqrd,
                 "<b_tot^2>" : args.btot_sqrd,
                 "RealSpaceFunction" : args.real_space_function,
+                "OmittedXrangeCorrection" : args.low_q_correction
     }
     if args.Rdelta:
         kwargs["Rdelta"] = args.Rdelta
@@ -94,6 +95,7 @@ class PyStoG(object):
         self.lorch_flag = kwargs["LorchFlag"]
         self.plot_flag = kwargs["PlotFlag"]
         self.bcoh_sqrd = kwargs["<b_coh>^2"]
+        self.low_q_correction = kwargs['OmittedXrangeCorrection']
         if "<b_tot^2>" in kwargs:
             self.btot_sqrd = kwargs["<b_tot^2>"]
 
@@ -240,7 +242,8 @@ class PyStoG(object):
     def fourier_filter(self):
         kwargs = {'lorch' : False, 
                   'rho' : self.density, 
-                  '<b_coh>^2' : stog.bcoh_sqrd
+                  '<b_coh>^2' : self.bcoh_sqrd,
+                  'OmittedXrangeCorrection' : self.low_q_correction
         }
         cutoff = self.fourier_filter_cutoff
 
@@ -259,7 +262,7 @@ class PyStoG(object):
             q_ft, sq_ft, q, sq, r, gr = self.filter.GK_using_S(r, gr, q, sq, cutoff, **kwargs)
         else:
             raise Exception("ERROR: Unknown real space function %s" % self.real_space_function)
-
+        
         # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(q_ft,sq_ft,self.df_sq_master,self.ft_title)
         self.write_out_ft()
@@ -313,7 +316,8 @@ class PyStoG(object):
         return np.sqrt(average)
 
     def add_keen_fq(self,q,sq):
-        fq_rmc = self.bcoh_sqrd*(sq-1)
+        kwargs = {'rho' : self.density,  "<b_coh>^2" : self.bcoh_sqrd }
+        fq_rmc = self.converter.S_to_FK(q, sq, **kwargs)
         self.df_sq_master = self.add_to_dataframe(q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
         self.write_out_rmc_fq()
 
@@ -512,6 +516,8 @@ if __name__ == "__main__":
                         help="Plots using matplotlib along the way")
     parser.add_argument("--merging", nargs=2, type=float, default=[0.0,1.0],
                         help="Offset and Scale to apply to the merged S(Q)")
+    parser.add_argument("--low-q-correction", action='store_true',
+                        help="Apply low-Q correction during FT")
     args = parser.parse_args()
 
     
