@@ -18,6 +18,7 @@
                   "X" : { "Offset" : 0.0 }
                 }
               ],
+    "Merging" : { "Y" : { "Offset" : 0.0, "Scale" : 1.0 } },
     "NumberDensity" : 0.5,
     "Rmax" : 25,
     "Rpoints" : 2500,

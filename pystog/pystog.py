@@ -102,6 +102,12 @@ class PyStoG(object):
         else:
             self.merging = {"Y" : {"Offset" : 0.0, "Scale" : 1.0} }
 
+        if "Transform" in self.merging:
+            transform_opts = self.merging["Transform"]
+            if "Qmin" in transform_opts:
+                self.qmin = transform_opts["Qmin"]
+            if "Qmax" in transform_opts:
+                self.qmax = transform_opts["Qmax"]
 
         self.converter = Converter()
         self.transformer = Transformer()
@@ -140,7 +146,15 @@ class PyStoG(object):
                                             info['Y']['Scale'], 
                                             info['Y']['Offset'], 
                                             info['X']['Offset'])
-        
+        self.xmin = min(self.xmin, min(x))
+        self.xmax = max(self.xmax, max(x))
+        if hasattr(self, 'qmin'):
+            if self.xmin < self.qmin:
+                x, y = self.transformer.apply_cropping(x, y, self.qmin, self.xmax)
+        if hasattr(self, 'qmax'):
+            if self.xmax >  self.qmax:
+                x, y = self.transformer.apply_cropping(x, y, self.xmin, self.qmax)
+       
         if info["ReciprocalFunction"] != "S(Q)":
             df = pd.DataFrame(y, columns=['%s_%d' % (info['ReciprocalFunction'], info['index'])], index=x)
             self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
@@ -152,8 +166,6 @@ class PyStoG(object):
         elif info["ReciprocalFunction"] == "DCS(Q)":
             y = self.converter.DCS_to_S(x, y, **{'<b_coh>^2' : self.bcoh_sqrd, '<b_tot^2>' : self.btot_sqrd} )
 
-        self.xmin = min(self.xmin, min(x))
-        self.xmax = max(self.xmax, max(x))
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
         self.df_sq_individuals = pd.concat([self.df_sq_individuals, df], axis=1)
         return df
@@ -176,7 +188,6 @@ class PyStoG(object):
                                      self.merging['Y']['Scale'],
                                      self.merging['Y']['Offset'],
                                      0.0)
-
         self.df_sq_master[self.sq_title] = y
         
         return
@@ -227,7 +238,10 @@ class PyStoG(object):
         return gofr
 
     def fourier_filter(self):
-        kwargs = {'lorch' : False, 'rho' : self.density}
+        kwargs = {'lorch' : False, 
+                  'rho' : self.density, 
+                  '<b_coh>^2' : stog.bcoh_sqrd
+        }
         cutoff = self.fourier_filter_cutoff
 
         # Get reciprocal and real space data
@@ -531,6 +545,7 @@ if __name__ == "__main__":
                 fofq += fofq_opts["Y"]["Offset"]
     stog.df_sq_master[stog.qsq_minus_one_title] = fofq
     sofq = stog.converter.F_to_S(q, fofq)
+    sofq[np.isnan(sofq)] = 0
     stog.df_sq_master[stog.sq_title] = sofq
 
     if kwargs["PlotFlag"]:
@@ -539,12 +554,16 @@ if __name__ == "__main__":
 
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
+    kwargs = {'lorch' : False,
+              'rho' : stog.density,
+              '<b_coh>^2' : stog.bcoh_sqrd 
+    }
     if stog.real_space_function == "g(r)":
-        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **kwargs )
     elif stog.real_space_function == "G(r)":
-        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **{'lorch' : False} )
+        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **kwargs )
     elif stog.real_space_function == "GK(r)":
-        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **{'lorch' : False, 'rho' : stog.density} )
+        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **kwargs )
     else:
         raise Exception("ERROR: Unknown real space function %s" % stog.real_space_function)
 
