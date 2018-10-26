@@ -169,8 +169,41 @@ class Transformer(object):
         return x, y
 
 
-    def _low_x_correction(self):
-        pass
+    def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
+
+        lorch_flag = False
+        if 'lorch' in kwargs:
+            if kwargs['lorch']:
+                lorch_flag = True
+
+        xmin = min(xin)
+        xmax = max(xin)
+        yin_xmin = yin[0]
+        PiOverQmax = np.pi / xmax
+
+        correction = np.zeros_like(yout)
+        for i, x in enumerate(xout):
+            v = xmin * x
+            if lorch_flag:
+                vm = xmin * (x - PiOverXmax)
+                vp = xmin * (x + PiOverXmax)
+                term1 = (vm * np.sin(vm) + np.cos(vm) - 1.) / \
+                    (x - PiOverXmax)**2.
+                term2 = (vp * np.sin(vp) + np.cos(vp) - 1.) / \
+                    (x + PiOverXmax)**2.
+                F1 = (term1 - term2) / (2. * PiOverXmax)
+                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) / \
+                    (x + PiOverXmax) )/ (2. * PiOverXmax)
+            else:
+                F1 = (2. * v * np.sin(v) - (v * v - 2.) *
+                      np.cos(v) - 2.) / x / x / x
+                F2 = (np.sin(v) - v * np.cos(v)) / x / x
+
+            correction[i] = (2 / np.pi) * (F1 * yin_xmin / xmin - F2)
+
+        yout += correction
+
+        return yout 
 
     #--------------------------------------#
     # Reciprocal -> Real Space Transforms  #
@@ -308,16 +341,49 @@ class FourierFilter(object):
     def G_using_F(self, r, gr, q, fq, cutoff, **kwargs):
         qmin = min(q)
         qmax = max(q)
-        r_tmp, gr_tmp = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
+        gr = self.converter.G_to_g(r, gr, **kwargs)
+        r_tmp, gr_tmp_initial = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
+
+        gr_tmp = gr_tmp_initial + 1
 
         q_ft = self.transformer._extend_axis_to_low_end(q)
-        q_ft, fq_ft = self.transformer.G_to_F(r_tmp, gr_tmp, q_ft, **kwargs)
+        q_ft, fq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q_ft, **kwargs)
         q_ft, fq_ft = self.transformer.apply_cropping(q_ft, fq_ft, qmin, qmax)
 
         q, fq = self.transformer.apply_cropping(q, fq, qmin, qmax)
-        fq = (fq - fq_ft)  
+        fq_original = fq
+        fq = (fq - fq_ft) 
+
+        sq_original = self.converter.F_to_S(q, fq_original)
+        sq          = self.converter.F_to_S(q, fq)
+        sq_ft       = self.converter.F_to_S(q_ft, fq_ft)
+
         r, gr = self.transformer.F_to_G(q, fq, r, **kwargs)
 
+        return q_ft, fq_ft, q, fq, r, gr
+
+    # G(R) = PDF
+    def G_using_F_second_option_for_method(self, r, gr, q, fq, cutoff, **kwargs):
+        qmin = min(q)
+        qmax = max(q)
+        r_tmp, gr_tmp_initial = self.transformer.apply_cropping(r, gr, 0.0, cutoff)
+
+        gr_tmp = gr_tmp_initial + 1
+
+        sq = self.converter.F_to_S(q, fq)
+        q_ft = self.transformer._extend_axis_to_low_end(q)
+        q_ft, sq_ft = self.transformer.G_to_S(r_tmp, gr_tmp, q_ft, **kwargs)
+
+        q_ft, sq_ft = self.transformer.apply_cropping(q_ft, sq_ft, qmin, qmax)
+        q, sq = self.transformer.apply_cropping(q, sq, qmin, qmax)
+
+        sq_original = sq
+        sq = (sq - sq_ft) + 1.
+
+        fq = self.converter.S_to_F(q, sq)
+        fq_ft = self.converter.S_to_F(q, sq_ft)
+
+        r, gr = self.transformer.F_to_G(q, fq, r, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
 
     def G_using_S(self, r, gr, q, sq, cutoff, **kwargs):
