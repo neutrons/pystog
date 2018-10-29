@@ -92,12 +92,16 @@ class PyStoG(object):
             self.Rdelta = self.Rmax / kwargs["Rpoints"]
         else:
             raise Exception("ERROR: Need either Rpoints or Rdelta")
-        self.lorch_flag = kwargs["LorchFlag"]
-        self.plot_flag = kwargs["PlotFlag"]
-        self.bcoh_sqrd = kwargs["<b_coh>^2"]
-        self.low_q_correction = kwargs['OmittedXrangeCorrection']
+        if "LorchFlag" in kwargs:
+            self.lorch_flag = kwargs["LorchFlag"]
+        if "PlotFlag" in kwargs:
+            self.plot_flag = kwargs["PlotFlag"]
+        if "<b_coh>^2" in kwargs:
+            self.bcoh_sqrd = kwargs["<b_coh>^2"]
         if "<b_tot^2>" in kwargs:
             self.btot_sqrd = kwargs["<b_tot^2>"]
+        if 'OmittedXrangeCorrection' in kwargs:
+            self.low_q_correction = kwargs['OmittedXrangeCorrection']
 
         if "Merging" in kwargs:
             self.merging = kwargs["Merging"]
