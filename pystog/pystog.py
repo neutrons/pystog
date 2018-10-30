@@ -558,22 +558,23 @@ if __name__ == "__main__":
     sofq[np.isnan(sofq)] = 0
     stog.df_sq_master[stog.sq_title] = sofq
 
-    if kwargs["PlotFlag"]:
-        stog.plot_merged_sq()
+    if "PlotFlag" in kwargs:
+        if kwargs["PlotFlag"]:
+            stog.plot_merged_sq()
 
 
     # Initial S(Q) -> g(r) transform 
     stog.create_dr()
-    kwargs = {'lorch' : False,
-              'rho' : stog.density,
-              '<b_coh>^2' : stog.bcoh_sqrd 
+    transform_kwargs = {'lorch' : False,
+                        'rho' : stog.density,
+                        '<b_coh>^2' : stog.bcoh_sqrd 
     }
     if stog.real_space_function == "g(r)":
-        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **kwargs )
+        r, gofr = stog.transformer.S_to_g(q, sofq, stog.dr, **transform_kwargs )
     elif stog.real_space_function == "G(r)":
-        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **kwargs )
+        r, gofr = stog.transformer.S_to_G(q, sofq, stog.dr, **transform_kwargs )
     elif stog.real_space_function == "GK(r)":
-        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **kwargs )
+        r, gofr = stog.transformer.S_to_GK(q, sofq, stog.dr, **transform_kwargs )
     else:
         raise Exception("ERROR: Unknown real space function %s" % stog.real_space_function)
 
@@ -581,8 +582,9 @@ if __name__ == "__main__":
     stog.df_gr_master = stog.df_gr_master.set_index(r)
     stog.write_out_merged_gr()
 
-    if kwargs["PlotFlag"]:
-        stog.plot_gr(stog.df_gr_master, ylabel=stog.real_space_function, title="Merged %s" % stog.real_space_function)
+    if "PlotFlag" in kwargs:
+        if kwargs["PlotFlag"]:
+            stog.plot_gr(stog.df_gr_master, ylabel=stog.real_space_function, title="Merged %s" % stog.real_space_function)
 
     #print stog.get_lowR_mean_square()
 
@@ -602,6 +604,7 @@ if __name__ == "__main__":
     stog.add_keen_fq(q,sq)
     stog.add_keen_gr(r,gr_out)
    
-    if kwargs["PlotFlag"]:
-        stog.plot_summary_sq()
-        stog.plot_summary_gr()
+    if "PlotFlag" in kwargs:
+        if kwargs["PlotFlag"]:
+            stog.plot_summary_sq()
+            stog.plot_summary_gr()
