@@ -84,6 +84,9 @@ class PyStoG(object):
         self.density = kwargs["NumberDensity"]
         self.stem_name = kwargs["Outputs"]["StemName"]
         self.Rmax = float(kwargs["Rmax"])
+
+        self.low_q_correction = None 
+
         if "FourierFilter" in kwargs:
             self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
         if "Rdelta" in kwargs:
