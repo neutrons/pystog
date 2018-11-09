@@ -366,19 +366,22 @@ class FourierFilter(object):
         fq = self.converter.S_to_F(q, sq)
         q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
         sq_ft = self.converter.F_to_S(q_ft, fq_ft)
+        sq    = self.converter.F_to_S(q, fq)
         return q_ft, sq_ft, q, sq, r, gr
        
     def g_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
         fq = self.converter.FK_to_F(q, fq)
         q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
         fq_ft = self.converter.F_to_FK(q_ft, fq_ft)
+        fq    = self.converter.F_to_FK(q, fq)
         return q_ft, fq_ft, q, fq, r, gr
        
     def g_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
         fq = self.converter.DCS_to_F(q, dcs)
         q_ft, fq_ft, q, fq, r, gr = self.g_using_F(r, gr, q, fq, cutoff, **kwargs)
         dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft)
-        return q_ft, fq_ft, q, fq, r, gr
+        dcs    = self.converter.F_to_DCS(q_ft, fq)
+        return q_ft, dcs_ft, q, dcs, r, gr
 
     # G(R) = PDF
     def G_using_F(self, r, gr, q, fq, cutoff, **kwargs):
