@@ -4,6 +4,14 @@ import pandas as pd
 # -------------------------------------#
 # Utilities
 
+ReciprocalSpaceChoices = { "S(Q)" : "S(Q)",
+                           "F(Q)" : "=Q[S(Q) - 1]",
+                           "FK(Q)" : "Keen's F(Q)",
+                           "DCS(Q)" : "Differential Cross-Section" }
+RealSpaceChoices = { "g(r)" : ' "little" g(r)',
+                     "G(r)" : "Pair Distribution Function",
+                     "GK(r)" : "Keen's G(r)" }
+
 def get_data(filename, skiprows=0, skipfooter=0, xcol=0, ycol=1):
     # Setup domain 
     return pd.read_csv(filename,sep=r"\s*",
