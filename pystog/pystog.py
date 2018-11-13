@@ -5,8 +5,8 @@ import pandas as pd
 import argparse
 import matplotlib.pyplot as plt
 
-from transformer import Converter, Transformer, FourierFilter
-from transformer import RealSpaceChoices, ReciprocalSpaceChoices
+from pystog.transformer import Converter, Transformer, FourierFilter
+from pystog.transformer import RealSpaceChoices, ReciprocalSpaceChoices
 
 
 def parser_cli_args(args):
