@@ -1,7 +1,7 @@
 import unittest
 
 # import test modules
-import converter
+import test_converter
 from utils import print_test_header
 
 # initialize the test suite
@@ -10,7 +10,7 @@ suite  = unittest.TestSuite()
 
 # add tests to the test suite
 print_test_header("Converter")
-suite.addTests(loader.loadTestsFromModule(converter))
+suite.addTests(loader.loadTestsFromModule(test_converter))
 
 # initialize a runner and run it
 runner = unittest.TextTestRunner(verbosity=3)
