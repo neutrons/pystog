@@ -24,9 +24,10 @@ class Transformer(object):
         xout = self._extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
-        if kwargs['lorch']:
-            PiOverXmax = np.pi / xmax
-            factor = np.sin(PiOverXmax * xin) / (PiOverXmax * xin)
+        if 'lorch' in kwargs:
+            if kwargs['lorch']:
+                PiOverXmax = np.pi / xmax
+                factor = np.sin(PiOverXmax * xin) / (PiOverXmax * xin)
 
         yout = np.zeros_like(xout)
         for i, x  in enumerate(xout):
