@@ -1,6 +1,6 @@
 import unittest
 import numpy
-from tests.utils import load_nickel_gofr
+from tests.utils import load_lammps_rdf
 from pystog.converter import Converter
 
 def plot(x,y1,y2):
@@ -9,13 +9,13 @@ def plot(x,y1,y2):
     plt.plot(x,y2)
     plt.show()
 
-class TestConverter(unittest.TestCase):
+class TestConverterRealSpace(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.converter = Converter()
 
         # setup nickel g(r) input data
-        self.r, self.gr = load_nickel_gofr()
+        self.r, self.gr = load_lammps_rdf("nickel.gr")
         self.kwargs = { "rho" : 0.0913841384754395,
                         "<b_coh>^2" : 106.09,
                         "<b_tot^2>" : 147.22}
