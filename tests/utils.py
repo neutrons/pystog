@@ -73,6 +73,15 @@ def create_and_write_reciprocal_space_functions(gr_filename, output_filename, **
     headers, data = create_reciprocal_space_functions(gr_filename, **kwargs)
     write_functions_to_file(headers, data, output_filename)
 
+#------------------------------------------------
+# Real and Reciprocal test data utility function
+def create_and_write_both_type_of_functions(gr_filename,real_out,reciprocal_out,**kwargs):
+    headers, data = create_real_space_functions(gr_filename, **kwargs)
+    write_functions_to_file(headers, data, real_out)
+    headers, data = create_reciprocal_space_functions(gr_filename, **kwargs)
+    write_functions_to_file(headers, data, reciprocal_out)
+    
+
 
 
   
