@@ -2,7 +2,7 @@
 variable myStep    equal 1000
 variable number_of_steps equal 20000
 variable dump_file string "dump.nickel.lammpstrj"
-variable rdf_file  string "nickel.rdf"
+variable rdf_file  string "nickel.gr"
 variable supercell equal 15
 
 # ---------- Initialize Simulation --------------------- 
