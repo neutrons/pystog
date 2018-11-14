@@ -18,9 +18,19 @@ class Transformer(object):
         x = np.linspace(dx, x[-1], int(x[-1]/dx), endpoint=True)
         return np.around(x,decimals=decimals)
 
+    def apply_cropping(self, x, y, xmin, xmax):
+        y = y[np.logical_and(x >= xmin, x <= xmax)]
+        x = x[np.logical_and(x >= xmin, x <= xmax)]
+        return x, y
 
-    def fourier_transform(self, xin, yin, xout, **kwargs):
-        xmax = max(xin)
+    def fourier_transform(self, xin, yin, xout, xmin=None, xmax=None,**kwargs):
+        if xmax is None:
+            xmax = max(xin)
+        if xmin is None:
+            xmin = min(xin)
+
+        xin, yin = self.apply_cropping(xin, yin, xmin, xmax)
+        
         xout = self._extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
@@ -40,11 +50,6 @@ class Transformer(object):
         return xout, yout
 
        
-    def apply_cropping(self, x, y, xmin, xmax):
-        y = y[np.logical_and(x >= xmin, x <= xmax)]
-        x = x[np.logical_and(x >= xmin, x <= xmax)]
-        return x, y
-
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
 
