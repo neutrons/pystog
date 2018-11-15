@@ -10,9 +10,6 @@ TEST_DATA_DIR = os.path.join(TEST_DIR, "../data/test_data")
 REAL_HEADERS = ["r", "g(r)", "G(r)", "GK(r)"]
 RECIPROCAL_HEADERS = ["Q", "S(Q)", "F(Q)", "FK(Q)", "DCS(Q)"]
 
-nickel_kwargs = { "rho" : 0.0913841384754395, "<b_coh>^2" : 106.09, "<b_tot^2>" : 147.22}
-argon_kwargs  = { "rho" : 0.02138, "<b_coh>^2" : 3.644, "<b_tot^2>" : 5.435}
-
 #------------------------------------------------
 # General utility functions
 
