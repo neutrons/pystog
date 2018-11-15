@@ -14,7 +14,7 @@ class Converter(object):
     # Reciprocal Space Conversions
 
     # F(Q) = Q[S(Q) - 1]
-    def F_to_S(self, q, fq):
+    def F_to_S(self, q, fq, **kwargs):
         return (fq / q) + 1.
 
     def F_to_FK(self, q, fq, **kwargs):
