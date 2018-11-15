@@ -2,249 +2,309 @@ import unittest
 import numpy
 from tests.utils import \
     load_test_data, get_index_of_function, \
-    REAL_HEADERS, RECIPROCAL_HEADERS,\
-    nickel_kwargs, argon_kwargs
+    REAL_HEADERS, RECIPROCAL_HEADERS
+from tests.materials import Nickel, Argon
 from pystog.transformer import Transformer
 
 #-------------------------------------------------------------------------------#
 # Real Space Function
 
-class TestTransformerRealSpaceBase(unittest.TestCase):
+class TestTransformerBase(unittest.TestCase):
+    rtol = 0.2
+    atol = 0.2
+
+    def initialize_material(self):
+        # setup input data
+        self.kwargs = self.material.kwargs
+
+        # setup the tolerance
+        self.real_space_first = self.material.real_space_first
+        self.real_space_last = self.material.real_space_last
+
+        data = load_test_data(self.material.real_space_filename)
+        self.r = data[:,get_index_of_function("r",REAL_HEADERS)]
+        self.gofr  = data[:,get_index_of_function("g(r)",REAL_HEADERS)]
+        self.GofR  = data[:,get_index_of_function("G(r)",REAL_HEADERS)]
+        self.GKofR = data[:,get_index_of_function("GK(r)",REAL_HEADERS)]
+
+        # targets for 1st peaks
+        self.gofr_target    = self.material.gofr_target
+        self.GofR_target    = self.material.GofR_target
+        self.GKofR_target   = self.material.GKofR_target
+
+        # setup the tolerance
+        self.reciprocal_space_first = self.material.reciprocal_space_first
+        self.reciprocal_space_last = self.material.reciprocal_space_last
+
+        data = load_test_data(self.material.reciprocal_space_filename)
+        self.q       = data[:,get_index_of_function("Q",RECIPROCAL_HEADERS)]
+        self.sq      = data[:,get_index_of_function("S(Q)",RECIPROCAL_HEADERS)]
+        self.fq      = data[:,get_index_of_function("F(Q)",RECIPROCAL_HEADERS)]
+        self.fq_keen = data[:,get_index_of_function("FK(Q)",RECIPROCAL_HEADERS)]
+        self.dcs     = data[:,get_index_of_function("DCS(Q)",RECIPROCAL_HEADERS)]
+
+        # targets for 1st peaks
+        self.sq_target    = self.material.sq_target
+        self.fq_target    = self.material.fq_target
+        self.fq_keen_target    = self.material.fq_keen_target
+        self.dcs_target    = self.material.dcs_target
+
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.transformer = Transformer()
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+
+    #---------------------------------------------------#
+    # Real space
 
     # g(r) tests
     def g_to_S(self):
         q, sq = self.transformer.g_to_S(self.r, self.gofr, self.q, **self.kwargs)
-        self.assertTrue(numpy.allclose(sq[self.first:self.last], 
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(sq[first:last], 
                                        self.sq_target, 
                                        rtol=self.rtol, atol=self.atol))
-
-class TestTransformerRealSpaceNickel(TestTransformerRealSpaceBase):
-    def setUp(self):
-        super(TestTransformerRealSpaceNickel, self).setUp()
-
-        # setup nickel g(r) input data
-        self.kwargs = nickel_kwargs
-
-        # setup the tolerance
-        self.first = 45
-        self.last = 53
-        self.rtol = 1e-5 
-        self.atol = 1e-8
-
-        data = load_test_data("nickel.real_space.dat")
-        self.r = data[:,get_index_of_function("r",REAL_HEADERS)]
-        self.gofr  = data[:,get_index_of_function("g(r)",REAL_HEADERS)]
-        self.GofR  = data[:,get_index_of_function("G(r)",REAL_HEADERS)]
-        self.GKofR = data[:,get_index_of_function("GK(r)",REAL_HEADERS)]
-
-        data = load_test_data("nickel.reciprocal_space.dat")
-        self.q = data[:,get_index_of_function("Q",RECIPROCAL_HEADERS)]
-        self.sq  = data[:,get_index_of_function("S(Q)",RECIPROCAL_HEADERS)]
-        self.fq  = data[:,get_index_of_function("F(Q)",RECIPROCAL_HEADERS)]
-        self.fq_keen = data[:,get_index_of_function("FK(Q)",RECIPROCAL_HEADERS)]
-        self.dcs = data[:,get_index_of_function("DCS(Q)",RECIPROCAL_HEADERS)]
-
-        # targets for 1st peaks
-        self.gofr_target    = [0.036372,
-                               0.832999,
-                               5.705700,
-                              12.894100,
-                              10.489400,
-                               3.267010,
-                               0.416700,
-                               0.021275]
-        self.GofR_target    = [-2.57284109375, 
-                               -0.45547376985, 
-                               13.1043856417,  
-                               33.8055086359, 
-                               27.5157162282,   
-                                6.703650364,
-                               -1.75833641369, 
-                               -3.00652731657]
-        self.GKofR_target    = [-102.2312733,
-                                 -17.71713609,
-                                 499.227713,
-                                1261.845069,
-                                1006.730446,
-                                 240.5070909,  
-                                 -61.882297,
-                                -103.83293525]
-
-    def test_g_to_G(self):
-        self.g_to_G()
-       
-class TestTransformerRealSpaceArgon(TestTransformerRealSpaceBase):
-    def setUp(self):
-        super(TestTransformerRealSpaceArgon, self).setUp()
-
-        # setup argon g(r) input data
-        self.kwargs = argon_kwargs
-
-        # setup the tolerance
-        self.first = 69
-        self.last = 76
-        self.rtol = 1e-5 
-        self.atol = 1e-8
-
-        data = load_test_data("argon.real_space.dat")
-        self.r = data[:,get_index_of_function("r",REAL_HEADERS)]
-        self.gofr  = data[:,get_index_of_function("g(r)",REAL_HEADERS)]
-        self.GofR  = data[:,get_index_of_function("G(r)",REAL_HEADERS)]
-        self.GKofR = data[:,get_index_of_function("GK(r)",REAL_HEADERS)]
-
-        # targets for 1st peaks
-        self.gofr_target  = [2.3774,
-                             2.70072,
-                             2.90777,
-                             3.01835,
-                             2.99808,
-                             2.89997,
-                             2.75178]
-        self.GofR_target  = [1.304478,
-                             1.633527,
-                             1.858025,
-                             1.992835,
-                             1.999663,
-                             1.926998,
-                             1.800236]
-        self.GKofR_target = [5.019246,
-                             6.197424,
-                             6.951914,
-                             7.354867,
-                             7.281004,
-                             6.923491,
-                             6.383486]
-
-    def test_g_to_G(self):
-        self.g_to_G()
-       
-#-------------------------------------------------------------------------------#
-# Reciprocal Space Function
- 
-class TestTransformerReciprocalSpaceBase(unittest.TestCase):
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self.transformer = Transformer()
-
-    def tearDown(self):
-        unittest.TestCase.tearDown(self)
-
-    # S(Q) tests
-    def S_to_F(self):
-        fq = self.transformer.S_to_F(self.q, self.sq, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq[self.first:self.last], 
+    def g_to_F(self):
+        q, fq = self.transformer.g_to_F(self.r, self.gofr, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq[first:last], 
                                        self.fq_target, 
                                        rtol=self.rtol, atol=self.atol))
-      
-class TestTransformerReciprocalSpaceNickel(TestTransformerReciprocalSpaceBase):
+    def g_to_FK(self):
+        q, fq_keen = self.transformer.g_to_FK(self.r, self.gofr, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq_keen[first:last], 
+                                       self.fq_keen_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def g_to_DCS(self):
+        q, dcs = self.transformer.g_to_DCS(self.r, self.gofr, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(dcs[first:last], 
+                                       self.dcs_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    # G(r) tests
+    def G_to_S(self):
+        q, sq = self.transformer.G_to_S(self.r, self.GofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(sq[first:last], 
+                                       self.sq_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def G_to_F(self):
+        q, fq = self.transformer.G_to_F(self.r, self.GofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq[first:last], 
+                                       self.fq_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def G_to_FK(self):
+        q, fq_keen = self.transformer.G_to_FK(self.r, self.GofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq_keen[first:last], 
+                                       self.fq_keen_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def G_to_DCS(self):
+        q, dcs = self.transformer.G_to_DCS(self.r, self.GofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(dcs[first:last], 
+                                       self.dcs_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    # GK(r) tests
+    def GK_to_S(self):
+        q, sq = self.transformer.GK_to_S(self.r, self.GKofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(sq[first:last], 
+                                       self.sq_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def GK_to_F(self):
+        q, fq = self.transformer.GK_to_F(self.r, self.GKofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq[first:last], 
+                                       self.fq_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def GK_to_FK(self):
+        q, fq_keen = self.transformer.GK_to_FK(self.r, self.GKofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(fq_keen[first:last], 
+                                       self.fq_keen_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def GK_to_DCS(self):
+        q, dcs = self.transformer.GK_to_DCS(self.r, self.GKofR, self.q, **self.kwargs)
+        first, last = self.reciprocal_space_first, self.reciprocal_space_last
+        self.assertTrue(numpy.allclose(dcs[first:last], 
+                                       self.dcs_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    #---------------------------------------------------#
+    # Reciprocal space
+
+    # S(Q) tests
+    def S_to_g(self):
+        r, gofr = self.transformer.S_to_g(self.q, self.sq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(gofr[first:last], 
+                                       self.gofr_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    def S_to_G(self):
+        r, GofR = self.transformer.S_to_G(self.q, self.sq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GofR[first:last], 
+                                       self.GofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def S_to_GK(self):
+        r, GKofR = self.transformer.S_to_GK(self.q, self.sq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GKofR[first:last], 
+                                       self.GKofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    # F(Q) tests
+    def F_to_g(self):
+        r, gofr = self.transformer.F_to_g(self.q, self.fq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(gofr[first:last], 
+                                       self.gofr_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    def F_to_G(self):
+        r, GofR = self.transformer.F_to_G(self.q, self.fq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GofR[first:last], 
+                                       self.GofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def F_to_GK(self):
+        r, GKofR = self.transformer.F_to_GK(self.q, self.fq, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GKofR[first:last], 
+                                       self.GKofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    # FK(Q) tests
+    def FK_to_g(self):
+        r, gofr = self.transformer.FK_to_g(self.q, self.fq_keen, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(gofr[first:last], 
+                                       self.gofr_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    def FK_to_G(self):
+        r, GofR = self.transformer.FK_to_G(self.q, self.fq_keen, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GofR[first:last], 
+                                       self.GofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def FK_to_GK(self):
+        r, GKofR = self.transformer.FK_to_GK(self.q, self.fq_keen, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GKofR[first:last], 
+                                       self.GKofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    # DCS(Q) tests
+    def DCS_to_g(self):
+        r, gofr = self.transformer.DCS_to_g(self.q, self.dcs, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(gofr[first:last], 
+                                       self.gofr_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+    def DCS_to_G(self):
+        r, GofR = self.transformer.DCS_to_G(self.q, self.dcs, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GofR[first:last], 
+                                       self.GofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+    def DCS_to_GK(self):
+        r, GKofR = self.transformer.DCS_to_GK(self.q, self.dcs, self.r, **self.kwargs)
+        first, last = self.real_space_first, self.real_space_last
+        self.assertTrue(numpy.allclose(GKofR[first:last], 
+                                       self.GKofR_target, 
+                                       rtol=self.rtol, atol=self.atol))
+
+
+class TestTransformerNickel(TestTransformerBase):
     def setUp(self):
-        super(TestTransformerReciprocalSpaceNickel, self).setUp()
+        super(TestTransformerNickel, self).setUp()
+        self.material = Nickel()
+        self.initialize_material()
 
-        # setup nickel g(r) input data
-        self.kwargs = nickel_kwargs
-
-        # setup the tolerance
-        self.first = 150
-        self.last = 157
-        self.rtol = 1e-5 
-        self.atol = 1e-8
-
-        data = load_test_data("nickel.reciprocal_space.dat")
-        self.q       = data[:,get_index_of_function("Q",RECIPROCAL_HEADERS)]
-        self.sq      = data[:,get_index_of_function("S(Q)",RECIPROCAL_HEADERS)]
-        self.fq      = data[:,get_index_of_function("F(Q)",RECIPROCAL_HEADERS)]
-        self.fq_keen = data[:,get_index_of_function("FK(Q)",RECIPROCAL_HEADERS)]
-        self.dcs     = data[:,get_index_of_function("DCS(Q)",RECIPROCAL_HEADERS)]
-
-        # targets for 1st peaks
-        self.sq_target       = [7.07469,
-                                8.704824,
-                                9.847706,
-                                10.384142,
-                                10.265869,
-                                9.519633,
-                                8.240809]
-        self.fq_target       = [18.345563,
-                                23.422666,
-                                27.07398,
-                                28.903156,
-                                28.724193,
-                                26.581256,
-                                22.73614]
-        self.fq_keen_target  = [644.463844,
-                                817.404819,
-                                938.653124,
-                                995.563576,
-                                983.016011,
-                                903.847917,
-                                768.177419]
-        self.dcs_target      = [791.683844,
-                                964.624819,
-                                1085.873124,
-                                1142.783576,
-                                1130.236011,
-                                1051.067917,
-                                915.397419]
-
-    def test_S_to_F(self):
-        self.S_to_F()
-       
-class TestTransformerReciprocalSpaceArgon(TestTransformerReciprocalSpaceBase):
+    def test_g_to_S(self):
+        self.g_to_S()
+    def test_g_to_F(self):
+        self.g_to_F()
+    def test_g_to_FK(self):
+        self.g_to_FK()
+    def test_g_to_DCS(self):
+        self.g_to_DCS()
+    def test_G_to_S(self):
+        self.G_to_S()
+    def test_G_to_F(self):
+        self.G_to_F()
+    def test_G_to_FK(self):
+        self.G_to_FK()
+    def test_G_to_DCS(self):
+        self.G_to_DCS()
+    def test_GK_to_S(self):
+        self.GK_to_S()
+    def test_GK_to_F(self):
+        self.GK_to_F()
+    def test_GK_to_FK(self):
+        self.GK_to_FK()
+    def test_GK_to_DCS(self):
+        self.GK_to_DCS()
+ 
+class TestTransformerArgon(TestTransformerBase):
     def setUp(self):
-        super(TestTransformerReciprocalSpaceArgon, self).setUp()
+        super(TestTransformerArgon, self).setUp()
+        self.material = Argon()
+        self.initialize_material()
 
-        # setup argon g(r) input data
-        self.kwargs = argon_kwargs
-
-        # setup the tolerance
-        self.first = 96 
-        self.last = 103
-        self.rtol = 1e-5 
-        self.atol = 1e-8
-
-        data = load_test_data("argon.reciprocal_space.dat")
-        self.q       = data[:,get_index_of_function("Q",RECIPROCAL_HEADERS)]
-        self.sq      = data[:,get_index_of_function("S(Q)",RECIPROCAL_HEADERS)]
-        self.fq      = data[:,get_index_of_function("F(Q)",RECIPROCAL_HEADERS)]
-        self.fq_keen = data[:,get_index_of_function("FK(Q)",RECIPROCAL_HEADERS)]
-        self.dcs     = data[:,get_index_of_function("DCS(Q)",RECIPROCAL_HEADERS)]
-
-        # targets for 1st peaks
-        self.sq_target       = [2.59173,
-                                2.706695,
-                                2.768409,
-                                2.770228,
-                                2.71334,
-                                2.605211,
-                                2.458852]
-        self.fq_target       = [3.087955,
-                                3.345121,
-                                3.50145,
-                                3.540457,
-                                3.460946,
-                                3.27463,
-                                3.005236]
-        self.fq_keen_target  = [5.800262,
-                                6.219195,
-                                6.444083,
-                                6.450712,
-                                6.24341,
-                                5.849389,
-                                5.316058]
-        self.dcs_target      = [11.235262,
-                                11.654195,
-                                11.879083,
-                                11.885712,
-                                11.67841,
-                                11.284389,
-                                10.751058]
-
-    def test_S_to_F(self):
-        self.S_to_F()
-
+    def test_g_to_S(self):
+        self.g_to_S()
+    def test_g_to_F(self):
+        self.g_to_F()
+    def test_g_to_FK(self):
+        self.g_to_FK()
+    def test_g_to_DCS(self):
+        self.g_to_DCS()
+    def test_G_to_S(self):
+        self.G_to_S()
+    def test_G_to_F(self):
+        self.G_to_F()
+    def test_G_to_FK(self):
+        self.G_to_FK()
+    def test_G_to_DCS(self):
+        self.G_to_DCS()
+    def test_GK_to_S(self):
+        self.GK_to_S()
+    def test_GK_to_F(self):
+        self.GK_to_F()
+    def test_GK_to_FK(self):
+        self.GK_to_FK()
+    def test_GK_to_DCS(self):
+        self.GK_to_DCS()
+ 
+    def test_S_to_g(self):
+        self.S_to_g()
+    def test_S_to_G(self):
+        self.S_to_G()
+    def test_S_to_GK(self):
+        self.S_to_GK()
+    def test_F_to_g(self):
+        self.F_to_g()
+    def test_F_to_G(self):
+        self.F_to_G()
+    def test_F_to_GK(self):
+        self.F_to_GK()
+    def test_FK_to_g(self):
+        self.FK_to_g()
+    def test_FK_to_G(self):
+        self.FK_to_G()
+    def test_FK_to_GK(self):
+        self.FK_to_GK()
+    def test_DCS_to_g(self):
+        self.DCS_to_g()
+    def test_DCS_to_G(self):
+        self.DCS_to_G()
+    def test_DCS_to_GK(self):
+        self.DCS_to_GK()
+ 
