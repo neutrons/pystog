@@ -28,7 +28,7 @@ class Converter(object):
         return self.FK_to_DCS(q, fq, **kwargs)
 
     # S(Q)
-    def S_to_F(self, q, sq):
+    def S_to_F(self, q, sq, **kwargs):
         return q*(sq - 1.)
 
     def S_to_FK(self, q, sq, **kwargs):
