@@ -6,7 +6,10 @@ class Nickel(object):
     #---------------------------
     # Material info
 
-    kwargs = { "rho" : 0.0913841384754395, "<b_coh>^2" : 106.09, "<b_tot^2>" : 147.22}
+    kwargs = { "rho" : 0.0913841384754395, 
+               "<b_coh>^2" : 106.09, 
+               "<b_tot^2>" : 147.22}
+    lammps_gr_filename = "nickel.gr"
     
     #---------------------------
     # Real space
@@ -81,6 +84,7 @@ class Argon(object):
     # Material info
 
     kwargs  = { "rho" : 0.02138, "<b_coh>^2" : 3.644, "<b_tot^2>" : 5.435}
+    lammps_gr_filename = "argon.gr"
     
     #---------------------------
     # Real space
