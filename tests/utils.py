@@ -7,6 +7,11 @@ from pystog.transformer import Transformer
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "../data/test_data")
+REAL_HEADERS = ["r", "g(r)", "G(r)", "GK(r)"]
+RECIPROCAL_HEADERS = ["Q", "S(Q)", "F(Q)", "FK(Q)", "DCS(Q)"]
+
+nickel_kwargs = { "rho" : 0.0913841384754395, "<b_coh>^2" : 106.09, "<b_tot^2>" : 147.22}
+argon_kwargs  = { "rho" : 0.02138, "<b_coh>^2" : 3.644, "<b_tot^2>" : 5.435}
 
 #------------------------------------------------
 # General utility functions
@@ -27,6 +32,18 @@ def load_lammps_rdf(filename):
     i, r, gr, nr = np.loadtxt(test_file_path,unpack=True, skiprows=5)
     return r, gr
 
+def load_test_data(filename):
+    test_file_path = os.path.join(TEST_DATA_DIR, filename)
+    data = np.loadtxt(test_file_path, skiprows=2)
+    return data 
+
+def get_index_of_function(func_string, headers):
+    for i, func_type in enumerate(headers):
+        if func_type == func_string:
+            return i
+    return None
+    
+
 def write_functions_to_file(headers, data, output_filename):
     header_string = ' '.join(headers)
     outfile_path = os.path.join(TEST_DATA_DIR, output_filename)
@@ -43,11 +60,10 @@ def create_real_space_functions(gr_filename,**kwargs):
     c = Converter()
     GofR = c.g_to_G(r,gr,**kwargs)
     GKofR = c.g_to_GK(r,gr,**kwargs)
-    headers = ["r", "g(r)", "G(r)", "GK(r)"]
     data    = [ r, gr, GofR, GKofR]
-    assert len(headers) == len(data)
+    assert len(REAL_HEADERS) == len(data)
     data = np.transpose(data) # puts the data where each column is a function 
-    return headers, data
+    return REAL_HEADERS, data
 
 def create_and_write_real_space_functions(gr_filename, output_filename, **kwargs):
     headers, data = create_real_space_functions(gr_filename, **kwargs)
@@ -63,11 +79,10 @@ def create_reciprocal_space_functions(gr_filename,dq=0.02,qmin=0.00,qmax=35.0,**
     q, fq = t.g_to_F(r, gr, q, **kwargs)
     q, fq_keen = t.g_to_FK(r, gr, q, **kwargs)
     q, dcs = t.g_to_DCS(r, gr, q, **kwargs)
-    headers = ["Q", "S(Q)", "F(Q)", "FK(Q)", "DCS(Q)"]
     data    = [ q, sq, fq, fq_keen, dcs]
-    assert len(headers) == len(data)
+    assert len(RECIPROCAL_HEADERS) == len(data)
     data = np.transpose(data) # puts the data where each column is a function 
-    return headers, data
+    return RECIPROCAL_HEADERS, data
 
 def create_and_write_reciprocal_space_functions(gr_filename, output_filename, **kwargs):
     headers, data = create_reciprocal_space_functions(gr_filename, **kwargs)
