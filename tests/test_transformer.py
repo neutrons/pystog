@@ -57,6 +57,38 @@ class TestTransformerBase(unittest.TestCase):
         unittest.TestCase.tearDown(self)
 
     #---------------------------------------------------#
+    # Utilities
+
+    def test_extend_axis_to_low_end(self):
+        xin = numpy.linspace(0.5, 1.0, 11)
+        xout = self.transformer._extend_axis_to_low_end(xin)
+        self.assertEqual(xout[0], 0.05)
+        self.assertEqual(xout[-1], 1.0)
+
+    def test_apply_cropping(self):
+        xin = numpy.linspace(0.5, 1.0, 11)
+        yin = numpy.linspace(4.5, 5.0, 11)
+        x, y = self.transformer.apply_cropping(xin, yin, 0.6, 0.7)
+        self.assertTrue(numpy.alltrue(x == [0.6,  0.65, 0.7 ]))
+        self.assertTrue(numpy.alltrue(y == [4.6,  4.65, 4.7 ]))
+
+    def test_fourier_transform(self):
+        fs = 100 # sample rate 
+        f = 2 # the frequency of the signal
+        xin = numpy.arange(fs) # the points on the x axis for plotting
+        yin = [ numpy.sin(2*np.pi*f * (i/fs)) for i in xin]
+        xout = numpy.linspace(0.0, 4.0, 400)
+        xout, yout = self.transformer.fourier_transform(xin, yin, xout)
+        print(xout)
+        print(yout)
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(2,1)
+        ax[0].plot(xin, yin)
+        ax[1].plot(xout, yout)
+        plt.show()
+        
+
+    #---------------------------------------------------#
     # Real space
 
     # g(r) tests
