@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pystog",
-    version="0.0.7",
+    version="0.1.0",
     author="Marshall McDonnell",
     author_email="mcdonnellmt@ornl.gov",
     description="A python package for reciprocal and real space transformations of total scattering patterns",
