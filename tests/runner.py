@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 # import test modules
@@ -15,4 +16,5 @@ suite.addTests(loader.loadTestsFromModule(test_transformer))
 
 # initialize a runner and run it
 runner = unittest.TextTestRunner(verbosity=3)
-result = runner.run(suite)
+result = runner.run(suite).wasSuccessful()
+sys.exit(not result) # weird "opposite" logic

@@ -1,9 +1,9 @@
 import unittest
 import numpy
-from tests.utils import \
+from utils import \
     load_test_data, get_index_of_function, \
     REAL_HEADERS, RECIPROCAL_HEADERS
-from tests.materials import Nickel, Argon
+from materials import Nickel, Argon
 from pystog.converter import Converter
 
 #-------------------------------------------------------------------------------#

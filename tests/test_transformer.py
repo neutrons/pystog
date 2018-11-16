@@ -1,9 +1,9 @@
 import unittest
 import numpy
-from tests.utils import \
+from utils import \
     load_test_data, get_index_of_function, \
     REAL_HEADERS, RECIPROCAL_HEADERS
-from tests.materials import Nickel, Argon
+from materials import Nickel, Argon
 from pystog.transformer import Transformer
 
 #-------------------------------------------------------------------------------#
@@ -74,18 +74,21 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_fourier_transform(self):
         fs = 100 # sample rate 
-        f = 2 # the frequency of the signal
-        xin = numpy.arange(fs) # the points on the x axis for plotting
-        yin = [ numpy.sin(2*np.pi*f * (i/fs)) for i in xin]
-        xout = numpy.linspace(0.0, 4.0, 400)
+        f = 10 # the frequency of the signal
+        xin = numpy.linspace(0.0, 100., 1000) # the points on the x axis for plotting
+        yin = numpy.asarray([ numpy.sin(2*numpy.pi*f*(i/fs)) for i in xin])
+        xout = numpy.linspace(0.0, 2.0, 100)
         xout, yout = self.transformer.fourier_transform(xin, yin, xout)
-        print(xout)
-        print(yout)
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(2,1)
-        ax[0].plot(xin, yin)
-        ax[1].plot(xout, yout)
-        plt.show()
+        yout_target = [ -6.99109862,
+                        31.19080001113671,
+                        48.394807800183614,
+                        12.598301416877067,
+                       -10.486717499230888]
+        first = 28
+        last  = 33
+        self.assertTrue(numpy.allclose(yout[first:last], 
+                                       yout_target, 
+                                       rtol=self.rtol, atol=self.atol))
         
 
     #---------------------------------------------------#
