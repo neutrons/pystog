@@ -6,3 +6,5 @@ Example:
 or using JSON
 
 ./pystog.py --json input.json
+
+[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog)
