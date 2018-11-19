@@ -3,13 +3,10 @@ from __future__ import (absolute_import, division, print_function)
 
 import inspect
 import argparse
-import numpy as np
-import pandas as pd
 
 from pystog.utils import get_data, create_domain, write_out
 from pystog.converter import Converter
 from pystog.transformer import Transformer
-from pystog.fourier_filter import FourierFilter
 
 ReciprocalSpaceChoices = {"S(Q)": "S(Q)",
                           "F(Q)": "=Q[S(Q) - 1]",
@@ -62,7 +59,7 @@ if __name__ == "__main__":
             100.0,
             0.05),
         type=float,
-        help="The domain range (xmin, xmax, binsize) for the post-transformed function")
+        help="The domain range (xmin, xmax, binsize) for transformed function")
     parser.add_argument('-i', '--input', type=str,
                         help='Input Filename')
     parser.add_argument('-o', '--output', type=str,

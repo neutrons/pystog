@@ -1,5 +1,3 @@
-
-import numpy as np
 from tests.utils import create_and_write_both_type_of_functions
 from tests.materials import Nickel, Argon
 

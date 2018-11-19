@@ -67,7 +67,9 @@ class Transformer(object):
         xmin = min(xin)
         xmax = max(xin)
         yin_xmin = yin[0]
-        PiOverQmax = np.pi / xmax
+        np.pi / xmax
+
+        PiOverXmax = np.pi / xmax
 
         correction = np.zeros_like(yout)
         for i, x in enumerate(xout):
@@ -93,9 +95,7 @@ class Transformer(object):
 
         return yout
 
-    #--------------------------------------#
     # Reciprocal -> Real Space Transforms  #
-    #--------------------------------------#
 
     # F(Q) = Q[S(Q) - 1]
     def F_to_G(self, q, fq, r, **kwargs):
@@ -161,9 +161,7 @@ class Transformer(object):
         r, gr = self.F_to_g(q, fq, r, **kwargs)
         return r, gr
 
-    #--------------------------------------#
     # Real -> Reciprocal Space Transforms  #
-    #--------------------------------------#
 
     # G(R) = PDF
     def G_to_F(self, r, gr, q, **kwargs):

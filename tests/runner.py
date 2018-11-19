@@ -4,7 +4,6 @@ import unittest
 # import test modules
 import test_converter
 import test_transformer
-from utils import print_test_header
 
 # initialize the test suite
 loader = unittest.TestLoader()

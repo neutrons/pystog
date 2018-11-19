@@ -8,10 +8,10 @@ setuptools.setup(
     version="0.1.0",
     author="Marshall McDonnell",
     author_email="mcdonnellmt@ornl.gov",
-    description="A python package for reciprocal and real space transformations of total scattering patterns",
+    description="Transforms reciprocal and real space function",
     long_description_content_type="text/markdown",
     url="https://github.com/marshallmcdonnell/pystog",
-    packages=setuptools.find_packages(exclude=["data","tests", "fortran"]),
+    packages=setuptools.find_packages(exclude=["data", "tests", "fortran"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

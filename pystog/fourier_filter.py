@@ -29,7 +29,6 @@ class FourierFilter(object):
 
         # Subtract F(Q)_ft from original F(Q) = delta_F(Q)
         q, fq = self.transformer.apply_cropping(q, fq, qmin, qmax)
-        fq_original = fq
         fq = (fq - fq_ft)
 
         # Transform delta_F(Q) for g(r) with low-r removed
@@ -103,14 +102,14 @@ class FourierFilter(object):
 
     def GK_using_S(self, r, gr, q, sq, cutoff, **kwargs):
         fq = self.converter.S_to_F(q, sq)
-        q_ft, sq_ft, q, sq, r, gr = self.GK_using_F(
-            r, gr, q, sq, cutoff, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr = self.GK_using_F(
+            r, gr, q, fq, cutoff, **kwargs)
         sq_ft = self.converter.F_to_S(q_ft, fq_ft)
         sq = self.converter.F_to_S(q, fq)
         return q_ft, sq_ft, q, sq, r, gr
 
     def GK_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        fq = self.converter.FK_to_F(q, sq)
+        fq = self.converter.FK_to_F(q, fq)
         q_ft, fq_ft, q, fq, r, gr = self.GK_using_F(
             r, gr, q, fq, cutoff, **kwargs)
         fq_ft = self.converter.F_to_FK(q_ft, fq_ft, **kwargs)

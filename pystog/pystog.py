@@ -186,7 +186,8 @@ class PyStoG(object):
             y = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
             y = self.converter.DCS_to_S(
-                x, y, **{'<b_coh>^2': self.bcoh_sqrd, '<b_tot^2>': self.btot_sqrd})
+                x, y, **{'<b_coh>^2': self.bcoh_sqrd,
+                         '<b_tot^2>': self.btot_sqrd})
 
         df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
         self.df_sq_individuals = pd.concat(
@@ -201,8 +202,8 @@ class PyStoG(object):
 
     def merge_data(self):
         # Sum over single S(Q) columns into a merged S(Q)
-        self.df_sq_master[self.sq_title] = self.df_sq_individuals.iloc[:, :].mean(
-            axis=1)
+        single_sofqs = self.df_sq_individuals.iloc[:, :]
+        self.df_sq_master[self.sq_title] = single_sofqs.mean(axis=1)
 
         x = self.df_sq_master[self.sq_title].index.values
         y = self.df_sq_master[self.sq_title].values
@@ -305,15 +306,14 @@ class PyStoG(object):
         # Plot results
         if self.plot_flag:
             exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
-            df_sq = self.df_sq_master.ix[:, self.df_sq_master.columns.difference(
-                exclude_list)]
+            columns_diff = self.df_sq_master.columns.difference(exclude_list)
+            df_sq = self.df_sq_master.ix[:, columns_diff]
             self.plot_sq(
                 df_sq,
                 ylabel="FourierFilter(Q)",
-                title="Fourier Transform of the filtered low-r region below cutoff")
+                title="Fourier Transform of the low-r region below cutoff")
             exclude_list = [self.qsq_minus_one_title]
-            df_sq = self.df_sq_master.ix[:, self.df_sq_master.columns.difference(
-                exclude_list)]
+            df_sq = self.df_sq_master.ix[:, columns_diff]
             self.plot_sq(df_sq, title="Fourier Filtered S(Q)")
             self.plot_gr(
                 self.df_gr_master,
@@ -434,8 +434,9 @@ class PyStoG(object):
 
     def plot_summary_sq(self):
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        df_sq = self.df_sq_master.ix[:, self.df_sq_master.columns.difference([
-                                                                             self.fq_rmc_title])]
+        columns = self.df_sq_master.columns
+        columns_diff = columns.difference([self.fq_rmc_title])
+        df_sq = self.df_sq_master.ix[:, columns_diff]
         df_sq.plot(ax=ax1, **self._plot_kwargs)
         df_fq = self.df_sq_master.ix[:, [self.fq_rmc_title]]
         df_fq.plot(ax=ax2, **self._plot_kwargs)
@@ -448,8 +449,9 @@ class PyStoG(object):
 
     def plot_summary_gr(self):
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        df_gr = self.df_gr_master.ix[:, self.df_gr_master.columns.difference([
-                                                                             self.gr_rmc_title])]
+        columns = self.df_gr_master.columns
+        columns_diff = columns.difference([self.gr_rmc_title])
+        df_gr = self.df_gr_master.ix[:, columns_diff]
         df_gr.plot(ax=ax1, **self._plot_kwargs)
         df_gk = self.df_gr_master.ix[:, [self.gr_rmc_title]]
         df_gk.plot(ax=ax2, **self._plot_kwargs)
@@ -537,7 +539,7 @@ if __name__ == "__main__":
         action='append',
         default=list(),
         dest='filenames',
-        help="Filename, qmin, qmax, yoffset, yscale, Q offset, function type." +
+        help="Filename, qmin, qmax, yoffset, yscale, Qoffset, function type." +
         "Function Types are: %s" %
         json.dumps(ReciprocalSpaceChoices))
     parser.add_argument(

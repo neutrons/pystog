@@ -6,7 +6,6 @@ from utils import \
 from materials import Nickel, Argon
 from pystog.transformer import Transformer
 
-#-------------------------------------------------------------------------------#
 # Real Space Function
 
 
@@ -58,7 +57,6 @@ class TestTransformerBase(unittest.TestCase):
     def tearDown(self):
         unittest.TestCase.tearDown(self)
 
-    #---------------------------------------------------#
     # Utilities
 
     def test_extend_axis_to_low_end(self):
@@ -94,7 +92,6 @@ class TestTransformerBase(unittest.TestCase):
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
-    #---------------------------------------------------#
     # Real space
 
     # g(r) tests
@@ -197,7 +194,6 @@ class TestTransformerBase(unittest.TestCase):
                                        self.dcs_target,
                                        rtol=self.rtol, atol=self.atol))
 
-    #---------------------------------------------------#
     # Reciprocal space
 
     # S(Q) tests

@@ -6,7 +6,6 @@ from utils import \
 from materials import Nickel, Argon
 from pystog.converter import Converter
 
-#-------------------------------------------------------------------------------#
 # Real Space Function
 
 
@@ -129,7 +128,6 @@ class TestConverterRealSpaceArgon(TestConverterRealSpaceBase):
     def test_GK_to_G(self):
         self.GK_to_G()
 
-#-------------------------------------------------------------------------------#
 # Reciprocal Space Function
 
 
@@ -203,7 +201,7 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         self.assertTrue(numpy.allclose(dcs[self.first:self.last],
                                        self.dcs_target,
                                        rtol=self.rtol, atol=self.atol))
-     # FK(Q) tests
+    # FK(Q) tests
 
     def FK_to_S(self):
         sq = self.converter.FK_to_S(self.q, self.fq_keen, **self.kwargs)

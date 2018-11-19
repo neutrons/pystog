@@ -11,7 +11,6 @@ class Converter(object):
     def __init__(self):
         pass
 
-    #----------------------------#
     # Reciprocal Space Conversions
 
     # F(Q) = Q[S(Q) - 1]
@@ -63,7 +62,6 @@ class Converter(object):
     def DCS_to_FK(self, q, dcs, **kwargs):
         return dcs - kwargs['<b_tot^2>']
 
-    #----------------------------#
     # Real Space Conversions
 
     # G(r) = PDF

@@ -17,14 +17,6 @@ RECIPROCAL_HEADERS = ["Q", "S(Q)", "F(Q)", "FK(Q)", "DCS(Q)"]
 def multiplied_template(l):
     return ('%f ' * len(l))[:-1] % tuple(l)
 
-
-def print_test_header(test, dashes=50):
-    dashes = "-" * dashes
-    print("#%s#" % dashes)
-    print("# %s" % test)
-    print("#%s#" % dashes)
-
-# ------------------------------------------------
 # Test data utility functions
 
 
