@@ -100,7 +100,8 @@ class TestTransformerBase(unittest.TestCase):
         yin = numpy.asarray(
             [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
         xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout, **{'lorch':True})
+        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
+                                                        **{'lorch': True})
         yout_target = [7.36295491382,
                        23.3584279212,
                        29.0370190673,
@@ -120,19 +121,20 @@ class TestTransformerBase(unittest.TestCase):
         yin = numpy.asarray(
             [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
         xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout, **{'lorch':False})
-        yout = self.transformer._low_x_correction(xin, yin, xout, yout, **{'lorch':False})
+        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
+                                                        **{'lorch': False})
+        yout = self.transformer._low_x_correction(xin, yin, xout, yout,
+                                                  **{'lorch': False})
         yout_target = [-6.99109862,
                        31.19080001,
                        48.3948078,
                        12.59830142,
-                       -10.4867175 ]
+                       -10.4867175]
         first = 28
         last = 33
         self.assertTrue(numpy.allclose(yout[first:last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
-
 
     def test_low_x_correction_with_lorch(self):
         fs = 100  # sample rate
@@ -142,8 +144,10 @@ class TestTransformerBase(unittest.TestCase):
         yin = numpy.asarray(
             [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
         xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout, **{'lorch':True})
-        yout = self.transformer._low_x_correction(xin, yin, xout, yout, **{'lorch':True})
+        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
+                                                        **{'lorch': True})
+        yout = self.transformer._low_x_correction(xin, yin, xout, yout,
+                                                  **{'lorch': True})
         yout_target = [7.36295491,
                        23.35842792,
                        29.03701907,

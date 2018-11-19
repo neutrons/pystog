@@ -39,9 +39,11 @@ class Transformer(object):
         if 'lorch' in kwargs:
             if kwargs['lorch']:
                 PiOverXmax = np.pi / xmax
-                num   = np.sin(PiOverXmax * xin)
+                num = np.sin(PiOverXmax * xin)
                 denom = PiOverXmax * xin
-                factor = np.divide(num, denom, out=np.zeros_like(num), where=denom!=0)
+                factor = np.divide(num, denom,
+                                   out=np.zeros_like(num),
+                                   where=denom != 0)
 
         yout = np.zeros_like(xout)
         for i, x in enumerate(xout):
@@ -85,7 +87,9 @@ class Transformer(object):
                 F2 = (np.sin(v) - v * np.cos(v)) / x / x
 
             num = F1 * yin_xmin
-            factor = np.divide(num, xmin, out=np.zeros_like(num), where=xmin!=0)
+            factor = np.divide(num, xmin,
+                               out=np.zeros_like(num),
+                               where=xmin != 0)
             correction[i] = (2 / np.pi) * (factor - F2)
 
         yout += correction
