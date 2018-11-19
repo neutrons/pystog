@@ -8,7 +8,7 @@ from utils import print_test_header
 
 # initialize the test suite
 loader = unittest.TestLoader()
-suite  = unittest.TestSuite()
+suite = unittest.TestSuite()
 
 # add tests to the test suite
 suite.addTests(loader.loadTestsFromModule(test_converter))
@@ -17,4 +17,4 @@ suite.addTests(loader.loadTestsFromModule(test_transformer))
 # initialize a runner and run it
 runner = unittest.TextTestRunner(verbosity=3)
 result = runner.run(suite).wasSuccessful()
-sys.exit(not result) # weird "opposite" logic
+sys.exit(not result)  # weird "opposite" logic

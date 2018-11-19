@@ -5,6 +5,7 @@ import numpy as np
 # -----------------------------------------------#
 # Converters Reciprocal or Real Space Functions
 
+
 class Converter(object):
 
     def __init__(self):
@@ -18,9 +19,9 @@ class Converter(object):
         return (fq / q) + 1.
 
     def F_to_FK(self, q, fq, **kwargs):
-        mask = ( q != 0.0)
+        mask = (q != 0.0)
         fq_new = np.zeros_like(fq)
-        fq_new[mask] = fq[mask] / q[mask] 
+        fq_new[mask] = fq[mask] / q[mask]
         return kwargs['<b_coh>^2'] * fq_new
 
     def F_to_DCS(self, q, fq, **kwargs):
@@ -29,10 +30,10 @@ class Converter(object):
 
     # S(Q)
     def S_to_F(self, q, sq, **kwargs):
-        return q*(sq - 1.)
+        return q * (sq - 1.)
 
     def S_to_FK(self, q, sq, **kwargs):
-        fq = self.S_to_F(q,sq)
+        fq = self.S_to_F(q, sq)
         return self.F_to_FK(q, fq, **kwargs)
 
     def S_to_DCS(self, q, sq, **kwargs):
@@ -48,9 +49,9 @@ class Converter(object):
         return self.F_to_S(q, fq)
 
     def FK_to_DCS(self, q, fq, **kwargs):
-        return fq + kwargs['<b_tot^2>'] 
+        return fq + kwargs['<b_tot^2>']
 
-    # Differential cross-section = d_simga / d_Omega 
+    # Differential cross-section = d_simga / d_Omega
     def DCS_to_F(self, q, dcs, **kwargs):
         fq = self.DCS_to_FK(q, dcs, **kwargs)
         return self.FK_to_F(q, fq, **kwargs)
@@ -60,15 +61,15 @@ class Converter(object):
         return self.FK_to_S(q, fq, **kwargs)
 
     def DCS_to_FK(self, q, dcs, **kwargs):
-        return dcs - kwargs['<b_tot^2>'] 
+        return dcs - kwargs['<b_tot^2>']
 
     #----------------------------#
     # Real Space Conversions
 
     # G(r) = PDF
     def G_to_GK(self, r, gr, **kwargs):
-        factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho']) 
-        return factor * ( gr / r )
+        factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
+        return factor * (gr / r)
 
     def G_to_g(self, r, gr, **kwargs):
         factor = 4. * np.pi * kwargs['rho']
@@ -77,7 +78,7 @@ class Converter(object):
     # Keen's G(r)
     def GK_to_G(self, r, gr, **kwargs):
         factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
-        return  factor * r * gr
+        return factor * r * gr
 
     def GK_to_g(self, r, gr, **kwargs):
         gr = self.GK_to_G(r, gr, **kwargs)
@@ -91,4 +92,3 @@ class Converter(object):
     def g_to_GK(self, r, gr, **kwargs):
         gr = self.g_to_G(r, gr, **kwargs)
         return self.G_to_GK(r, gr, **kwargs)
-

@@ -7,30 +7,38 @@ from pystog.converter import Converter
 # -------------------------------------------------------#
 # Transforms between Reciprocal and Real Space Functions
 
+
 class Transformer(object):
     def __init__(self):
         self.converter = Converter()
 
-    def _extend_axis_to_low_end(self,x,decimals=4):
+    def _extend_axis_to_low_end(self, x, decimals=4):
         dx = x[1] - x[0]
         if x[0] == 0.0:
             x[0] = 1e-6
-        x = np.linspace(dx, x[-1], int(x[-1]/dx), endpoint=True)
-        return np.around(x,decimals=decimals)
+        x = np.linspace(dx, x[-1], int(x[-1] / dx), endpoint=True)
+        return np.around(x, decimals=decimals)
 
     def apply_cropping(self, x, y, xmin, xmax):
         y = y[np.logical_and(x >= xmin, x <= xmax)]
         x = x[np.logical_and(x >= xmin, x <= xmax)]
         return x, y
 
-    def fourier_transform(self, xin, yin, xout, xmin=None, xmax=None,**kwargs):
+    def fourier_transform(
+            self,
+            xin,
+            yin,
+            xout,
+            xmin=None,
+            xmax=None,
+            **kwargs):
         if xmax is None:
             xmax = max(xin)
         if xmin is None:
             xmin = min(xin)
 
         xin, yin = self.apply_cropping(xin, yin, xmin, xmax)
-        
+
         xout = self._extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
@@ -40,7 +48,7 @@ class Transformer(object):
                 factor = np.sin(PiOverXmax * xin) / (PiOverXmax * xin)
 
         yout = np.zeros_like(xout)
-        for i, x  in enumerate(xout):
+        for i, x in enumerate(xout):
             kernel = factor * yin * np.sin(xin * x)
             yout[i] = np.trapz(kernel, x=xin)
 
@@ -48,8 +56,6 @@ class Transformer(object):
             self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout
-
-       
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
 
@@ -74,8 +80,8 @@ class Transformer(object):
                 term2 = (vp * np.sin(vp) + np.cos(vp) - 1.) / \
                     (x + PiOverXmax)**2.
                 F1 = (term1 - term2) / (2. * PiOverXmax)
-                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) / \
-                    (x + PiOverXmax) )/ (2. * PiOverXmax)
+                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) /
+                      (x + PiOverXmax)) / (2. * PiOverXmax)
             else:
                 F1 = (2. * v * np.sin(v) - (v * v - 2.) *
                       np.cos(v) - 2.) / x / x / x
@@ -85,7 +91,7 @@ class Transformer(object):
 
         yout += correction
 
-        return yout 
+        return yout
 
     #--------------------------------------#
     # Reciprocal -> Real Space Transforms  #
@@ -94,7 +100,7 @@ class Transformer(object):
     # F(Q) = Q[S(Q) - 1]
     def F_to_G(self, q, fq, r, **kwargs):
         r, gr = self.fourier_transform(q, fq, r, **kwargs)
-        gr = 2./ np.pi * gr
+        gr = 2. / np.pi * gr
         return r, gr
 
     def F_to_GK(self, q, fq, r, **kwargs):
@@ -114,12 +120,12 @@ class Transformer(object):
         return r, gr
 
     def S_to_GK(self, q, sq, r, **kwargs):
-        fq = self.converter.S_to_F(q,sq)
+        fq = self.converter.S_to_F(q, sq)
         r, gr = self.F_to_GK(q, fq, r, **kwargs)
         return r, gr
- 
+
     def S_to_g(self, q, sq, r, **kwargs):
-        fq = self.converter.S_to_F(q,sq)
+        fq = self.converter.S_to_F(q, sq)
         r, gr = self.F_to_g(q, fq, r, **kwargs)
         return r, gr
 
@@ -131,15 +137,15 @@ class Transformer(object):
 
     def FK_to_GK(self, q, fq_keen, r, **kwargs):
         fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr =  self.F_to_GK(q, fq, r, **kwargs)
-        return r, gr
-         
-    def FK_to_g(self, q, fq_keen, r, **kwargs):
-        fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr =  self.F_to_g(q, fq, r, **kwargs)
+        r, gr = self.F_to_GK(q, fq, r, **kwargs)
         return r, gr
 
-    # Differential cross-section = d_simga / d_Omega 
+    def FK_to_g(self, q, fq_keen, r, **kwargs):
+        fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
+        r, gr = self.F_to_g(q, fq, r, **kwargs)
+        return r, gr
+
+    # Differential cross-section = d_simga / d_Omega
     def DCS_to_G(self, q, dcs, r, **kwargs):
         fq = self.converter.DCS_to_F(q, dcs, **kwargs)
         r, gr = self.F_to_G(q, fq, r, **kwargs)
@@ -167,7 +173,7 @@ class Transformer(object):
 
     def G_to_S(self, r, gr, q, **kwargs):
         q, fq = self.G_to_F(r, gr, q, **kwargs)
-        sq = self.converter.F_to_S(q, fq) 
+        sq = self.converter.F_to_S(q, fq)
         return q, sq
 
     def G_to_FK(self, r, gr, q, **kwargs):
@@ -213,4 +219,3 @@ class Transformer(object):
     def g_to_DCS(self, r, gr, q, **kwargs):
         gr = self.converter.g_to_G(r, gr, **kwargs)
         return self.G_to_DCS(r, gr, q, **kwargs)
-        
