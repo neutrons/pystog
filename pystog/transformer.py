@@ -24,14 +24,8 @@ class Transformer(object):
         x = x[np.logical_and(x >= xmin, x <= xmax)]
         return x, y
 
-    def fourier_transform(
-            self,
-            xin,
-            yin,
-            xout,
-            xmin=None,
-            xmax=None,
-            **kwargs):
+    def fourier_transform(self, xin, yin, xout,
+                          xmin=None, xmax=None, **kwargs):
         if xmax is None:
             xmax = max(xin)
         if xmin is None:
@@ -45,7 +39,9 @@ class Transformer(object):
         if 'lorch' in kwargs:
             if kwargs['lorch']:
                 PiOverXmax = np.pi / xmax
-                factor = np.sin(PiOverXmax * xin) / (PiOverXmax * xin)
+                num   = np.sin(PiOverXmax * xin)
+                denom = PiOverXmax * xin
+                factor = np.divide(num, denom, out=np.zeros_like(num), where=denom!=0)
 
         yout = np.zeros_like(xout)
         for i, x in enumerate(xout):
