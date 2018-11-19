@@ -7,6 +7,4 @@ or using JSON
 
 ./pystog.py --json input.json
 
-[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog)
-
-[![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog)
+[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog) [![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog)
