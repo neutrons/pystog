@@ -58,7 +58,6 @@ class Transformer(object):
         return xout, yout
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
-
         lorch_flag = False
         if 'lorch' in kwargs:
             if kwargs['lorch']:
