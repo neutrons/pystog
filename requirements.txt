@@ -1,10 +1,8 @@
-autopep8
 cycler
 kiwisolver
 matplotlib
 numpy
 pandas
-pycodestyle
 pyparsing
 python-dateutil
 pytz

@@ -6,7 +6,9 @@ install:
   - pip install -r requirements.txt
   - python setup.py install
   - pip install codecov
+  - pip install flake8
 script:
+  - flake8 .
   - python tests/runner.py
   - coverage run tests/runner.py
 after_success:
