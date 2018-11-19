@@ -112,6 +112,26 @@ class TestTransformerBase(unittest.TestCase):
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
+    def test_low_x_correction_with_lorch(self):
+        fs = 100  # sample rate
+        f = 10  # the frequency of the signal
+        # the points on the x axis for plotting
+        xin = numpy.linspace(0.0, 100., 1000)
+        yin = numpy.asarray(
+            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
+        xout = numpy.linspace(0.0, 2.0, 100)
+        xout, yout = self.transformer.fourier_transform(xin, yin, xout, **{'lorch':True})
+        yout = self.transformer._low_x_correction(xin, yin, xout, yout, **{'lorch':True})
+        yout_target = [7.36295491,
+                       23.35842792,
+                       29.03701907,
+                       16.88921695,
+                       2.41130973]
+        first = 28
+        last = 33
+        self.assertTrue(numpy.allclose(yout[first:last],
+                                       yout_target,
+                                       rtol=self.rtol, atol=self.atol))
 
     # Real space
 
