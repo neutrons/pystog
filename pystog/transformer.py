@@ -84,7 +84,9 @@ class Transformer(object):
                       np.cos(v) - 2.) / x / x / x
                 F2 = (np.sin(v) - v * np.cos(v)) / x / x
 
-            correction[i] = (2 / np.pi) * (F1 * yin_xmin / xmin - F2)
+            num = F1 * yin_xmin
+            factor = np.divide(num, xmin, out=np.zeros_like(num), where=xmin!=0)
+            correction[i] = (2 / np.pi) * (factor - F2)
 
         yout += correction
 
