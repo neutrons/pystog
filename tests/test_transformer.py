@@ -54,6 +54,16 @@ class TestTransformerBase(unittest.TestCase):
         unittest.TestCase.setUp(self)
         self.transformer = Transformer()
 
+        # Parameters for fourier transform testing
+        self._ft_first = 28
+        self._ft_last = 33
+        fs = 100  # sample rate
+        f = 10  # the frequency of the signal
+        self._ft_xin = numpy.linspace(0.0, 100., 1000)
+        self._ft_yin = numpy.asarray(
+            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in self._ft_xin])
+        self._ft_xout = numpy.linspace(0.0, 2.0, 100)
+
     def tearDown(self):
         unittest.TestCase.tearDown(self)
 
@@ -73,89 +83,88 @@ class TestTransformerBase(unittest.TestCase):
         self.assertTrue(numpy.alltrue(y == [4.6, 4.65, 4.7]))
 
     def test_fourier_transform(self):
-        fs = 100  # sample rate
-        f = 10  # the frequency of the signal
-        # the points on the x axis for plotting
-        xin = numpy.linspace(0.0, 100., 1000)
-        yin = numpy.asarray(
-            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
-        xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout)
+        xout, yout = self.transformer.fourier_transform(self._ft_xin,
+                                                        self._ft_yin,
+                                                        self._ft_xout)
         yout_target = [-6.99109862,
                        31.19080001113671,
                        48.394807800183614,
                        12.598301416877067,
                        -10.486717499230888]
-        first = 28
-        last = 33
-        self.assertTrue(numpy.allclose(yout[first:last],
+        self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
     def test_fourier_transform_with_lorch(self):
-        fs = 100  # sample rate
-        f = 10  # the frequency of the signal
-        # the points on the x axis for plotting
-        xin = numpy.linspace(0.0, 100., 1000)
-        yin = numpy.asarray(
-            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
-        xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
-                                                        **{'lorch': True})
+        kwargs = {"lorch": True}
+        xout, yout = self.transformer.fourier_transform(self._ft_xin,
+                                                        self._ft_yin,
+                                                        self._ft_xout,
+                                                        **kwargs)
         yout_target = [7.36295491382,
                        23.3584279212,
                        29.0370190673,
                        16.889216949,
                        2.41130973148]
-        first = 28
-        last = 33
-        self.assertTrue(numpy.allclose(yout[first:last],
+        self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
-    def test_low_x_correction(self):
-        fs = 100  # sample rate
-        f = 10  # the frequency of the signal
-        # the points on the x axis for plotting
-        xin = numpy.linspace(0.0, 100., 1000)
-        yin = numpy.asarray(
-            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
-        xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
-                                                        **{'lorch': False})
-        yout = self.transformer._low_x_correction(xin, yin, xout, yout,
-                                                  **{'lorch': False})
+    def test_fourier_transform_with_low_x(self):
+        kwargs = {"OmittedXrangeCorrection": True}
+        xout, yout = self.transformer.fourier_transform(self._ft_xin,
+                                                        self._ft_yin,
+                                                        self._ft_xout,
+                                                        **kwargs)
+        yout_target = [7.36295491382,
+                       23.3584279212,
+                       29.0370190673,
+                       16.889216949,
+                       2.41130973148]
         yout_target = [-6.99109862,
                        31.19080001,
                        48.3948078,
                        12.59830142,
                        -10.4867175]
-        first = 28
-        last = 33
-        self.assertTrue(numpy.allclose(yout[first:last],
+        self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
+                                       yout_target,
+                                       rtol=self.rtol, atol=self.atol))
+
+    def test_low_x_correction(self):
+        kwargs = {"lorch": False}
+        xout, yout = self.transformer.fourier_transform(self._ft_xin,
+                                                        self._ft_yin,
+                                                        self._ft_xout,
+                                                        **kwargs)
+        yout = self.transformer._low_x_correction(self._ft_xin,
+                                                  self._ft_yin,
+                                                  xout, yout,
+                                                  **kwargs)
+        yout_target = [-6.99109862,
+                       31.19080001,
+                       48.3948078,
+                       12.59830142,
+                       -10.4867175]
+        self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
     def test_low_x_correction_with_lorch(self):
-        fs = 100  # sample rate
-        f = 10  # the frequency of the signal
-        # the points on the x axis for plotting
-        xin = numpy.linspace(0.0, 100., 1000)
-        yin = numpy.asarray(
-            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in xin])
-        xout = numpy.linspace(0.0, 2.0, 100)
-        xout, yout = self.transformer.fourier_transform(xin, yin, xout,
-                                                        **{'lorch': True})
-        yout = self.transformer._low_x_correction(xin, yin, xout, yout,
-                                                  **{'lorch': True})
+        kwargs = {"lorch": True}
+        xout, yout = self.transformer.fourier_transform(self._ft_xin,
+                                                        self._ft_yin,
+                                                        self._ft_xout,
+                                                        **kwargs)
+        yout = self.transformer._low_x_correction(self._ft_xin,
+                                                  self._ft_yin,
+                                                  xout, yout,
+                                                  **kwargs)
         yout_target = [7.36295491,
                        23.35842792,
                        29.03701907,
                        16.88921695,
                        2.41130973]
-        first = 28
-        last = 33
-        self.assertTrue(numpy.allclose(yout[first:last],
+        self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
 
