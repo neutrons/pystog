@@ -1,7 +1,7 @@
 Total Scattering Function Manipulator:
 -----------------------------------------------------------
 From total scattering functions, we have reciprocal-space structure factors and real-space pair distribution functions that are related via a Fourier transform. PyStoG is a package that allows for:
-1. Converting between the various functions used by different "communtities", either real-space or reciprocal-space
+1. Converting between the various functions used by different "communities" (ie researchers who study crystalline versus amorphous or glass materials). Conversions are for either real-space or reciprocal-space.
 2. Perform the transform between the different available functions of choice
 3. Fourier filter to remove spurious artificats in the data (ie aphysical, sub-angstrom low-r peaks in G(r) from experiments)
 
