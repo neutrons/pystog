@@ -7,19 +7,16 @@ From total scattering functions, we have reciprocal-space structure factors and 
 
 ![alt text](https://raw.githubusercontent.com/marshallmcdonnell/mantid_total_scattering/master/images/sofq_to_gofr.png)
 
-This project was initially just a "sandbox" for taking the capabilities of **StoG** and migrating them over to the [Mantid Framework](https://github.com/mantidproject/mantid). Yet, with more and more use cases, **PyStoG** was further developed as the stand-alone project it is now. Yet, migration to the Mantid Framework is still a goal since it feeds into the [ADDIE project](https://github.com/neutrons/addie)
 
-Background and history
----------------------------------
-
-The name **PyStoG** comes from the fact that this is a _Pythonized_ version of **StoG**, a ~30 year old Fortran program that is part of the [RMCProfile software suite](http://www.rmcprofile.org/Main_Page). **StoG means "S(Q) to G(r)"** for the fact that it takes recirpocal-space S(Q) patterns from files and transforms them into a single G(r) pattern. The original *StoG* program has been developed, in reverse chronological order, by:
+The name **PyStoG** comes from the fact that this is a _Pythonized_ version of **StoG**, a ~30 year old Fortran program that is part of the [RMCProfile software suite](http://www.rmcprofile.org/Main_Page). **StoG** means **"S(Q) to G(r)"** for the fact that it takes recirpocal-space S(Q) patterns from files and transforms them into a single G(r) pattern. The original *StoG* program has been developed, in reverse chronological order, by:
 
  * Matthew Tucker (~2009)
  * Spencer Howells (~1989)
  * Jack Carpenter (prior to 1989)
  
- A current state of the *StoG* program is kept in the `fortran` directory of this package.
+ A current state of the **StoG** program is kept in the `fortran` directory of this package.
 
+This project was initially just a "sandbox" for taking the capabilities of **StoG** and migrating them over to the [Mantid Framework](https://github.com/mantidproject/mantid). Yet, with more and more use cases, **PyStoG** was further developed as the stand-alone project it is now. Yet, migration to the Mantid Framework is still a goal since it feeds into the [ADDIE project](https://github.com/neutrons/addie)
 
 ## Installation
 
