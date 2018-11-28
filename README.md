@@ -24,12 +24,16 @@ Installation is available via `pip`.
 
 ```bash 
 pip install pystog
-pip install pystog --user #locally installed in ~/.local
+```
+
+or for a local install
+```bash
+pip install pystog --user #locally installed in $HOME/.local
 ```
 For a development environment, you can use [`virtualenv`](https://virtualenv.pypa.io/en/latest/) to setup an isolated environemnt, namely `ENV`:
 
 ```bash
-python3 -m virtualenv /path/to/ENV
+python -m virtualenv /path/to/ENV
 source /path/to/ENV/bin/activate
 pip install pystog
 ```
