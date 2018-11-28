@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pystog",
-    version="0.1.0",
+    version="0.1.3",
     author="Marshall McDonnell",
     author_email="mcdonnellmt@ornl.gov",
     description="Transforms reciprocal and real space function",
@@ -27,4 +27,5 @@ setuptools.setup(
         "numpy",
         "pandas"
     ],
+    scripts=['bin/pystog_cli']
 )
