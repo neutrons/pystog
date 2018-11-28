@@ -38,11 +38,11 @@ source /path/to/ENV/bin/activate
 pip install pystog
 ```
 
-Also, [`direnv`](https://github.com/direnv/direnv) is a useful and recommended way to manage the virtual environment. You can simply use an `.envrc` file with:
+Also, [`direnv`](https://github.com/direnv/direnv) is a useful and recommended way to manage the virtual environment. You can simply use an `.envrc` file which contains:
 
 `layout python3`
 
-Then just install via `pip`
+Then, once inside the development directory, just install via `pip` as described above.
 
 ## Getting started
 
