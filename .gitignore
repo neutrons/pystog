@@ -104,3 +104,7 @@ stog
 
 merged*
 *.dat
+
+# direnv
+.direnv/
+.envrc
