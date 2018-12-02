@@ -7,6 +7,17 @@ import numpy as np
 
 
 class Converter(object):
+    """The Converter class is used to convert between
+    either different reciprocal space functions or 
+    different real space functions
+    :examples:
+    >>> from pystog import Converter
+    >>> converter = Converter()
+    >>> q = np.linspace(0., 20., 2000)
+    >>> sq = np.zeros(2000)
+    >>> fq = converter.S_to_F(q, sq)
+    >>> print(fq)
+    """
 
     def __init__(self):
         pass
