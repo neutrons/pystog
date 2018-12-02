@@ -12,9 +12,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../../pystog'))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,7 +29,10 @@ version = ''
 release = '0.1.3'
 
 
+
 # -- General configuration ---------------------------------------------------
+# for autodoc: automodule will automatically pick up these docstrings
+autodoc_default_flags = ['members', 'undoc-members']
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
