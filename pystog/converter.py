@@ -1,22 +1,25 @@
-# import modules
+"""
+==========
+Converter
+==========
+
+This module define the Converter class
+for doing total scattering function conversions
+within the sampe space (real or reciprocal)
+"""
+
 from __future__ import (absolute_import, division, print_function)
 import numpy as np
 
-# -----------------------------------------------#
-# Converters Reciprocal or Real Space Functions
 
-
-class Converter(object):
+class Converter:
     """The Converter class is used to convert between
-    either different reciprocal space functions or 
+    either different reciprocal space functions or
     different real space functions
+
     :examples:
     >>> from pystog import Converter
     >>> converter = Converter()
-    >>> q = np.linspace(0., 20., 2000)
-    >>> sq = np.zeros(2000)
-    >>> fq = converter.S_to_F(q, sq)
-    >>> print(fq)
     """
 
     def __init__(self):
@@ -24,8 +27,17 @@ class Converter(object):
 
     # Reciprocal Space Conversions
 
-    # F(Q) = Q[S(Q) - 1]
     def F_to_S(self, q, fq, **kwargs):
+        """Covert F(Q) -> S(Q)
+
+        :param q: Q-space vector
+        :type ll: numpy.array or list
+        :param fq: F(Q) vector
+        :type fq: numpy.array or list
+
+        :return: S(Q) vector
+        :rtype: numpy.array
+        """
         return (fq / q) + 1.
 
     def F_to_FK(self, q, fq, **kwargs):

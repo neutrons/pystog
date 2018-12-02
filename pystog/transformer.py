@@ -8,7 +8,7 @@ from pystog.converter import Converter
 # Transforms between Reciprocal and Real Space Functions
 
 
-class Transformer(object):
+class Transformer:
     def __init__(self):
         self.converter = Converter()
 

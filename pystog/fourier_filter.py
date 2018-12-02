@@ -5,7 +5,7 @@ from pystog.converter import Converter
 from pystog.transformer import Transformer
 
 
-class FourierFilter(object):
+class FourierFilter:
     def __init__(self):
         self.converter = Converter()
         self.transformer = Transformer()
