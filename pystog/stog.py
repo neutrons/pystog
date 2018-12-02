@@ -8,7 +8,7 @@ from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
 
 
-class PyStoG(object):
+class StoG(object):
 
     def __init__(self, **kwargs):
         self._plot_kwargs = {'figsize': (16, 8),

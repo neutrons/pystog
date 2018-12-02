@@ -3,7 +3,7 @@ import json
 import numpy as np
 import argparse
 
-from pystog import PyStoG
+from pystog import StoG
 from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
 
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         kwargs = parser_cli_args(args)
 
     # Merge S(Q) files
-    stog = PyStoG(**kwargs)
+    stog = StoG(**kwargs)
     stog.read_all_data(skiprows=3)
     stog.merge_data()
     stog.write_out_merged_sq()
