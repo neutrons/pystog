@@ -78,7 +78,7 @@ class Converter:
 
     # S(Q)
     def S_to_F(self, q, sq, **kwargs):
-        """Convert :math:`S(Q)` -> :math:`Q[S(Q)-1]`
+        """Convert :math:`S(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -91,7 +91,7 @@ class Converter:
         return q * (sq - 1.)
 
     def S_to_FK(self, q, sq, **kwargs):
-        """Convert :math:`S(Q)` -> :math:`F(Q)`
+        """Convert :math:`S(Q)` to :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -105,7 +105,7 @@ class Converter:
         return self.F_to_FK(q, fq, **kwargs)
 
     def S_to_DCS(self, q, sq, **kwargs):
-        """Convert :math:`S(Q)` -> :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
+        """Convert :math:`S(Q)` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -120,7 +120,7 @@ class Converter:
 
     # Keen's F(Q)
     def FK_to_F(self, q, fq_keen, **kwargs):
-        """Convert :math:`F(Q)` -> :math:`Q[S(Q)-1]`
+        """Convert :math:`F(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -133,7 +133,7 @@ class Converter:
         return q * fq_keen / kwargs['<b_coh>^2']
 
     def FK_to_S(self, q, fq_keen, **kwargs):
-        """Convert :math:`F(Q)` -> :math:`S(Q)`
+        """Convert :math:`F(Q)` to :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -147,7 +147,7 @@ class Converter:
         return self.F_to_S(q, fq)
 
     def FK_to_DCS(self, q, fq, **kwargs):
-        """Convert :math:`F(Q)` -> :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
+        """Convert :math:`F(Q)` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -161,7 +161,7 @@ class Converter:
 
     # Differential cross-section = d_simga / d_Omega
     def DCS_to_F(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`Q[S(Q)-1]`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: Q-space vector
         :type q: numpy.array or list
@@ -175,7 +175,7 @@ class Converter:
         return self.FK_to_F(q, fq, **kwargs)
 
     def DCS_to_S(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`S(Q)`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -189,7 +189,7 @@ class Converter:
         return self.FK_to_S(q, fq, **kwargs)
 
     def DCS_to_FK(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`F(Q)`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -205,25 +205,25 @@ class Converter:
 
     # G(r) = PDF
     def G_to_GK(self, r, gr, **kwargs):
-        """Convert :math:`G_{PDFFIT}(r) -> G_{Keen Version}(r)`
+        """Convert :math:`G_{PDFFIT}(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
-        :param gr: :math:G_{PDFFIT}(r) vector
+        :param gr: :math:`G_{PDFFIT}(r)` vector
         :type gr: numpy.array or list
 
-        :return: :math:G_{Keen Version}(r) vector
+        :return: :math:`G_{Keen Version}(r)` vector
         :rtype: numpy.array
         """
         factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
         return factor * (gr / r)
 
     def G_to_g(self, r, gr, **kwargs):
-        """Convert :math:G_{PDFFIT}(r) -> :math:`g(r)`
+        """Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
-        :param gr: :math:G_{PDFFIT}(r) vector
+        :param gr: :math:`G_{PDFFIT}(r)` vector
         :type gr: numpy.array or list
 
         :return: :math:`g(r)` vector
@@ -234,25 +234,25 @@ class Converter:
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, **kwargs):
-        """Convert :math:G_{Keen Version}(r) -> :math:G_{PDFFIT}(r)
+        """Convert :math:`G_{Keen Version}(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
-        :param gr: :math:G_{Keen Version}(r) vector
+        :param gr: :math:`G_{Keen Version}(r)` vector
         :type gr: numpy.array or list
 
-        :return: :math:G_{PDFFIT}(r) vector
+        :return: :math:`G_{PDFFIT}(r)` vector
         :rtype: numpy.array
         """
         factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
         return factor * r * gr
 
     def GK_to_g(self, r, gr, **kwargs):
-        """Convert :math:G_{Keen Version}(r) -> :math:`g(r)`
+        """Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
-        :param gr: :math:G_{Keen Version}(r) vector
+        :param gr: :math:`G_{Keen Version}(r)` vector
         :type gr: numpy.array or list
 
         :return: :math:`g(r)` vector
@@ -263,28 +263,28 @@ class Converter:
 
     # g(r)
     def g_to_G(self, r, gr, **kwargs):
-        """Convert :math:`g(r)` -> :math:G_{PDFFIT}(r)
+        """Convert :math:`g(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`g(r)` vector
         :type gr: numpy.array or list
 
-        :return: :math:G_{PDFFIT}(r) vector
+        :return: :math:`G_{PDFFIT}(r)` vector
         :rtype: numpy.array
         """
         factor = 4. * np.pi * r * kwargs['rho']
         return factor * (gr - 1.)
 
     def g_to_GK(self, r, gr, **kwargs):
-        """Convert :math:`g(r)` -> :math:G_{Keen Version}(r)
+        """Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`g(r)` vector
         :type gr: numpy.array or list
 
-        :return: :math:G_{Keen Version}(r) vector
+        :return: :math:`G_{Keen Version}(r)` vector
         :rtype: numpy.array
         """
         gr = self.g_to_G(r, gr, **kwargs)
