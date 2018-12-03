@@ -2,6 +2,9 @@
 ==========
 Converter
 ==========
+
+This module defines the Converter class
+that converts functions in the same space
 """
 
 from __future__ import (absolute_import, division, print_function)
@@ -15,11 +18,12 @@ class Converter:
 
     :examples:
 
+    >>> import numpy
     >>> from pystog import Converter
     >>> converter = Converter()
-    >>> q, sq = np.loadtxt("my_sofq_file.txt",unpack=True)
+    >>> q, sq = numpy.loadtxt("my_sofq_file.txt",unpack=True)
     >>> fq = converter.S_to_F(q, sq)
-    >>> r, gr = np.loadtxt("my_gofr_file.txt",unpack=True)
+    >>> r, gr = numpy.loadtxt("my_gofr_file.txt",unpack=True)
     >>> kwargs = {'rho' : 1.0}
     >>> gr_keen = converter.g_to_GK(r, gr, **kwargs)
     """
