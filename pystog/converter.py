@@ -59,14 +59,14 @@ class Converter:
         return kwargs['<b_coh>^2'] * fq_new
 
     def F_to_DCS(self, q, fq, **kwargs):
-        """Converts from :math:`Q[S(Q)-1]` to :math:`\\frac{d \sigma}{d \Omega}(Q)`
+        """Converts from :math:`Q[S(Q)-1]` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
 
-        :return: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :rtype: numpy.array
         """
         fq = self.F_to_FK(q, fq, **kwargs)
@@ -101,14 +101,14 @@ class Converter:
         return self.F_to_FK(q, fq, **kwargs)
 
     def S_to_DCS(self, q, sq, **kwargs):
-        """Convert :math:`S(Q)` -> :math:`\\frac{d \sigma}{d \Omega}(Q)`
+        """Convert :math:`S(Q)` -> :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
 
-        :return: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :rtype: numpy.array
         """
         fq = self.S_to_FK(q, sq, **kwargs)
@@ -143,25 +143,25 @@ class Converter:
         return self.F_to_S(q, fq)
 
     def FK_to_DCS(self, q, fq, **kwargs):
-        """Convert :math:`F(Q)` -> :math:`\\frac{d \sigma}{d \Omega}(Q)`
+        """Convert :math:`F(Q)` -> :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`F(Q)` vector
         :type fq: numpy.array or list
 
-        :return: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :rtype: numpy.array
         """
         return fq + kwargs['<b_tot^2>']
 
     # Differential cross-section = d_simga / d_Omega
     def DCS_to_F(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \sigma}{d \Omega}(Q)` -> :math:`Q[S(Q)-1]`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`Q[S(Q)-1]`
 
         :param q: Q-space vector
         :type q: numpy.array or list
-        :param dcs: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
 
         :return: :math:`Q[S(Q)-1]` vector
@@ -171,11 +171,11 @@ class Converter:
         return self.FK_to_F(q, fq, **kwargs)
 
     def DCS_to_S(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \sigma}{d \Omega}(Q)` -> :math:`S(Q)`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
-        :param dcs: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
 
         :return: :math:`S(Q)` vector
@@ -185,11 +185,11 @@ class Converter:
         return self.FK_to_S(q, fq, **kwargs)
 
     def DCS_to_FK(self, q, dcs, **kwargs):
-        """Convert :math:`\\frac{d \sigma}{d \Omega}(Q)` -> :math:`F(Q)`
+        """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` -> :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
-        :param fq: :math:`\\frac{d \sigma}{d \Omega}(Q)` vector
+        :param fq: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type fq: numpy.array or list
 
         :return: :math:`F(Q)` vector
