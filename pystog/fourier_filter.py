@@ -1,4 +1,14 @@
-# import modules
+"""
+==============
+FourierFilter
+==============
+
+This module defines the FourierFilter class
+that performs the Fourier filter for a
+given range to exclude.
+"""
+
+
 from __future__ import (absolute_import, division, print_function)
 
 from pystog.converter import Converter
@@ -6,6 +16,24 @@ from pystog.transformer import Transformer
 
 
 class FourierFilter:
+    """The FourierFilter class is used to exlude a given
+    range in the current function by a back Fourier Transform
+    of that section, followed by a difference from the non-excluded
+    function, and then a forward transform of the difference function
+    Can currently do:
+    a real space function -> reciprocal space function -> real space function
+
+    :examples:
+
+    >>> import numpy
+    >>> from pystog import FourierFilter
+    >>> ff = FourierFilter()
+    >>> r, gr = numpy.loadtxt("my_gofr_file.txt",unpack=True)
+    >>> q = numpy.linspace(0., 25., 2500)
+    >>> q, sq = transformer.G_to_S(r, gr, q)
+    >>> q_ft, sq_ft, q, sq, r, gr = ff.G_using_F(r, gr, q, sq, 1.5)
+    """
+
     def __init__(self):
         self.converter = Converter()
         self.transformer = Transformer()
