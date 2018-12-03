@@ -205,6 +205,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     # G(r) tests
+
     def G_to_S(self):
         q, sq = self.transformer.G_to_S(
             self.r, self.GofR, self.q, **self.kwargs)
