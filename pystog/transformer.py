@@ -29,7 +29,7 @@ class Transformer:
     >>> from pystog import Transformer
     >>> transformer = Transformer()
     >>> q, sq = numpy.loadtxt("my_sofq_file.txt",unpack=True)
-    >>> r = numpy.linspace
+    >>> r = numpy.linspace(0., 25., 2500)
     >>> r, gr = transformer.S_to_G(q, sq, r)
     >>> q = numpy.linspace(0., 25., 2500)
     >>> q, sq = transformer.G_to_S(r, gr, q)
