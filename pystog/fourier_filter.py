@@ -73,19 +73,19 @@ class FourierFilter:
         return q_ft, sq_ft, q, sq, r, gr
 
     def g_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        fq = self.converter.FK_to_F(q, fq)
+        fq = self.converter.FK_to_F(q, fq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr = self.g_using_F(
             r, gr, q, fq, cutoff, **kwargs)
-        fq_ft = self.converter.F_to_FK(q_ft, fq_ft)
-        fq = self.converter.F_to_FK(q, fq)
+        fq_ft = self.converter.F_to_FK(q_ft, fq_ft, **kwargs)
+        fq = self.converter.F_to_FK(q, fq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr
 
     def g_using_DCS(self, r, gr, q, dcs, cutoff, **kwargs):
-        fq = self.converter.DCS_to_F(q, dcs)
+        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
         q_ft, fq_ft, q, fq, r, gr = self.g_using_F(
             r, gr, q, fq, cutoff, **kwargs)
-        dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft)
-        dcs = self.converter.F_to_DCS(q_ft, fq)
+        dcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, **kwargs)
+        dcs = self.converter.F_to_DCS(q_ft, fq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr
 
     # G(R) = PDF
@@ -137,7 +137,7 @@ class FourierFilter:
         return q_ft, sq_ft, q, sq, r, gr
 
     def GK_using_FK(self, r, gr, q, fq, cutoff, **kwargs):
-        fq = self.converter.FK_to_F(q, fq)
+        fq = self.converter.FK_to_F(q, fq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr = self.GK_using_F(
             r, gr, q, fq, cutoff, **kwargs)
         fq_ft = self.converter.F_to_FK(q_ft, fq_ft, **kwargs)
