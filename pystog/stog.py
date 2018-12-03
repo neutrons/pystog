@@ -1,4 +1,14 @@
-#!/usr/bin/env python
+"""
+=============
+StoG
+=============
+
+This module defines the StoG class
+that tries to replicate the previous
+stog program behavior in an organized fashion
+"""
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,38 +18,60 @@ from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
 
 
-class StoG(object):
+class StoG:
+    """The StoG class is used to put together
+    the Converter, Transformer, and FourierFilter
+    class functionalities to reproduce the original
+    stog program behavior. Yet, this pythonized-version
+    uses pandas and numpy for data storage, organization, and
+    manipulation and matplotlib for diagonostic visualization
+    "under the hood".
+
+    :examples:
+
+    >>> import json
+    >>> from pystog import StoG
+    >>> with open("../data/examples/argon_pystog.json", 'r') as f:
+    >>>     kwargs = json.load(f)
+    >>> stog = StoG(**kwargs)
+    >>> stog.read_all_data()
+    >>> stog.merge_data()
+    >>> stog.write_out_merged_data()
+    """
 
     def __init__(self, **kwargs):
-        self._plot_kwargs = {'figsize': (16, 8),
-                             'style': '-',
-                             'ms': 1,
-                             'lw': 1,
-                             }
+        # Reciprocal space attributes
+        self.__sq_title = "S(Q) Merged"
+        self.__qsq_minus_one_title = "Q[S(Q)-1] Merged"
+        self.__ft_title = "FT term"
+        self.__sq_ft_title = "S(Q) FT"
+        self.__fq_rmc_title = "F(Q) RMC"
 
-        self.df_individuals = pd.DataFrame()
-        self.df_sq_individuals = pd.DataFrame()
+        self.__df_individuals = pd.DataFrame()
+        self.__df_sq_individuals = pd.DataFrame()
+        self.__df_sq_master = pd.DataFrame()
 
-        self.df_sq_master = pd.DataFrame()
-        self.sq_title = "S(Q) Merged"
-        self.qsq_minus_one_title = "Q[S(Q)-1] Merged"
-        self.ft_title = "FT term"
-        self.sq_ft_title = "S(Q) FT"
-        self.fq_rmc_title = "F(Q) RMC"
-
+        # Real space attributes
         if "RealSpaceFunction" in kwargs:
-            self.real_space_function = str(kwargs["RealSpaceFunction"])
+            self.__real_space_function = str(kwargs["RealSpaceFunction"])
         else:
-            self.real_space_function = "g(r)"
+            self.__real_space_function = "g(r)"
 
-        self.df_gr_master = pd.DataFrame()
-        self.gr_ft_title = "%s FT" % self.real_space_function
-        self.dr_ft_title = "D(r) FT"
-        self.gr_lorch_title = "%s FT Lorched" % self.real_space_function
-        self.gr_title = "%s Merged" % self.real_space_function
-        self.gr_rmc_title = "G(r) RMC"
+        self.__df_gr_master = pd.DataFrame()
+        self.__gr_ft_title = "%s FT" % self.real_space_function
+        self.__dr_ft_title = "D(r) FT"
+        self.__gr_lorch_title = "%s FT Lorched" % self.real_space_function
+        self.__gr_title = "%s Merged" % self.real_space_function
+        self.__gr_rmc_title = "G(r) RMC"
 
-        self.files = kwargs["Files"]
+        # Plotting key-word arguments for visualization
+        self._plotting_kwargs = {'figsize': (16, 8),
+                                 'style': '-',
+                                 'ms': 1,
+                                 'lw': 1,
+                                 }
+
+        self.__files = kwargs["Files"]
         self.xmin = 100
         self.xmax = 0
 
@@ -85,6 +117,20 @@ class StoG(object):
         self.converter = Converter()
         self.transformer = Transformer()
         self.filter = FourierFilter()
+
+        @property
+        def plotting_kwargs(self):
+            """The plot settings for visualization via matplotlib
+
+            :getter: Returns the current arguments
+            :setter: Sets the plotting kwargs
+            :type: dict
+            """
+            return self._plot_kwargs
+
+        @plotting_kwargs.setter
+        def plotting_kwargs(self, kwargs):
+            self._plotting_kwargs = kwargs
 
     # -------------------------------------#
     # Reading and Merging Spectrum
@@ -344,21 +390,21 @@ class StoG(object):
     # Plot Utilities
 
     def plot_sq(self, df, xlabel='Q', ylabel='S(Q)', title=''):
-        df.plot(**self._plot_kwargs)
+        df.plot(**self.plotting_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
     def plot_gr(self, df, xlabel='r', ylabel='G(r)', title=''):
-        df.plot(**self._plot_kwargs)
+        df.plot(**self.plotting_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
     def plot_merged_sq(self):
-        plot_kwargs = self._plot_kwargs.copy()
+        plot_kwargs = self.plotting_kwargs.copy()
         plot_kwargs['style'] = 'o-'
         plot_kwargs['lw'] = 0.5
 
@@ -395,9 +441,9 @@ class StoG(object):
         columns = self.df_sq_master.columns
         columns_diff = columns.difference([self.fq_rmc_title])
         df_sq = self.df_sq_master.ix[:, columns_diff]
-        df_sq.plot(ax=ax1, **self._plot_kwargs)
+        df_sq.plot(ax=ax1, **self.plotting_kwargs)
         df_fq = self.df_sq_master.ix[:, [self.fq_rmc_title]]
-        df_fq.plot(ax=ax2, **self._plot_kwargs)
+        df_fq.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("Q")
         ax1.set_ylabel("S(Q)")
         ax1.set_title("StoG S(Q) functions")
@@ -410,9 +456,9 @@ class StoG(object):
         columns = self.df_gr_master.columns
         columns_diff = columns.difference([self.gr_rmc_title])
         df_gr = self.df_gr_master.ix[:, columns_diff]
-        df_gr.plot(ax=ax1, **self._plot_kwargs)
+        df_gr.plot(ax=ax1, **self.plotting_kwargs)
         df_gk = self.df_gr_master.ix[:, [self.gr_rmc_title]]
-        df_gk.plot(ax=ax2, **self._plot_kwargs)
+        df_gk.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("r")
         ax1.set_ylabel(self.real_space_function)
         ax1.set_title("StoG %s functions" % self.real_space_function)
