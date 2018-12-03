@@ -17,7 +17,7 @@ class TestTransformerBase(unittest.TestCase):
         # setup input data
         self.kwargs = self.material.kwargs
 
-        # setup the tolerance
+        # setup the first, last indices
         self.real_space_first = self.material.real_space_first
         self.real_space_last = self.material.real_space_last
 
@@ -205,6 +205,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     # G(r) tests
+
     def G_to_S(self):
         q, sq = self.transformer.G_to_S(
             self.r, self.GofR, self.q, **self.kwargs)
