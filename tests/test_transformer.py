@@ -17,7 +17,7 @@ class TestTransformerBase(unittest.TestCase):
         # setup input data
         self.kwargs = self.material.kwargs
 
-        # setup the tolerance
+        # setup the first, last indices
         self.real_space_first = self.material.real_space_first
         self.real_space_last = self.material.real_space_last
 
