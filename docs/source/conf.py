@@ -28,8 +28,6 @@ version = ''
 # The full version, including alpha/beta/rc tags
 release = '0.1.3'
 
-
-
 # -- General configuration ---------------------------------------------------
 # for autodoc: automodule will automatically pick up these docstrings
 autodoc_default_flags = ['members', 'undoc-members']
