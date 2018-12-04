@@ -5,7 +5,7 @@ Installation
 Requirements
 ============
 
-* Python (2.7, 3.6, 3.7 are tested)
+* Python (2.7, 3.5, 3.6 are tested)
 * matplotlib_
 * numpy_
 * pandas_
