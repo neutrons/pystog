@@ -55,8 +55,8 @@ class StoG:
         self.__qmax = None
         self.__files = None
         self.__real_space_function = "g(r)"
-        self.__Rmax = 50.0
-        self.__Rdelta = 0.01
+        self.__rmax = 50.0
+        self.__rdelta = 0.01
         self.__update_dr()
         self.__density = 1.0
         self.__bcoh_sqrd = 1.0
@@ -129,11 +129,11 @@ class StoG:
         if "RealSpaceFunction" in kwargs:
             self.real_space_function = str(kwargs["RealSpaceFunction"])
         if "Rmax" in kwargs:
-            self.Rmax = float(kwargs["Rmax"])
+            self.rmax = float(kwargs["Rmax"])
         if "Rdelta" in kwargs:
-            self.Rdelta = kwargs["Rdelta"]
+            self.rdelta = kwargs["Rdelta"]
         elif "Rpoints" in kwargs:
-            self.Rdelta = self.Rmax / kwargs["Rpoints"]
+            self.rdelta = self.rmax / kwargs["Rpoints"]
         if "NumberDensity" in kwargs:
             self.density = kwargs["NumberDensity"]
         if 'OmittedXrangeCorrection' in kwargs:
@@ -141,7 +141,8 @@ class StoG:
         if "LorchFlag" in kwargs:
             self.lorch_flag = kwargs["LorchFlag"]
         if "FourierFilter" in kwargs:
-            self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
+            if "Cutoff" in kwargs["FourierFilter"]:
+                self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
         if "PlotFlag" in kwargs:
             self.plot_flag = kwargs["PlotFlag"]
         if "<b_coh>^2" in kwargs:
@@ -261,14 +262,14 @@ class StoG:
         return self.files
 
     def __update_dr(self):
-        """Uses **Rdelta** and **Rmax** attributes (:math:`\\Delta r` and
+        """Uses **rdelta** and **rmax** attributes (:math:`\\Delta r` and
         :math:`R_{max}`, respectively) to construct **dr** attribute
         (:math:`r`-space vector) via its setter
         """
-        self.dr = np.arange(self.Rdelta, self.Rmax + self.Rdelta, self.Rdelta)
+        self.dr = np.arange(self.rdelta, self.rmax + self.rdelta, self.rdelta)
 
     @property
-    def Rdelta(self):
+    def rdelta(self):
         """The :math:`\\Delta r` for the :math:`r`-space vector
 
         :getter: Return :math:`\\Delta r` value
@@ -276,15 +277,15 @@ class StoG:
                  via the **dr** attribute
         :type: value
         """
-        return self.__Rdelta
+        return self.__rdelta
 
-    @Rdelta.setter
-    def Rdelta(self, value):
-        self.__Rdelta = value
+    @rdelta.setter
+    def rdelta(self, value):
+        self.__rdelta = value
         self.__update_dr()
 
     @property
-    def Rmax(self):
+    def rmax(self):
         """The :math:`R_{max}` valuefor the :math:`r`-space vector
 
         :getter: Return :math:`R_{max}` value
@@ -292,11 +293,11 @@ class StoG:
                  via the **dr** attribute
         :type: value
         """
-        return self.__Rmax
+        return self.__rmax
 
-    @Rmax.setter
-    def Rmax(self, value):
-        self.__Rmax = value
+    @rmax.setter
+    def rmax(self, value):
+        self.__rmax = value
         self.__update_dr()
 
     @property
@@ -445,7 +446,7 @@ class StoG:
         return self.__lorch_flag
 
     @lorch_flag.setter
-    def lorch(self, value):
+    def lorch_flag(self, value):
         if isinstance(value, bool):
             self.__lorch_flag = value
         else:
@@ -567,7 +568,7 @@ class StoG:
         return self.__plot_flag
 
     @plot_flag.setter
-    def plot(self, value):
+    def plot_flag(self, value):
         if isinstance(value, bool):
             self.__plot_flag = value
         else:
