@@ -26,8 +26,12 @@ def load_lammps_rdf(filename):
     return r, gr
 
 
+def get_test_data_path(filename):
+    return os.path.join(TEST_DATA_DIR, filename)
+
+
 def load_test_data(filename, skiprows=2):
-    test_file_path = os.path.join(TEST_DATA_DIR, filename)
+    test_file_path = get_test_data_path(filename)
     data = np.loadtxt(test_file_path, skiprows=skiprows)
     return data
 
