@@ -1,12 +1,40 @@
 import unittest
-import numpy
-import pandas
+import numpy as np
+import pandas as pd
+from utils import \
+    load_test_data, get_index_of_function, RECIPROCAL_HEADERS
+from materials import Argon
 from pystog.stog import StoG
 
 # Real Space Function
 
 
 class TestStogBase(unittest.TestCase):
+    rtol = 1e-5
+    atol = 1e-8
+
+    def initialize_material(self):
+        # setup input data
+        self.kwargs = self.material.kwargs
+
+        # setup the tolerance
+        self.first = self.material.reciprocal_space_first
+        self.last = self.material.reciprocal_space_last
+
+        data = load_test_data(self.material.reciprocal_space_filename)
+        self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
+        self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
+        self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]
+        self.fq_keen = data[:, get_index_of_function(
+            "FK(Q)", RECIPROCAL_HEADERS)]
+        self.dcs = data[:, get_index_of_function("DCS(Q)", RECIPROCAL_HEADERS)]
+
+        # targets for 1st peaks
+        self.sq_target = self.material.sq_target
+        self.fq_target = self.material.fq_target
+        self.fq_keen_target = self.material.fq_keen_target
+        self.dcs_target = self.material.dcs_target
+
     def setUp(self):
         unittest.TestCase.setUp(self)
 
@@ -190,9 +218,9 @@ class TestStogAttributes(TestStogBase):
 class TestStogDataFrames(TestStogBase):
     def setUp(self):
         super(TestStogDataFrames, self).setUp()
-        self.df_target = pandas.DataFrame(numpy.random.randn(10, 2),
-                                          index=numpy.arange(10),
-                                          columns=list('XY'))
+        self.df_target = pd.DataFrame(np.random.randn(10, 2),
+                                      index=np.arange(10),
+                                      columns=list('XY'))
 
     def test_stog_df_individuals_setter(self):
         stog = StoG()
@@ -218,6 +246,8 @@ class TestStogDataFrames(TestStogBase):
 class TestStogMethods(TestStogBase):
     def setUp(self):
         super(TestStogMethods, self).setUp()
+        self.material = Argon()
+        self.initialize_material()
 
     def test_stog_append_file(self):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
@@ -237,3 +267,48 @@ class TestStogMethods(TestStogBase):
         stog.files = list()
         with self.assertRaises(AssertionError):
             stog.read_all_data()
+
+    def test_stog_add_dataset(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Initialize with material info for Argon
+        stog = StoG(**{'<b_coh>^2': self.kwargs['<b_coh>^2'],
+                       '<b_tot^2>': self.kwargs['<b_tot^2>']})
+
+        # Add the S(Q) data set and check values against targets
+        index = 0
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+                'ReciprocalFunction': 'S(Q)'}
+        stog.add_dataset(info, index=index)
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
+        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
+
+        # Add the Q[S(Q)-1] data set and check values for it and S(Q) against targets
+        index = 1
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.fq}),
+                'ReciprocalFunction': 'F(Q)'}
+        stog.add_dataset(info, index=index)
+        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['F(Q)_%d' % index],
+                               self.fq_target[0],
+                               places=places)
+        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
+
+        # Add the FK(Q) data set and check values for it and S(Q) against targets
+        index = 2
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.fq_keen}),
+                'ReciprocalFunction': 'FK(Q)'}
+        stog.add_dataset(info, index=index)
+        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['FK(Q)_%d' % index],
+                               self.fq_keen_target[0],
+                               places=places)
+        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
