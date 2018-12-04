@@ -325,6 +325,42 @@ class TestStogMethods(TestStogBase):
                                self.sq_target[0],
                                places=places)
 
+    def test_stog_add_dataset_yscale(self):
+        # Scale S(Q) and make sure it does not equal original target values
+        stog = StoG()
+        index = 0
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+                'ReciprocalFunction': 'S(Q)',
+                'Y': {'Scale': 2.0}}
+        stog.add_dataset(info, index=index)
+        self.assertNotEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+                            self.sq_target[0])
+        self.assertNotEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                            self.sq_target[0])
+
+    def test_stog_add_dataset_yoffset(self):
+        # Offset S(Q) and make sure it does not equal original target values
+        stog = StoG()
+        index = 0
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+                'ReciprocalFunction': 'S(Q)',
+                'Y': {'Offset': 2.0}}
+        stog.add_dataset(info, index=index)
+        self.assertNotEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+                            self.sq_target[0])
+        self.assertNotEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                            self.sq_target[0])
+
+    def test_stog_add_dataset_xoffset(self):
+        # Offset Q from 1.96 -> 2.14
+        stog = StoG()
+        index = 0
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+                'ReciprocalFunction': 'S(Q)',
+                'X': {'Offset': 0.2}}
+        stog.add_dataset(info, index=index)
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, 2.14)
+
     def test_stog_read_dataset(self):
         # Number of decimal places for precision
         places = 5
