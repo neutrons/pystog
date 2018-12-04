@@ -732,12 +732,12 @@ class StoG(object):
             if 'Scale' in info['Y']:
                 yscale = info['Y']['Scale']
             if 'Offset' in info['Y']:
-                yoffset = info['Y']['offset']
+                yoffset = info['Y']['Offset']
 
         if 'X' in info:
             adjusting = True
             if 'Offset' in info['X']:
-                xoffset = info['X']['offset']
+                xoffset = info['X']['Offset']
 
         if adjusting:
             x, y = self._apply_scales_and_offset(x, y, yscale, yoffset, xoffset)
