@@ -729,14 +729,14 @@ class StoG(object):
         adjusting = False
         if 'Y' in info:
             adjusting = True
-            if 'Scale' in info:
+            if 'Scale' in info['Y']:
                 yscale = info['Y']['Scale']
-            if 'Offset' in info:
+            if 'Offset' in info['Y']:
                 yoffset = info['Y']['offset']
 
         if 'X' in info:
             adjusting = True
-            if 'Offset' in info:
+            if 'Offset' in info['X']:
                 xoffset = info['X']['offset']
 
         if adjusting:
