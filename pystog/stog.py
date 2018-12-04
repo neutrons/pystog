@@ -887,19 +887,13 @@ class StoG:
         # Plot results
         if self.plot_flag:
             exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
-            columns_diff = self.df_sq_master.columns.difference(exclude_list)
-            df_sq = self.df_sq_master.ix[:, columns_diff]
             self.plot_sq(
-                df_sq,
                 ylabel="FourierFilter(Q)",
-                title="Fourier Transform of the low-r region below cutoff")
+                title="Fourier Transform of the low-r region below cutoff",
+                exclude_list=exclude_list)
             exclude_list = [self.qsq_minus_one_title]
-            df_sq = self.df_sq_master.ix[:, columns_diff]
-            self.plot_sq(df_sq, title="Fourier Filtered S(Q)")
-            self.plot_gr(
-                self.df_gr_master,
-                title="Fourier Filtered %s" %
-                self.real_space_function)
+            self.plot_sq(title="Fourier Filtered S(Q)", exclude_list=exclude_list)
+            self.plot_gr(title="Fourier Filtered %s" % self.real_space_function)
 
         return q, sq, r, gr
 
@@ -916,6 +910,12 @@ class StoG:
         3. (optional) Plotted for diagnostics
         4. Returned from function
 
+        :param q: :math:`Q`-space vector
+        :type q: numpy.array or list
+        :param sq: :math:`S(Q)` vector
+        :type sq: numpy.array or list
+        :param r: :math:`r`-space vector
+        :type r: numpy.array or list
         :return: Returns a tuple with :math:`r` and selected real space function
         :rtype: tuple of numpy.array
         """
@@ -956,24 +956,30 @@ class StoG:
         """
         # TODO: Automate the :math:`Q_{max}` adjustment in an iterative loop
         # using a minimizer.
-        gofr = self.df_gr_master[self.gr_title].values
-        return self.lowR_mean_square(self.dr, gofr)
+        gr = self.df_gr_master[self.gr_title].values
+        return self.lowR_mean_square(self.dr, gr)
 
-    def _lowR_mean_square(self, dr, gofr, limit=1.01):
+    def _lowR_mean_square(self, r, gr, limit=1.01):
         """Calculates the low-R mean square value from a given real space function.
         Used as a cost function for optimiziation of the :math:`Q_{max}` value
         by an iterative adjustment.
         **Currently not used in PyStoG workflow since was done manually.**
 
+        :param r: :math:`r`-space vector
+        :type r: numpy.array or list
+        :param gr: real space function vector
+        :type gr: numpy.array or list
+        :param limit: The upper limit on :math:`r` to use for
+                      the mean-square calculation
+        :type limit: float
         :return: The calculated low-R mean-square value
         :rtype: float
         """
         # TODO: Automate the :math:`Q_{max}` adjustment in an iterative loop
         # using a minimizer.
-
-        gofr = gofr[dr <= limit]
-        gofr_sq = np.multiply(gofr, gofr)
-        average = sum(gofr_sq)
+        gr = gr[r <= limit]
+        gr_sq = np.multiply(gr, gr)
+        average = sum(gr_sq)
         return np.sqrt(average)
 
     def _add_keen_fq(self, q, sq):
@@ -996,6 +1002,11 @@ class StoG:
         """Adds the Keen version of :math:`G(r)` to the
         "master" real space Dataframe, **df_gr_master**, and
         writes it out to file using the **stem_name**.
+
+        :param r: :math:`r`-space vector
+        :type r: numpy.array or list
+        :param gr: real space function vector
+        :type gr: numpy.array or list
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         if self.real_space_function == "g(r)":
@@ -1016,21 +1027,72 @@ class StoG:
     # -------------------------------------#
     # Plot Utilities
 
-    def plot_sq(self, df, xlabel='Q', ylabel='S(Q)', title=''):
+    def _plot_df(self, df, xlabel, ylabel, title, exclude_list):
+        """Utility function to help plot a Dataframe
+
+        :param df: Dataframe to plot
+        :type df: pandas.Dataframe
+        :param xlabel: X-axis label
+        :type xlabel: str
+        :param ylabel: Y-axis label
+        :type ylabel: str
+        :param title: Title of plot
+        :type title: str
+        :param exclude_list: List of titles of columns in
+                        Dataframe **df** to exclude from plot
+        :type exclude_list: list of str
+        """
+        if exclude_list:
+            columns_diff = df.columns.difference(exclude_list)
+            df = df.ix[:, columns_diff]
         df.plot(**self.plotting_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.title(title)
         plt.show()
 
-    def plot_gr(self, df, xlabel='r', ylabel='G(r)', title=''):
-        df.plot(**self.plotting_kwargs)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-        plt.show()
+    def plot_sq(self,  xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
+        """Helper function to plot the :math:`S(Q)` functions
+        in the "master" Dataframe, **df_sq_master**.
+
+        :param xlabel: X-axis label
+        :type xlabel: str
+        :param ylabel: Y-axis label
+        :type ylabel: str
+        :param title: Title of plot
+        :type title: str
+        :param exclude_list: List of titles of columns in
+                        Dataframe to exclude from plot
+        :type exclude_list: list of str
+        """
+        df_sq = self.df_sq_master
+        self._plot_df(df_sq, xlabel, ylabel, title, exclude_list)
+
+    def plot_gr(self, xlabel='r', ylabel='G(r)', title='', exclude_list=None):
+        """Helper function to plot the real space functions
+        in the "master" Dataframe, **df_gr_master**.
+
+        :param xlabel: X-axis label
+        :type xlabel: str
+        :param ylabel: Y-axis label
+        :type ylabel: str
+        :param title: Title of plot
+        :type title: str
+        :param exclude_list: List of titles of columns in
+                        Dataframe to exclude from plot
+        :type exclude_list: list of str
+        """
+        df_gr = self.df_gr_master
+        self._plot_df(df_gr, xlabel, ylabel, title, exclude_list)
 
     def plot_merged_sq(self):
+        """Helper function to multiplot the individual
+        real space functions in the **df_individuals** Dataframe,
+        these functions as individual :math:`S(Q)`, the merged
+        :math:`S(Q)` from the individual functions, and
+        :math:`Q[S(Q)-1]`.
+        """
+
         plot_kwargs = self.plotting_kwargs.copy()
         plot_kwargs['style'] = 'o-'
         plot_kwargs['lw'] = 0.5
@@ -1064,9 +1126,13 @@ class StoG:
         plt.show()
 
     def plot_summary_sq(self):
+        """Helper function to multiplot the reciprocal space
+        functions during processing and the :math:`F(Q)` function.
+        """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+        exclude_list = [self.fq_rmc_title]
         columns = self.df_sq_master.columns
-        columns_diff = columns.difference([self.fq_rmc_title])
+        columns_diff = columns.difference(exclude_list)
         df_sq = self.df_sq_master.ix[:, columns_diff]
         df_sq.plot(ax=ax1, **self.plotting_kwargs)
         df_fq = self.df_sq_master.ix[:, [self.fq_rmc_title]]
@@ -1079,6 +1145,9 @@ class StoG:
         plt.show()
 
     def plot_summary_gr(self):
+        """Helper function to multiplot the real space
+        functions during processing and the :math:`G_{Keen Version}(Q)` function.
+        """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         columns = self.df_gr_master.columns
         columns_diff = columns.difference([self.gr_rmc_title])
@@ -1101,6 +1170,14 @@ class StoG:
         with the given **title**. Utility function for updating
         the class Dataframes.
 
+        :param x: X-axis vector
+        :type x: numpy.array or list
+        :param y: Y-axis vector
+        :type y: numpy.array or list
+        :param df: Dataframe to append (**x**, **y**) pair to as a column
+        :type df: pandas.Dataframe
+        :param title: The title of the column in the Dataframe
+        :type title: str
         :return: Dataframe with X,Y data appended with given title
         :rtype: pandas.Dataframe
         """
@@ -1108,7 +1185,18 @@ class StoG:
         df = pd.concat([df, df_temp], axis=1)
         return df
 
-    def write_out_df(self, df, cols, filename):
+    def _write_out_df(self, df, cols, filename):
+        """Helper function for writing out the Dataframe **df**
+        and the given columns, **cols**, to the filename in
+        the RMCProfile format.
+
+        :param df: Dataframe to write from to filename
+        :type df: pandas.Dataframe
+        :param cols: Column title list for columns to write out
+        :type cols: List of str
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if df.empty:
             print("Empty dataframe.")
             return
@@ -1119,46 +1207,91 @@ class StoG:
             df.to_csv(f, sep='\t', columns=cols, header=False)
 
     def write_out_merged_sq(self, filename=None):
+        """Helper function for writing out the merged :math:`S(Q)`
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s.sq" % self.stem_name
-        self.write_out_df(self.df_sq_master, [self.sq_title], filename)
+        self._write_out_df(self.df_sq_master, [self.sq_title], filename)
 
     def write_out_merged_gr(self, filename=None):
+        """Helper function for writing out the merged real space function
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s.gr" % self.stem_name
-        self.write_out_df(self.df_gr_master, [self.gr_title], filename)
+        self._write_out_df(self.df_gr_master, [self.gr_title], filename)
 
     def write_out_ft(self, filename=None):
+        """Helper function for writing out the Fourier filter correction.
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "ft.dat"
-        self.write_out_df(self.df_sq_master, [self.ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self.ft_title], filename)
 
     def write_out_ft_sq(self, filename=None):
+        """Helper function for writing out the Fourier filtered :math:`S(Q)`
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
-        self.write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
 
     def write_out_ft_gr(self, filename=None):
+        """Helper function for writing out the Fourier filtered real space function
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_ft.gr" % self.stem_name
-        self.write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
+        self._write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
 
     def write_out_ft_dr(self, filename=None):
+        """Helper function for writing out the Fourier filtered :math:`D(r)`
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_ft.dr" % self.stem_name
-        self.write_out_df(self.df_gr_master, [self.dr_ft_title], filename)
+        self._write_out_df(self.df_gr_master, [self.dr_ft_title], filename)
 
     def write_out_lorched_gr(self, filename=None):
+        """Helper function for writing out the Lorch dampened real space function
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_ft_lorched.gr" % self.stem_name
-        self.write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
+        self._write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
 
     def write_out_rmc_fq(self, filename=None):
+        """Helper function for writing out the output :math:`F(Q)`
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_rmc.fq" % self.stem_name
-        self.write_out_df(self.df_sq_master, [self.fq_rmc_title], filename)
+        self._write_out_df(self.df_sq_master, [self.fq_rmc_title], filename)
 
     def write_out_rmc_gr(self, filename=None):
+        """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
+
+        :param filename: Filename to write to
+        :type filename: str
+        """
         if filename is None:
             filename = "%s_rmc.gr" % self.stem_name
-        self.write_out_df(self.df_gr_master, [self.gr_rmc_title], filename)
+        self._write_out_df(self.df_gr_master, [self.gr_rmc_title], filename)
