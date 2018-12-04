@@ -185,7 +185,8 @@ class Transformer:
             yout[i] = np.trapz(kernel, x=xin)
 
         if 'OmittedXrangeCorrection' in kwargs:
-            self._low_x_correction(xin, yin, xout, yout, **kwargs)
+            if kwargs["OmittedXrangeCorrection"]:
+                self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout
 

@@ -5,6 +5,8 @@ Modules
 List of PyStoG modules:
 
 .. toctree::
-   :glob:
 
-   pystog/*
+    pystog/converter
+    pystog/transformer
+    pystog/fourier_filter
+    pystog/stog
