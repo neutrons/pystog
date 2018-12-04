@@ -73,7 +73,7 @@ class StoG:
         self.__merged_opts = {"Y": {"Offset": 0.0, "Scale": 1.0}}
         self.__stem_name = "out"
 
-        # Dataframes for total scattering functions
+        # DataFrames for total scattering functions
         self.__df_individuals = pd.DataFrame()
         self.__df_sq_individuals = pd.DataFrame()
         self.__df_sq_master = pd.DataFrame()
@@ -258,7 +258,7 @@ class StoG:
         :return: File list extended by new_files
         :rtype: list
         """
-        self.files = self.files.extend(new_files)
+        self.files.extend(new_files)
         return self.files
 
     def __update_dr(self):
@@ -488,18 +488,18 @@ class StoG:
     def merged_opts(self, options):
         self.__merged_opts = options
 
-    # Dataframe attributes
+    # DataFrame attributes
 
     @property
     def df_individuals(self):
-        """The Dataframe for the input reciprocal space functions
+        """The DataFrame for the input reciprocal space functions
         loaded from **files** and with the loading processing from **add_dataset**
         class method.
 
         :getter: Returns the current individual, input
-                 reciprocal space functions Dataframe
-        :setter: Sets the Dataframe
-        :type: pandas.Dataframe
+                 reciprocal space functions DataFrame
+        :setter: Sets the DataFrame
+        :type: pandas.DataFrame
         """
         return self.__df_individuals
 
@@ -509,13 +509,13 @@ class StoG:
 
     @property
     def df_sq_individuals(self):
-        """The Dataframe for the :math:`S(Q)` generated from each input
-        reciprocal space dataset in **df_individuals** class Dataframe.
+        """The DataFrame for the :math:`S(Q)` generated from each input
+        reciprocal space dataset in **df_individuals** class DataFrame.
 
         :getter: Returns the current individual :math:`S(Q)`
-                 reciprocal space functions Dataframe
-        :setter: Sets the Dataframe
-        :type: pandas.Dataframe
+                 reciprocal space functions DataFrame
+        :setter: Sets the DataFrame
+        :type: pandas.DataFrame
         """
         return self.__df_sq_individuals
 
@@ -525,7 +525,7 @@ class StoG:
 
     @property
     def df_sq_master(self):
-        """The "master" Dataframe for the :math:`S(Q)` reciprocal
+        """The "master" DataFrame for the :math:`S(Q)` reciprocal
         space functions that are generated for each processing step.
         """
         return self.__df_sq_master
@@ -536,23 +536,18 @@ class StoG:
 
     @property
     def df_gr_master(self):
-        """The "master" Dataframe for the real space functions
+        """The "master" DataFrame for the real space functions
         that are generated for each processing step.
 
-        :getter: Returns the current "master" real space function Dataframe
-        :setter: Sets the "master" real space function Dataframe
-        :type: pandas.Dataframe
+        :getter: Returns the current "master" real space function DataFrame
+        :setter: Sets the "master" real space function DataFrame
+        :type: pandas.DataFrame
         """
         return self.__df_gr_master
 
     @df_gr_master.setter
     def df_gr_master(self, df):
         self.__df_gr_master = df
-
-        self.__df_gr_master = pd.DataFrame()
-        self.__df_individuals = pd.DataFrame()
-        self.__df_sq_individuals = pd.DataFrame()
-        self.__df_sq_master = pd.DataFrame()
 
     # Visualization attributes
 
@@ -661,8 +656,8 @@ class StoG:
         """Reads all the data from the **files** attribute
         Uses the **read_dataset** method on each file.
 
-        Will append all datasets as Dataframes to the
-        **df_inviduals** attribute Dataframe for the
+        Will append all datasets as DataFrames to the
+        **df_inviduals** attribute DataFrame for the
         class in **add_dataset** method.
         """
         if len(self.files) == 0:
@@ -678,7 +673,7 @@ class StoG:
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
 
-        Will append the Dataframe to the **df_inviduals** attribute Dataframe
+        Will append the DataFrame to the **df_inviduals** attribute DataFrame
         for the class in **add_dataset** method.
 
         :param info: Dict with information for dataset (filename, manipulations, etc.)
@@ -689,8 +684,8 @@ class StoG:
         :type ycol: int
         :param sep: Separator for the file used by pandas.read_csv
         :type sep: raw string
-        :return: Dataframe with the dataset added
-        :rtype: pandas.Dataframe
+        :return: DataFrame with the dataset added
+        :rtype: pandas.DataFrame
         """
         # TODO: Create a proper parser class so we can be
         # more accepting of file formats.
@@ -707,15 +702,15 @@ class StoG:
     def add_dataset(self, info, **kwargs):
         """Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
-        an invidual Dataframe.
+        an invidual DataFrame.
 
-        Will append the Dataframe to the **df_inviduals** attribute Dataframe
+        Will append the DataFrame to the **df_inviduals** attribute DataFrame
         for the class.
 
         :param info: Dict with information for dataset (filename, manipulations, etc.)
         :type info: dict
-        :return: Dataframe with the dataset added
-        :rtype: pandas.Dataframe
+        :return: DataFrame with the dataset added
+        :rtype: pandas.DataFrame
         """
         x = np.array(info['data']['x'])
         y = np.array(info['data']['y'])
@@ -807,9 +802,9 @@ class StoG:
 
     def merge_data(self):
         """Merges the reciprocal space data stored in the
-        **df_individuals** class Dataframe into a single, merged
+        **df_individuals** class DataFrame into a single, merged
         recirocal space function. Stores the S(Q) result in
-        **df_sq_master** class Dataframe
+        **df_sq_master** class DataFrame
         """
         # Sum over single S(Q) columns into a merged S(Q)
         single_sofqs = self.df_sq_individuals.iloc[:, :]
@@ -829,11 +824,11 @@ class StoG:
 
     def fourier_filter(self):
         """Performs the Fourier filter on the **df_sq_master**
-        Dataframe to generate the desired real space function with
+        DataFrame to generate the desired real space function with
         this correction. The results from both reciprocal space and
         real space are:
 
-        1. Saved back to the respective "master" Dataframes
+        1. Saved back to the respective "master" DataFrames
         2. Saved to files via the **stem_name**
         3. (optional) Plotted for diagnostics
         4. Returned from function
@@ -899,12 +894,12 @@ class StoG:
     def apply_lorch(self, q, sq, r):
         """Performs the Fourier transform using the Lorch
         dampening correction on the merged :math:`S(Q)` from
-        the **df_sq_master** Dataframe to generate the
+        the **df_sq_master** DataFrame to generate the
         desired real space function with
         this correction. The results from both reciprocal space and
         real space are:
 
-        1. Saved back to the respective "master" Dataframes
+        1. Saved back to the respective "master" DataFrames
         2. Saved to files via the **stem_name**
         3. (optional) Plotted for diagnostics
         4. Returned from function
@@ -945,7 +940,7 @@ class StoG:
 
     def _get_lowR_mean_square(self):
         """Retuns the low-R mean square value for the real space function stored
-        in the "master" real space function class Dataframe, **df_gr_master**.
+        in the "master" real space function class DataFrame, **df_gr_master**.
         Used as a cost function for optimiziation of the :math:`Q_{max}` value
         by an iterative adjustment. Calls **_lowR_mean_square* method.
         **Currently not used in PyStoG workflow since was done manually.**
@@ -983,7 +978,7 @@ class StoG:
 
     def _add_keen_fq(self, q, sq):
         """Adds the Keen version of :math:`F(Q)` to the
-        "master" recprical space Dataframe, **df_sq_master**, and
+        "master" recprical space DataFrame, **df_sq_master**, and
         writes it out to file using the **stem_name**.
 
         :param q: :math:`Q`-space vector
@@ -999,7 +994,7 @@ class StoG:
 
     def _add_keen_gr(self, r, gr):
         """Adds the Keen version of :math:`G(r)` to the
-        "master" real space Dataframe, **df_gr_master**, and
+        "master" real space DataFrame, **df_gr_master**, and
         writes it out to file using the **stem_name**.
 
         :param r: :math:`r`-space vector
@@ -1027,10 +1022,10 @@ class StoG:
     # Plot Utilities
 
     def _plot_df(self, df, xlabel, ylabel, title, exclude_list):
-        """Utility function to help plot a Dataframe
+        """Utility function to help plot a DataFrame
 
-        :param df: Dataframe to plot
-        :type df: pandas.Dataframe
+        :param df: DataFrame to plot
+        :type df: pandas.DataFrame
         :param xlabel: X-axis label
         :type xlabel: str
         :param ylabel: Y-axis label
@@ -1038,7 +1033,7 @@ class StoG:
         :param title: Title of plot
         :type title: str
         :param exclude_list: List of titles of columns in
-                        Dataframe **df** to exclude from plot
+                        DataFrame **df** to exclude from plot
         :type exclude_list: list of str
         """
         if exclude_list:
@@ -1052,7 +1047,7 @@ class StoG:
 
     def plot_sq(self,  xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
         """Helper function to plot the :math:`S(Q)` functions
-        in the "master" Dataframe, **df_sq_master**.
+        in the "master" DataFrame, **df_sq_master**.
 
         :param xlabel: X-axis label
         :type xlabel: str
@@ -1061,7 +1056,7 @@ class StoG:
         :param title: Title of plot
         :type title: str
         :param exclude_list: List of titles of columns in
-                        Dataframe to exclude from plot
+                        DataFrame to exclude from plot
         :type exclude_list: list of str
         """
         df_sq = self.df_sq_master
@@ -1069,7 +1064,7 @@ class StoG:
 
     def plot_gr(self, xlabel='r', ylabel='G(r)', title='', exclude_list=None):
         """Helper function to plot the real space functions
-        in the "master" Dataframe, **df_gr_master**.
+        in the "master" DataFrame, **df_gr_master**.
 
         :param xlabel: X-axis label
         :type xlabel: str
@@ -1078,7 +1073,7 @@ class StoG:
         :param title: Title of plot
         :type title: str
         :param exclude_list: List of titles of columns in
-                        Dataframe to exclude from plot
+                        DataFrame to exclude from plot
         :type exclude_list: list of str
         """
         df_gr = self.df_gr_master
@@ -1086,7 +1081,7 @@ class StoG:
 
     def plot_merged_sq(self):
         """Helper function to multiplot the individual
-        real space functions in the **df_individuals** Dataframe,
+        real space functions in the **df_individuals** DataFrame,
         these functions as individual :math:`S(Q)`, the merged
         :math:`S(Q)` from the individual functions, and
         :math:`Q[S(Q)-1]`.
@@ -1167,30 +1162,30 @@ class StoG:
     def add_to_dataframe(self, x, y, df, title):
         """Takes X,Y dataset and adds it to the given Datframe **df**,
         with the given **title**. Utility function for updating
-        the class Dataframes.
+        the class DataFrames.
 
         :param x: X-axis vector
         :type x: numpy.array or list
         :param y: Y-axis vector
         :type y: numpy.array or list
-        :param df: Dataframe to append (**x**, **y**) pair to as a column
-        :type df: pandas.Dataframe
-        :param title: The title of the column in the Dataframe
+        :param df: DataFrame to append (**x**, **y**) pair to as a column
+        :type df: pandas.DataFrame
+        :param title: The title of the column in the DataFrame
         :type title: str
-        :return: Dataframe with X,Y data appended with given title
-        :rtype: pandas.Dataframe
+        :return: DataFrame with X,Y data appended with given title
+        :rtype: pandas.DataFrame
         """
         df_temp = pd.DataFrame(y, columns=[title], index=x)
         df = pd.concat([df, df_temp], axis=1)
         return df
 
     def _write_out_df(self, df, cols, filename):
-        """Helper function for writing out the Dataframe **df**
+        """Helper function for writing out the DataFrame **df**
         and the given columns, **cols**, to the filename in
         the RMCProfile format.
 
-        :param df: Dataframe to write from to filename
-        :type df: pandas.Dataframe
+        :param df: DataFrame to write from to filename
+        :type df: pandas.DataFrame
         :param cols: Column title list for columns to write out
         :type cols: List of str
         :param filename: Filename to write to
