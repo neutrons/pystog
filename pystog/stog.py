@@ -657,8 +657,9 @@ class StoG(object):
         Uses the **read_dataset** method on each file.
 
         Will append all datasets as DataFrames to the
-        **df_inviduals** attribute DataFrame for the
-        class in **add_dataset** method.
+        **df_inviduals** attribute DataFrame
+        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
+        attribute DataFrame in **add_dataset** method via **read_dataset** method.
         """
         assert self.files is not None
         assert len(self.files) != 0
@@ -667,13 +668,14 @@ class StoG(object):
             file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
 
-    def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s*", **kwargs):
+    def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s*", skiprows=2, **kwargs):
         """Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
 
         Will append the DataFrame to the **df_inviduals** attribute DataFrame
-        for the class in **add_dataset** method.
+        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
+        attribute DataFrame in **add_dataset** method.
 
         :param info: Dict with information for dataset (filename, manipulations, etc.)
         :type info: dict
@@ -683,8 +685,8 @@ class StoG(object):
         :type ycol: int
         :param sep: Separator for the file used by pandas.read_csv
         :type sep: raw string
-        :return: DataFrame with the dataset added
-        :rtype: pandas.DataFrame
+        :param skiprows: Number of rows to skip. Passed to pandas.read_csv
+        :type skiprows: int
         """
         # TODO: Create a proper parser class so we can be
         # more accepting of file formats.
@@ -692,36 +694,59 @@ class StoG(object):
                            sep=sep,
                            usecols=[xcol, ycol],
                            names=['x', 'y'],
+                           skiprows=skiprows,
                            engine='python',
                            **kwargs)
         info['data'] = data
-        data = self.add_dataset(info, **kwargs)
-        return data
+        self.add_dataset(info, index=info['index'], **kwargs)
 
-    def add_dataset(self, info, **kwargs):
+    def add_dataset(self, info, index=0, yscale=1., yoffset=0., xoffset=0., **kwargs):
         """Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
         an invidual DataFrame.
 
         Will append the DataFrame to the **df_inviduals** attribute DataFrame
-        for the class.
+        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
+        attribute DataFrame.
 
         :param info: Dict with information for dataset (filename, manipulations, etc.)
         :type info: dict
-        :return: DataFrame with the dataset added
-        :rtype: pandas.DataFrame
         """
+        # Extract data
         x = np.array(info['data']['x'])
         y = np.array(info['data']['y'])
 
-        x, y = self.transformer.apply_cropping(
-            x, y, info['Qmin'], info['Qmax'])
-        x, y = self._apply_scales_and_offset(x, y,
-                                             info['Y']['Scale'],
-                                             info['Y']['Offset'],
-                                             info['X']['Offset'])
-        self.xmin = min(self.xmin, min(x))
-        self.xmax = max(self.xmax, max(x))
+        # Cropping
+        xmin = min(x)
+        xmax = max(x)
+        if 'Qmin' in info:
+            xmin = info['Qmin']
+        if 'Qmax' in info:
+            xmax = info['Qmax']
+        x, y = self.transformer.apply_cropping(x, y, xmin, xmax)
+
+        # Offset and scale
+        adjusting = False
+        if 'Y' in info:
+            adjusting = True
+            if 'Scale' in info:
+                yscale = info['Y']['Scale']
+            if 'Offset' in info:
+                yoffset = info['Y']['offset']
+
+        if 'X' in info:
+            adjusting = True
+            if 'Offset' in info:
+                xoffset = info['X']['offset']
+
+        if adjusting:
+            x, y = self._apply_scales_and_offset(x, y, yscale, yoffset, xoffset)
+
+        # Save overal x-axis min and max
+        self.xmin = min(self.xmin, xmin)
+        self.xmax = max(self.xmax, xmax)
+
+        # Use Qmin and Qmax to crop datasets
         if self.qmin is not None:
             if self.xmin < self.qmin:
                 x, y = self.transformer.apply_cropping(
@@ -731,26 +756,27 @@ class StoG(object):
                 x, y = self.transformer.apply_cropping(
                     x, y, self.xmin, self.qmax)
 
-        if info["ReciprocalFunction"] != "S(Q)":
-            df = pd.DataFrame(
-                y, columns=[
-                    '%s_%d' %
-                    (info['ReciprocalFunction'], info['index'])], index=x)
-            self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
+        # Default to S(Q) if function type not defined
+        if "ReciprocalFunction" not in info:
+            info["ReciprocalFunction"] = "S(Q)"
 
+        # Save reciprocal space function to the "invididuals" DataFrame
+        df = pd.DataFrame(y, columns=['%s_%d' % (info['ReciprocalFunction'], index)], index=x)
+        self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
+
+        # Convert to S(Q) and save to the individual S(Q) DataFrame
         if info["ReciprocalFunction"] == "F(Q)":
             y = self.converter.F_to_S(x, y)
         elif info["ReciprocalFunction"] == "FK(Q)":
             y = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
-            y = self.converter.DCS_to_S(
-                x, y, **{'<b_coh>^2': self.bcoh_sqrd,
-                         '<b_tot^2>': self.btot_sqrd})
+            y = self.converter.DCS_to_S(x, y
+                                        ** {'<b_coh>^2': self.bcoh_sqrd,
+                                            '<b_tot^2>': self.btot_sqrd})
 
-        df = pd.DataFrame(y, columns=['S(Q)_%d' % info['index']], index=x)
+        df = pd.DataFrame(y, columns=['S(Q)_%d' % index], index=x)
         self.df_sq_individuals = pd.concat(
             [self.df_sq_individuals, df], axis=1)
-        return df
 
     def _apply_scales_and_offset(self, x, y, yscale=1.0, yoffset=0.0, xoffset=0.0):
         """Applies scales to the Y-axis and offsets to both X and Y axes.
