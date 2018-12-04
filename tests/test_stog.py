@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pandas as pd
 from utils import \
-    load_test_data, get_index_of_function, RECIPROCAL_HEADERS
+    get_test_data_path, load_test_data, get_index_of_function, RECIPROCAL_HEADERS
 from materials import Argon
 from pystog.stog import StoG
 
@@ -310,5 +310,45 @@ class TestStogMethods(TestStogBase):
                                self.fq_keen_target[0],
                                places=places)
         self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
+
+        # Add the DCS(Q) data set and check values for it and S(Q) against targets
+        index = 3
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.dcs}),
+                'ReciprocalFunction': 'DCS(Q)'}
+        stog.add_dataset(info, index=index)
+        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['DCS(Q)_%d' % index],
+                               self.dcs_target[0],
+                               places=places)
+        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                               self.sq_target[0],
+                               places=places)
+
+    def test_stog_read_dataset(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**{'<b_coh>^2': self.kwargs['<b_coh>^2'],
+                       '<b_tot^2>': self.kwargs['<b_tot^2>']})
+        info = {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+                'ReciprocalFunction': 'S(Q)',
+                'Qmin': 0.02,
+                'Qmax': 35.2,
+                'Y': {'Offset': 0.0,
+                      'Scale': 1.0},
+                'X': {'Offset': 0.0}
+                }
+
+        info['index'] = 0
+        stog.read_dataset(info)
+
+        # Check S(Q) data against targets
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
+                               self.sq_target[0],
+                               places=places)
+        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
                                self.sq_target[0],
                                places=places)
