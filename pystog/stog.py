@@ -668,7 +668,7 @@ class StoG(object):
             file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
 
-    def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s*", skiprows=2, **kwargs):
+    def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s+", skiprows=2, **kwargs):
         """Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
@@ -770,9 +770,9 @@ class StoG(object):
         elif info["ReciprocalFunction"] == "FK(Q)":
             y = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
-            y = self.converter.DCS_to_S(x, y
-                                        ** {'<b_coh>^2': self.bcoh_sqrd,
-                                            '<b_tot^2>': self.btot_sqrd})
+            y = self.converter.DCS_to_S(x, y,
+                                        **{'<b_coh>^2': self.bcoh_sqrd,
+                                           '<b_tot^2>': self.btot_sqrd})
 
         df = pd.DataFrame(y, columns=['S(Q)_%d' % index], index=x)
         self.df_sq_individuals = pd.concat(
