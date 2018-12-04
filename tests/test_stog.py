@@ -147,6 +147,15 @@ class TestStogAttributes(TestStogBase):
         self.assertAlmostEqual(stog.dr[0], 0.5)
         self.assertAlmostEqual(stog.dr[-1], 50.0)
 
+    def test_stog_real_space_function_setter(self):
+        stog = StoG()
+        stog.real_space_function = "GK(r)"
+        self.assertEqual(stog.real_space_function, "GK(r)")
+        self.assertEqual(stog.gr_title, "GK(r) Merged")
+        self.assertEqual(stog.real_space_function, "GK(r)")
+        self.assertEqual(stog.gr_ft_title, "GK(r) FT")
+        self.assertEqual(stog.gr_lorch_title, "GK(r) FT Lorched")
+
     def test_stog_plotting_kwargs_setter(self):
         stog = StoG()
         new_kwargs = {'figsize': (4, 4),
@@ -219,3 +228,12 @@ class TestStogMethods(TestStogBase):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
         stog.extend_file_list(['file3.txt', 'file4.txt'])
         self.assertEqual(stog.files, ['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt'])
+
+    def test_stog_read_all_data_assertion(self):
+        stog = StoG()
+        with self.assertRaises(AssertionError):
+            stog.read_all_data()
+
+        stog.files = list()
+        with self.assertRaises(AssertionError):
+            stog.read_all_data()
