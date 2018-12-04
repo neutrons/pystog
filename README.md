@@ -71,7 +71,9 @@ pystog_cli --json <input json>
 An example JSON can be found [here](https://github.com/marshallmcdonnell/pystog/blob/master/data/examples/argon_pystog.json)
 
 ### Documentation
-This is a current work in progress but a useful example reference is the [PDFFourierTransform](http://docs.mantidproject.org/nightly/algorithms/PDFFourierTransform-v1.html) algorithm in the Mantid Framework that has similar yet limited capabilities.
+The official documentation is hosted on readthedocs.org: [https://pystog.readthedocs.io/en/latest/](https://pystog.readthedocs.io/en/latest/)
+
+Also, a useful example reference is the [PDFFourierTransform](http://docs.mantidproject.org/nightly/algorithms/PDFFourierTransform-v1.html) algorithm in the Mantid Framework that has similar yet limited capabilities.
 
 ## Running the tests
 From the parent directory of the module, run:
