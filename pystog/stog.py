@@ -74,10 +74,10 @@ class StoG:
         self.__stem_name = "out"
 
         # Dataframes for total scattering functions
-        self.__df_gr_master = pd.DataFrame()
         self.__df_individuals = pd.DataFrame()
         self.__df_sq_individuals = pd.DataFrame()
         self.__df_sq_master = pd.DataFrame()
+        self.__df_gr_master = pd.DataFrame()
 
         # Attributes that do not (currently) change
         self.__sq_title = "S(Q) Merged"
@@ -134,8 +134,6 @@ class StoG:
             self.Rdelta = kwargs["Rdelta"]
         elif "Rpoints" in kwargs:
             self.Rdelta = self.Rmax / kwargs["Rpoints"]
-        else:
-            raise Exception("ERROR: Need either Rpoints or Rdelta")
         if "NumberDensity" in kwargs:
             self.density = kwargs["NumberDensity"]
         if 'OmittedXrangeCorrection' in kwargs:
@@ -467,7 +465,7 @@ class StoG:
         :setter: Set cutoff value
         :type: float
         """
-        return self.fourier_filter_cutoff
+        return self.__fourier_filter_cutoff
 
     @fourier_filter_cutoff.setter
     def fourier_filter_cutoff(self, value):
@@ -814,16 +812,16 @@ class StoG:
         """
         # Sum over single S(Q) columns into a merged S(Q)
         single_sofqs = self.df_sq_individuals.iloc[:, :]
-        self.df_sq_master[self.sq_title] = single_sofqs.mean(axis=1)
+        self.df_sq_master[self.__sq_title] = single_sofqs.mean(axis=1)
 
-        x = self.df_sq_master[self.sq_title].index.values
-        y = self.df_sq_master[self.sq_title].values
+        x = self.df_sq_master[self.__sq_title].index.values
+        y = self.df_sq_master[self.__sq_title].values
 
         x, y = self._apply_scales_and_offset(x, y,
                                              self.merged_opts['Y']['Scale'],
                                              self.merged_opts['Y']['Offset'],
                                              0.0)
-        self.df_sq_master[self.sq_title] = y
+        self.df_sq_master[self.__sq_title] = y
 
     # -------------------------------------#
     # Transform Utilities
@@ -853,8 +851,8 @@ class StoG:
         # Get reciprocal and real space data
         r = self.df_gr_master[self.gr_title].index.values
         gr = self.df_gr_master[self.gr_title].values
-        q = self.df_sq_master[self.sq_title].index.values
-        sq = self.df_sq_master[self.sq_title].values
+        q = self.df_sq_master[self.__sq_title].index.values
+        sq = self.df_sq_master[self.__sq_title].values
 
         # Fourier filter g(r)
         if self.real_space_function == "g(r)":
@@ -873,11 +871,11 @@ class StoG:
 
         # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(
-            q_ft, sq_ft, self.df_sq_master, self.ft_title)
+            q_ft, sq_ft, self.df_sq_master, self.__ft_title)
         self.write_out_ft()
 
         self.df_sq_master = self.add_to_dataframe(
-            q, sq, self.df_sq_master, self.sq_ft_title)
+            q, sq, self.df_sq_master, self.__sq_ft_title)
         self.write_out_ft_sq()
 
         self.df_gr_master = self.add_to_dataframe(
@@ -886,12 +884,12 @@ class StoG:
 
         # Plot results
         if self.plot_flag:
-            exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
+            exclude_list = [self.__qsq_minus_one_title, self.__sq_ft_title]
             self.plot_sq(
                 ylabel="FourierFilter(Q)",
                 title="Fourier Transform of the low-r region below cutoff",
                 exclude_list=exclude_list)
-            exclude_list = [self.qsq_minus_one_title]
+            exclude_list = [self.__qsq_minus_one_title]
             self.plot_sq(title="Fourier Filtered S(Q)", exclude_list=exclude_list)
             self.plot_gr(title="Fourier Filtered %s" % self.real_space_function)
 
@@ -995,7 +993,7 @@ class StoG:
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         fq_rmc = self.converter.S_to_FK(q, sq, **kwargs)
         self.df_sq_master = self.add_to_dataframe(
-            q, fq_rmc, self.df_sq_master, self.fq_rmc_title)
+            q, fq_rmc, self.df_sq_master, self.__fq_rmc_title)
         self.write_out_rmc_fq()
 
     def _add_keen_gr(self, r, gr):
@@ -1021,7 +1019,7 @@ class StoG:
                 self.real_space_function)
 
         self.df_gr_master = self.add_to_dataframe(
-            r, gr_rmc, self.df_gr_master, self.gr_rmc_title)
+            r, gr_rmc, self.df_gr_master, self.__gr_rmc_title)
         self.write_out_rmc_gr()
 
     # -------------------------------------#
@@ -1112,13 +1110,13 @@ class StoG:
         axes[0, 1].set_title("Individual S(Q)")
 
         # Plot the merged S(Q)
-        df_sq = self.df_sq_master.ix[:, [self.sq_title]]
+        df_sq = self.df_sq_master.ix[:, [self.__sq_title]]
         df_sq.plot(ax=axes[1, 0], **plot_kwargs)
         axes[1, 0].set_title("Merged S(Q)")
         axes[1, 0].set_ylabel("S(Q)")
 
         # Plot the merged Q[S(Q)-1]
-        df_fq = self.df_sq_master.ix[:, [self.qsq_minus_one_title]]
+        df_fq = self.df_sq_master.ix[:, [self.__qsq_minus_one_title]]
         df_fq.plot(ax=axes[1, 1], **plot_kwargs)
         axes[1, 1].set_title("Merged Q[S(Q)-1]")
         axes[1, 1].set_ylabel("Q[S(Q)-1]")
@@ -1130,12 +1128,12 @@ class StoG:
         functions during processing and the :math:`F(Q)` function.
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        exclude_list = [self.fq_rmc_title]
+        exclude_list = [self.__fq_rmc_title]
         columns = self.df_sq_master.columns
         columns_diff = columns.difference(exclude_list)
         df_sq = self.df_sq_master.ix[:, columns_diff]
         df_sq.plot(ax=ax1, **self.plotting_kwargs)
-        df_fq = self.df_sq_master.ix[:, [self.fq_rmc_title]]
+        df_fq = self.df_sq_master.ix[:, [self.__fq_rmc_title]]
         df_fq.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("Q")
         ax1.set_ylabel("S(Q)")
@@ -1150,10 +1148,10 @@ class StoG:
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         columns = self.df_gr_master.columns
-        columns_diff = columns.difference([self.gr_rmc_title])
+        columns_diff = columns.difference([self.__gr_rmc_title])
         df_gr = self.df_gr_master.ix[:, columns_diff]
         df_gr.plot(ax=ax1, **self.plotting_kwargs)
-        df_gk = self.df_gr_master.ix[:, [self.gr_rmc_title]]
+        df_gk = self.df_gr_master.ix[:, [self.__gr_rmc_title]]
         df_gk.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("r")
         ax1.set_ylabel(self.real_space_function)
@@ -1214,7 +1212,7 @@ class StoG:
         """
         if filename is None:
             filename = "%s.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_title], filename)
+        self._write_out_df(self.df_sq_master, [self.__sq_title], filename)
 
     def write_out_merged_gr(self, filename=None):
         """Helper function for writing out the merged real space function
@@ -1234,7 +1232,7 @@ class StoG:
         """
         if filename is None:
             filename = "ft.dat"
-        self._write_out_df(self.df_sq_master, [self.ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self.__ft_title], filename)
 
     def write_out_ft_sq(self, filename=None):
         """Helper function for writing out the Fourier filtered :math:`S(Q)`
@@ -1244,7 +1242,7 @@ class StoG:
         """
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self.__sq_ft_title], filename)
 
     def write_out_ft_gr(self, filename=None):
         """Helper function for writing out the Fourier filtered real space function
@@ -1264,7 +1262,7 @@ class StoG:
         """
         if filename is None:
             filename = "%s_ft.dr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.dr_ft_title], filename)
+        self._write_out_df(self.df_gr_master, [self.__dr_ft_title], filename)
 
     def write_out_lorched_gr(self, filename=None):
         """Helper function for writing out the Lorch dampened real space function
@@ -1284,7 +1282,7 @@ class StoG:
         """
         if filename is None:
             filename = "%s_rmc.fq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.fq_rmc_title], filename)
+        self._write_out_df(self.df_sq_master, [self.__fq_rmc_title], filename)
 
     def write_out_rmc_gr(self, filename=None):
         """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
@@ -1294,4 +1292,4 @@ class StoG:
         """
         if filename is None:
             filename = "%s_rmc.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_rmc_title], filename)
+        self._write_out_df(self.df_gr_master, [self.__gr_rmc_title], filename)
