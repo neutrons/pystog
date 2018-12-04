@@ -660,9 +660,8 @@ class StoG(object):
         **df_inviduals** attribute DataFrame for the
         class in **add_dataset** method.
         """
-        if len(self.files) == 0:
-            print("No files loaded for PyStog")
-            return
+        assert self.files is not None
+        assert len(self.files) != 0
 
         for i, file_info in enumerate(self.files):
             file_info['index'] = i
