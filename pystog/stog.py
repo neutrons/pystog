@@ -20,7 +20,7 @@ from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
 
 
-class StoG:
+class StoG(object):
     """The StoG class is used to put together
     the Converter, Transformer, and FourierFilter
     class functionalities to reproduce the original
