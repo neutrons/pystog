@@ -1,4 +1,6 @@
 import unittest
+import numpy
+import pandas
 from pystog.stog import StoG
 
 # Real Space Function
@@ -112,3 +114,108 @@ class TestStogInit(TestStogBase):
     def test_stog_init_kwargs_output_stem_name(self):
         stog = StoG(**{'Outputs': {'StemName': 'myName'}})
         self.assertEqual(stog.stem_name, 'myName')
+
+
+class TestStogAttributes(TestStogBase):
+    def setUp(self):
+        super(TestStogAttributes, self).setUp()
+
+    def test_stog_xmin_setter(self):
+        stog = StoG()
+        stog.xmin = 0.25
+        self.assertEqual(stog.xmin, 0.25)
+
+    def test_stog_xmax_setter(self):
+        stog = StoG()
+        stog.xmax = 10.0
+        self.assertEqual(stog.xmax, 10.0)
+
+    def test_stog_dr_getter(self):
+        stog = StoG()
+        self.assertAlmostEqual(stog.dr[0], 0.01)
+        self.assertAlmostEqual(stog.dr[-1], 50.0)
+
+    def test_stog_dr_setter_rmax(self):
+        stog = StoG()
+        stog.rmax = 25.0
+        self.assertAlmostEqual(stog.dr[0], 0.01)
+        self.assertAlmostEqual(stog.dr[-1], 25.0)
+
+    def test_stog_dr_setter_rdelta(self):
+        stog = StoG()
+        stog.rdelta = 0.5
+        self.assertAlmostEqual(stog.dr[0], 0.5)
+        self.assertAlmostEqual(stog.dr[-1], 50.0)
+
+    def test_stog_plotting_kwargs_setter(self):
+        stog = StoG()
+        new_kwargs = {'figsize': (4, 4),
+                      'style': 'o',
+                      'ms': 2,
+                      'lw': 2,
+                      }
+        stog.plotting_kwargs = new_kwargs
+        self.assertEqual(stog.plotting_kwargs, new_kwargs)
+
+    def test_stog_low_q_correction_exception(self):
+        stog = StoG()
+        with self.assertRaises(TypeError):
+            stog.low_q_correction = 1.0
+
+    def test_stog_lorch_flag_exception(self):
+        stog = StoG()
+        with self.assertRaises(TypeError):
+            stog.lorch_flag = 1.0
+
+    def test_stog_plot_flag_exception(self):
+        stog = StoG()
+        with self.assertRaises(TypeError):
+            stog.plot_flag = 1.0
+
+    def test_stog_real_space_function_exception(self):
+        stog = StoG()
+        with self.assertRaises(ValueError):
+            stog.real_space_function = "Dog"
+
+
+class TestStogDataFrames(TestStogBase):
+    def setUp(self):
+        super(TestStogDataFrames, self).setUp()
+        self.df_target = pandas.DataFrame(numpy.random.randn(10, 2),
+                                          index=numpy.arange(10),
+                                          columns=list('XY'))
+
+    def test_stog_df_individuals_setter(self):
+        stog = StoG()
+        stog.df_individuals = self.df_target
+        self.assertTrue(stog.df_individuals.equals(self.df_target))
+
+    def test_stog_df_sq_individuals_setter(self):
+        stog = StoG()
+        stog.df_sq_individuals = self.df_target
+        self.assertTrue(stog.df_sq_individuals.equals(self.df_target))
+
+    def test_stog_df_sq_master_setter(self):
+        stog = StoG()
+        stog.df_sq_master = self.df_target
+        self.assertTrue(stog.df_sq_master.equals(self.df_target))
+
+    def test_stog_df_gr_master_setter(self):
+        stog = StoG()
+        stog.df_gr_master = self.df_target
+        self.assertTrue(stog.df_gr_master.equals(self.df_target))
+
+
+class TestStogMethods(TestStogBase):
+    def setUp(self):
+        super(TestStogMethods, self).setUp()
+
+    def test_stog_append_file(self):
+        stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
+        stog.append_file('file3.txt')
+        self.assertEqual(stog.files, ['file1.txt', 'file2.txt', 'file3.txt'])
+
+    def test_stog_extend_file_list(self):
+        stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
+        stog.extend_file_list(['file3.txt', 'file4.txt'])
+        self.assertEqual(stog.files, ['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt'])
