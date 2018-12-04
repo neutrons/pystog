@@ -1,5 +1,12 @@
 Total Scattering Function Manipulator:
 -----------------------------------------------------------
+
+| Dev | Other |
+|-----|-------|
+|[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog) | [![Documentation Status](https://readthedocs.org/projects/pystog/badge/?version=latest)](https://pystog.readthedocs.io/en/latest/?badge=latest) |
+| [![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog) | [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) |
+| [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) | |
+
 From total scattering functions, we have reciprocal-space structure factors and real-space pair distribution functions that are related via a Fourier transform. PyStoG is a package that allows for:
 1. Converting between the various functions used by different "communities" (ie researchers who study crystalline versus amorphous or glass materials). Conversions are for either real-space or reciprocal-space.
 2. Perform the transform between the different available functions of choice
@@ -50,10 +57,10 @@ Once installed, you can access the packages classes that perform the function ma
 
 ```python
 import pystog
-from pystog.converter import Converter
-from pystog.transformer import Transformer
-from pystog.fourier_filter import FourierFilter
-from pystog.pystog import PyStoG
+from pystog import Converter
+from pystog import Transformer
+from pystog import FourierFilter
+from pystog import StoG
 ```
 
 Also, there is a beta-version of a python script in the package that can be run on JSON input files and operates similarly to the original **StoG** program, only with extra `matplotlib` visualization of the output. This is `python_cli` and can be used as follows:
@@ -72,5 +79,3 @@ From the parent directory of the module, run:
 ```bash
 python tests/runner.py
 ```
-
-[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog) [![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog)
