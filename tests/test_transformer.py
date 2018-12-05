@@ -297,7 +297,7 @@ class TestTransformerBase(unittest.TestCase):
         self.assertTrue(numpy.allclose(GKofR[first:last],
                                        self.GKofR_target,
                                        rtol=self.rtol, atol=self.atol))
-    # F(Q) tests
+    # Q[S(Q)-1] tests
 
     def F_to_g(self):
         r, gofr = self.transformer.F_to_g(

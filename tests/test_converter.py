@@ -182,7 +182,7 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         self.assertTrue(numpy.allclose(dcs[self.first:self.last],
                                        self.dcs_target,
                                        rtol=self.rtol, atol=self.atol))
-    # F(Q) tests
+    # Q[S(Q)-1] tests
 
     def F_to_S(self):
         sq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
