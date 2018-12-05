@@ -494,3 +494,7 @@ class TestTransformerArgon(TestTransformerBase):
 
     def test_DCS_to_GK(self):
         self.DCS_to_GK()
+
+
+if __name__ == '__main__':
+    unittest.main()

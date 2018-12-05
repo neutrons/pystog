@@ -325,3 +325,7 @@ class TestConverterReciprocalSpaceArgon(TestConverterReciprocalSpaceBase):
 
     def test_DCS_to_FK(self):
         self.DCS_to_FK()
+
+
+if __name__ == '__main__':
+    unittest.main()
