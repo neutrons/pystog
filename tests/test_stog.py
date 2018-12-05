@@ -259,15 +259,6 @@ class TestStogMethods(TestStogBase):
         stog.extend_file_list(['file3.txt', 'file4.txt'])
         self.assertEqual(stog.files, ['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt'])
 
-    def test_stog_read_all_data_assertion(self):
-        stog = StoG()
-        with self.assertRaises(AssertionError):
-            stog.read_all_data()
-
-        stog.files = list()
-        with self.assertRaises(AssertionError):
-            stog.read_all_data()
-
     def test_stog_add_dataset(self):
         # Number of decimal places for precision
         places = 5
@@ -361,6 +352,26 @@ class TestStogMethods(TestStogBase):
         stog.add_dataset(info, index=index)
         self.assertEqual(stog.df_individuals.iloc[self.first].name, 2.14)
 
+    def test_stog_add_dataset_qmin_qmax_crop(self):
+        # Check qmin and qmax apply cropping
+        stog = StoG()
+        index = 0
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+                'ReciprocalFunction': 'S(Q)'}
+        stog.qmin = 1.5
+        stog.qmax = 12.0
+        stog.add_dataset(info, index=index)
+        self.assertEqual(stog.df_individuals.iloc[0].name, stog.qmin)
+        self.assertEqual(stog.df_individuals.iloc[-1].name, stog.qmax)
+
+    def test_stog_add_dataset_default_reciprocal_space_function(self):
+        # Checks the default reciprocal space function is S(Q) and the index is set
+        stog = StoG()
+        index = 300
+        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq})}
+        stog.add_dataset(info, index=index)
+        self.assertEqual(list(stog.df_individuals.columns.values), ['S(Q)_%d' % index])
+
     def test_stog_read_dataset(self):
         # Number of decimal places for precision
         places = 5
@@ -388,3 +399,52 @@ class TestStogMethods(TestStogBase):
         self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
                                self.sq_target[0],
                                places=places)
+
+    def test_stog_read_all_data_assertion(self):
+        stog = StoG()
+        with self.assertRaises(AssertionError):
+            stog.read_all_data()
+
+        stog.files = list()
+        with self.assertRaises(AssertionError):
+            stog.read_all_data()
+
+    def test_stog_read_all_data(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        kwargs = {'Files': [
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 0.02,
+             'Qmax': 15.0,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             },
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 1.90,
+             'Qmax': 35.2,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             }
+        ]
+        }
+
+        stog = StoG()
+        stog.files = kwargs['Files']
+        stog.read_all_data()
+
+        # Check S(Q) data against targets
+        self.assertEqual(len(stog.files), len(kwargs['Files']))
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        for index in range(len(stog.files)):
+            self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+                                   self.sq_target[0],
+                                   places=places)
+            self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                                   self.sq_target[0],
+                                   places=places)
