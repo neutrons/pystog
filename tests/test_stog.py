@@ -273,6 +273,27 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         self.material = Argon()
         self.initialize_material()
 
+        self.xtarget = 1.94
+        self.kwargs_for_files = {'Files': [
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 0.02,
+             'Qmax': 15.0,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             },
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 1.90,
+             'Qmax': 35.2,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             }
+        ]
+        }
+
     def test_stog_add_dataset(self):
         # Number of decimal places for precision
         places = 5
@@ -286,7 +307,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
                 'ReciprocalFunction': 'S(Q)'}
         stog.add_dataset(info, index=index)
-        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, self.xtarget)
         self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
                                self.sq_target[0],
                                places=places)
@@ -406,7 +427,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.read_dataset(info)
 
         # Check S(Q) data against targets
-        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, self.xtarget)
         self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
                                self.sq_target[0],
                                places=places)
@@ -423,38 +444,26 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         with self.assertRaises(AssertionError):
             stog.read_all_data()
 
+    def test_stog_read_all_data_for_files_length(self):
+        # Load S(Q) for Argon from test data
+        stog = StoG()
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+
+        # Check S(Q) data against targets
+        self.assertEqual(len(stog.files), len(self.kwargs_for_files['Files']))
+
     def test_stog_read_all_data(self):
         # Number of decimal places for precision
         places = 5
 
         # Load S(Q) for Argon from test data
-        kwargs = {'Files': [
-            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
-             'ReciprocalFunction': 'S(Q)',
-             'Qmin': 0.02,
-             'Qmax': 15.0,
-             'Y': {'Offset': 0.0,
-                                   'Scale': 1.0},
-             'X': {'Offset': 0.0}
-             },
-            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
-             'ReciprocalFunction': 'S(Q)',
-             'Qmin': 1.90,
-             'Qmax': 35.2,
-             'Y': {'Offset': 0.0,
-                                   'Scale': 1.0},
-             'X': {'Offset': 0.0}
-             }
-        ]
-        }
-
         stog = StoG()
-        stog.files = kwargs['Files']
+        stog.files = self.kwargs_for_files['Files']
         stog.read_all_data()
 
         # Check S(Q) data against targets
-        self.assertEqual(len(stog.files), len(kwargs['Files']))
-        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, self.xtarget)
         for index in range(len(stog.files)):
             self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
                                    self.sq_target[0],
@@ -468,34 +477,13 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         places = 5
 
         # Load S(Q) for Argon from test data
-        kwargs = {'Files': [
-            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
-             'ReciprocalFunction': 'S(Q)',
-             'Qmin': 0.02,
-             'Qmax': 15.0,
-             'Y': {'Offset': 0.0,
-                                   'Scale': 1.0},
-             'X': {'Offset': 0.0}
-             },
-            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
-             'ReciprocalFunction': 'S(Q)',
-             'Qmin': 1.90,
-             'Qmax': 35.2,
-             'Y': {'Offset': 0.0,
-                                   'Scale': 1.0},
-             'X': {'Offset': 0.0}
-             }
-        ]
-        }
-
         stog = StoG()
-        stog.files = kwargs['Files']
+        stog.files = self.kwargs_for_files['Files']
         stog.read_all_data()
         stog.merge_data()
 
         # Check S(Q) data against targets
-        self.assertEqual(len(stog.files), len(kwargs['Files']))
-        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertEqual(stog.df_sq_master.iloc[self.first].name, self.xtarget)
         self.assertAlmostEqual(stog.df_sq_master.iloc[self.first][stog.sq_title],
                                self.sq_target[0],
                                places=places)
