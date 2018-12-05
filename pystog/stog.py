@@ -9,12 +9,12 @@ stog program behavior in an organized fashion
 with the ability to re-construct the workflow.
 """
 
-
+import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from pystog.utils import RealSpaceChoices
+from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
 from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
@@ -84,14 +84,14 @@ class StoG(object):
         self.__qsq_minus_one_title = "Q[S(Q)-1] Merged"
         self.__ft_title = "FT term"
         self.__sq_ft_title = "S(Q) FT"
-        self.__fq_rmc_title = "F(Q) RMC"
+        self.__fq_rmc_title = "F(Q) (Keen version)"
         self.__dr_ft_title = "D(r) FT"
-        self.__gr_rmc_title = "G(r) RMC"
+        self.__gr_rmc_title = "G(r) (Keen version)"
 
         # Set real space title attributes
-        self.gr_title = "%s Merged" % self.__real_space_function
-        self.gr_ft_title = "%s FT" % self.__real_space_function
-        self.gr_lorch_title = "%s FT Lorched" % self.__real_space_function
+        self.__gr_title = "%s Merged" % self.__real_space_function
+        self.__gr_ft_title = "%s FT" % self.__real_space_function
+        self.__gr_lorch_title = "%s FT Lorched" % self.__real_space_function
 
         # Interior class attributes
 
@@ -601,9 +601,9 @@ class StoG(object):
             raise ValueError("real_space_function must be of %s" %
                              ','.join(RealSpaceChoices.keys()))
         self.__real_space_function = real_space_function
-        self.gr_ft_title = "%s FT" % real_space_function
-        self.gr_lorch_title = "%s FT Lorched" % real_space_function
-        self.gr_title = "%s Merged" % real_space_function
+        self.__gr_ft_title = "%s FT" % real_space_function
+        self.__gr_lorch_title = "%s FT Lorched" % real_space_function
+        self.__gr_title = "%s Merged" % real_space_function
 
     @property
     def sq_title(self):
@@ -619,6 +619,37 @@ class StoG(object):
     @sq_title.setter
     def sq_title(self, title):
         self.__sq_title = title
+
+    @property
+    def qsq_minus_one_title(self):
+        """The title of the :math:`Q[S(Q)-1]` function
+        directly after merging the reciprocal space
+        functions without any further corrections.
+
+        :getter: Returns the current title for this function
+        :setter: Sets the title for this function
+        :type: str
+        """
+        return self.__qsq_minus_one_title
+
+    @qsq_minus_one_title.setter
+    def qsq_minus_one_title(self, title):
+        self.__qsq_minus_one_title = title
+
+    @property
+    def sq_ft_title(self):
+        """The title of the :math:`S(Q)` function after
+        merging and a fourier filter correction.
+
+        :getter: Returns the current title for this function
+        :setter: Sets the title for this function
+        :type: str
+        """
+        return self.__sq_ft_title
+
+    @sq_ft_title.setter
+    def sq_ft_title(self, title):
+        self.__sq_ft_title = title
 
     @property
     def gr_title(self):
@@ -775,12 +806,18 @@ class StoG(object):
         if "ReciprocalFunction" not in info:
             info["ReciprocalFunction"] = "S(Q)"
 
+        if info["ReciprocalFunction"] not in ReciprocalSpaceChoices:
+            error = "ReciprocalFunction was equal to %s.\n" % info["ReciprocalFunction"]
+            error += "ReciprocalFunction must be one of the folloing %s" % json.dumps(
+                ReciprocalSpaceChoices)
+            raise ValueError(error)
+
         # Save reciprocal space function to the "invididuals" DataFrame
         df = pd.DataFrame(y, columns=['%s_%d' % (info['ReciprocalFunction'], index)], index=x)
         self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
 
         # Convert to S(Q) and save to the individual S(Q) DataFrame
-        if info["ReciprocalFunction"] == "F(Q)":
+        if info["ReciprocalFunction"] == "Q[S(Q)-1]":
             y = self.converter.F_to_S(x, y)
         elif info["ReciprocalFunction"] == "FK(Q)":
             y = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
@@ -844,20 +881,59 @@ class StoG(object):
         """Merges the reciprocal space data stored in the
         **df_individuals** class DataFrame into a single, merged
         recirocal space function. Stores the S(Q) result in
-        **df_sq_master** class DataFrame
+        **df_sq_master** class DataFrame.
+
+        Also, converts this
+        merged :math:`S(Q)` into :math:`Q[S(Q)-1]` via the
+        **Converter** class and applies any modification
+        specified in **merged_opts** dict attribute, specified
+        by the **'Q[S(Q)-1]'** key of the dict. If there is modification,
+        this modified :math:`Q[S(Q)-1]` will be converted to
+        :math:`S(Q)` and replace the :math:`S(Q)` directly after merge.
+
+        Example dict of **merged_opts** for scaling of
+        :math:`S(Q)` by 2 and then offsetting :math:`Q[S(Q)-1]` by 5:
+
+        .. highlight:: python
+        .. code-block:: python
+
+                {"Merging": { "Y": { "Offset": 0.0,
+                                 "Scale": 2.0 },
+                          "Q[S(Q)-1]": { "Y": "Offset": 5.0,
+                                    "Scale": 1.0 }
+                        }
+        ...
         """
+        # TODO: Refator to have "S(Q)" as key for S(Q) modifications
+
         # Sum over single S(Q) columns into a merged S(Q)
         single_sofqs = self.df_sq_individuals.iloc[:, :]
-        self.df_sq_master[self.__sq_title] = single_sofqs.mean(axis=1)
+        self.df_sq_master[self.sq_title] = single_sofqs.mean(axis=1)
 
-        x = self.df_sq_master[self.__sq_title].index.values
-        y = self.df_sq_master[self.__sq_title].values
+        q = self.df_sq_master[self.sq_title].index.values
+        sq = self.df_sq_master[self.sq_title].values
 
-        x, y = self._apply_scales_and_offset(x, y,
-                                             self.merged_opts['Y']['Scale'],
-                                             self.merged_opts['Y']['Offset'],
-                                             0.0)
-        self.df_sq_master[self.__sq_title] = y
+        q, sq = self._apply_scales_and_offset(q, sq,
+                                              self.merged_opts['Y']['Scale'],
+                                              self.merged_opts['Y']['Offset'],
+                                              0.0)
+        self.df_sq_master[self.sq_title] = sq
+
+        # Also, create merged Q[S(Q)-1] with modifications, if specified
+        fofq = self.converter.S_to_F(q, sq)
+        if "Q[S(Q)-1]" in self.merged_opts:
+            fofq_opts = self.merged_opts["Q[S(Q)-1]"]
+            if "Y" in fofq_opts:
+                if "Scale" in fofq_opts["Y"]:
+                    fofq *= fofq_opts["Y"]["Scale"]
+                if "Offset" in fofq_opts["Y"]:
+                    fofq += fofq_opts["Y"]["Offset"]
+        self.df_sq_master[self.qsq_minus_one_title] = fofq
+
+        # Convert this Q[S(Q)-1] back to S(Q) and overwrite the 1st one
+        sq = self.converter.F_to_S(q, fofq)
+        sq[np.isnan(sq)] = 0
+        self.df_sq_master[self.sq_title] = sq
 
     # -------------------------------------#
     # Transform Utilities
@@ -887,8 +963,8 @@ class StoG(object):
         # Get reciprocal and real space data
         r = self.df_gr_master[self.gr_title].index.values
         gr = self.df_gr_master[self.gr_title].values
-        q = self.df_sq_master[self.__sq_title].index.values
-        sq = self.df_sq_master[self.__sq_title].values
+        q = self.df_sq_master[self.sq_title].index.values
+        sq = self.df_sq_master[self.sq_title].values
 
         # Fourier filter g(r)
         if self.real_space_function == "g(r)":
@@ -911,7 +987,7 @@ class StoG(object):
         self.write_out_ft()
 
         self.df_sq_master = self.add_to_dataframe(
-            q, sq, self.df_sq_master, self.__sq_ft_title)
+            q, sq, self.df_sq_master, self.sq_ft_title)
         self.write_out_ft_sq()
 
         self.df_gr_master = self.add_to_dataframe(
@@ -920,12 +996,12 @@ class StoG(object):
 
         # Plot results
         if self.plot_flag:
-            exclude_list = [self.__qsq_minus_one_title, self.__sq_ft_title]
+            exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
             self.plot_sq(
                 ylabel="FourierFilter(Q)",
                 title="Fourier Transform of the low-r region below cutoff",
                 exclude_list=exclude_list)
-            exclude_list = [self.__qsq_minus_one_title]
+            exclude_list = [self.qsq_minus_one_title]
             self.plot_sq(title="Fourier Filtered S(Q)", exclude_list=exclude_list)
             self.plot_gr(title="Fourier Filtered %s" % self.real_space_function)
 
@@ -1085,7 +1161,7 @@ class StoG(object):
         plt.title(title)
         plt.show()
 
-    def plot_sq(self,  xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
+    def plot_sq(self, xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
         """Helper function to plot the :math:`S(Q)` functions
         in the "master" DataFrame, **df_sq_master**.
 
@@ -1146,13 +1222,13 @@ class StoG(object):
         axes[0, 1].set_title("Individual S(Q)")
 
         # Plot the merged S(Q)
-        df_sq = self.df_sq_master.ix[:, [self.__sq_title]]
+        df_sq = self.df_sq_master.ix[:, [self.sq_title]]
         df_sq.plot(ax=axes[1, 0], **plot_kwargs)
         axes[1, 0].set_title("Merged S(Q)")
         axes[1, 0].set_ylabel("S(Q)")
 
         # Plot the merged Q[S(Q)-1]
-        df_fq = self.df_sq_master.ix[:, [self.__qsq_minus_one_title]]
+        df_fq = self.df_sq_master.ix[:, [self.qsq_minus_one_title]]
         df_fq.plot(ax=axes[1, 1], **plot_kwargs)
         axes[1, 1].set_title("Merged Q[S(Q)-1]")
         axes[1, 1].set_ylabel("Q[S(Q)-1]")
@@ -1248,7 +1324,7 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.__sq_title], filename)
+        self._write_out_df(self.df_sq_master, [self.sq_title], filename)
 
     def write_out_merged_gr(self, filename=None):
         """Helper function for writing out the merged real space function
@@ -1278,7 +1354,7 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.__sq_ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
 
     def write_out_ft_gr(self, filename=None):
         """Helper function for writing out the Fourier filtered real space function
