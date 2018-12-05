@@ -606,6 +606,21 @@ class StoG(object):
         self.gr_title = "%s Merged" % real_space_function
 
     @property
+    def sq_title(self):
+        """The title of the :math:`S(Q)` function directly after merging
+        the reciprocal space functions without any further corrections.
+
+        :getter: Returns the current title for this function
+        :setter: Sets the title for this function
+        :type: str
+        """
+        return self.__sq_title
+
+    @sq_title.setter
+    def sq_title(self, title):
+        self.__sq_title = title
+
+    @property
     def gr_title(self):
         """The title of the real space function directly after merging
         the reciprocal space functions without any further corrections.
