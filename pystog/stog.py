@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
+from pystog.utils import create_domain, RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
 from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
@@ -55,6 +55,7 @@ class StoG(object):
         self.__qmax = None
         self.__files = None
         self.__real_space_function = "g(r)"
+        self.__rmin = 0.0
         self.__rmax = 50.0
         self.__rdelta = 0.01
         self.__update_dr()
@@ -128,6 +129,8 @@ class StoG(object):
             self.files = kwargs["Files"]
         if "RealSpaceFunction" in kwargs:
             self.real_space_function = str(kwargs["RealSpaceFunction"])
+        if "Rmin" in kwargs:
+            self.rmin = float(kwargs["Rmin"])
         if "Rmax" in kwargs:
             self.rmax = float(kwargs["Rmax"])
         if "Rdelta" in kwargs:
@@ -266,7 +269,7 @@ class StoG(object):
         :math:`R_{max}`, respectively) to construct **dr** attribute
         (:math:`r`-space vector) via its setter
         """
-        self.dr = np.arange(self.rdelta, self.rmax + self.rdelta, self.rdelta)
+        self.dr = create_domain(self.rmin, self.rmax, self.rdelta)
 
     @property
     def rdelta(self):
@@ -282,6 +285,22 @@ class StoG(object):
     @rdelta.setter
     def rdelta(self, value):
         self.__rdelta = value
+        self.__update_dr()
+
+    @property
+    def rmin(self):
+        """The :math:`R_{min}` valuefor the :math:`r`-space vector
+
+        :getter: Return :math:`R_{min}` value
+        :setter: Set the :math:`R_{min}` value and update :math:`r`-space vector
+                 via the **dr** attribute
+        :type: value
+        """
+        return self.__rmin
+
+    @rmin.setter
+    def rmin(self, value):
+        self.__rmin = value
         self.__update_dr()
 
     @property
@@ -938,10 +957,44 @@ class StoG(object):
     # -------------------------------------#
     # Transform Utilities
 
+    def transform_merged(self):
+        """Performs the Fourier transform on the merged **df_sq_master**
+        DataFrame to generate the desired real space function
+        with this correction. The results for real space are:
+        saved back to the **gr_master** DataFrame
+        """
+        # Create r-space vector if needed
+        if self.dr is None or len(self.dr) == 0:
+            self.__update_dr()
+
+        # Get Q and S(Q)
+        q = self.df_sq_master[self.sq_title].index.values
+        sq = self.df_sq_master[self.sq_title].values
+
+        # Perform the Fourier transform to selected real space function
+        transform_kwargs = {'lorch': False,
+                            'rho': self.density,
+                            '<b_coh>^2': self.bcoh_sqrd
+                            }
+        if self.real_space_function == "g(r)":
+            r, gofr = self.transformer.S_to_g(q, sq, self.dr, **transform_kwargs)
+        elif self.real_space_function == "G(r)":
+            r, gofr = self.transformer.S_to_G(q, sq, self.dr, **transform_kwargs)
+        elif self.real_space_function == "GK(r)":
+            r, gofr = self.transformer.S_to_GK(
+                q, sq, self.dr, **transform_kwargs)
+        else:
+            raise Exception(
+                "ERROR: Unknown real space function %s" %
+                self.real_space_function)
+
+        self.df_gr_master[self.gr_title] = gofr
+        self.df_gr_master = self.df_gr_master.set_index(r)
+
     def fourier_filter(self):
         """Performs the Fourier filter on the **df_sq_master**
-        DataFrame to generate the desired real space function with
-        this correction. The results from both reciprocal space and
+        DataFrame to generate the desired real space function
+        with this correction. The results from both reciprocal space and
         real space are:
 
         1. Saved back to the respective "master" DataFrames
@@ -961,6 +1014,10 @@ class StoG(object):
         cutoff = self.fourier_filter_cutoff
 
         # Get reciprocal and real space data
+        if self.gr_title not in self.df_gr_master.columns:
+            print("WARNING: Fourier filtered before initial transform. Peforming now...")
+            self.transform_merged()
+
         r = self.df_gr_master[self.gr_title].index.values
         gr = self.df_gr_master[self.gr_title].values
         q = self.df_sq_master[self.sq_title].index.values
