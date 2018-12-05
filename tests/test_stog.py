@@ -53,7 +53,11 @@ class TestStogInit(TestStogBase):
         self.assertEqual(stog.qmin, None)
         self.assertEqual(stog.qmax, None)
         self.assertEqual(stog.files, None)
+        self.assertEqual(stog.sq_title, "S(Q) Merged")
         self.assertEqual(stog.real_space_function, "g(r)")
+        self.assertEqual(stog.gr_title, "g(r) Merged")
+        self.assertEqual(stog.gr_ft_title, "g(r) FT")
+        self.assertEqual(stog.gr_lorch_title, "g(r) FT Lorched")
         self.assertEqual(stog.rmax, 50.0)
         self.assertEqual(stog.rdelta, 0.01)
         self.assertEqual(stog.density, 1.0)
@@ -175,6 +179,11 @@ class TestStogAttributes(TestStogBase):
         self.assertAlmostEqual(stog.dr[0], 0.5)
         self.assertAlmostEqual(stog.dr[-1], 50.0)
 
+    def test_stog_recriprocal_space_function_setter(self):
+        stog = StoG()
+        stog.sq_title = "S(Q) dog"
+        self.assertEqual(stog.sq_title, "S(Q) dog")
+
     def test_stog_real_space_function_setter(self):
         stog = StoG()
         stog.real_space_function = "GK(r)"
@@ -243,11 +252,9 @@ class TestStogDataFrames(TestStogBase):
         self.assertTrue(stog.df_gr_master.equals(self.df_target))
 
 
-class TestStogMethods(TestStogBase):
+class TestStogGeneralMethods(TestStogBase):
     def setUp(self):
-        super(TestStogMethods, self).setUp()
-        self.material = Argon()
-        self.initialize_material()
+        super(TestStogGeneralMethods, self).setUp()
 
     def test_stog_append_file(self):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
@@ -258,6 +265,13 @@ class TestStogMethods(TestStogBase):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
         stog.extend_file_list(['file3.txt', 'file4.txt'])
         self.assertEqual(stog.files, ['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt'])
+
+
+class TestStogDatasetSpecificMethods(TestStogBase):
+    def setUp(self):
+        super(TestStogDatasetSpecificMethods, self).setUp()
+        self.material = Argon()
+        self.initialize_material()
 
     def test_stog_add_dataset(self):
         # Number of decimal places for precision
@@ -448,3 +462,40 @@ class TestStogMethods(TestStogBase):
             self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
                                    self.sq_target[0],
                                    places=places)
+
+    def test_stog_merge_data(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        kwargs = {'Files': [
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 0.02,
+             'Qmax': 15.0,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             },
+            {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+             'ReciprocalFunction': 'S(Q)',
+             'Qmin': 1.90,
+             'Qmax': 35.2,
+             'Y': {'Offset': 0.0,
+                                   'Scale': 1.0},
+             'X': {'Offset': 0.0}
+             }
+        ]
+        }
+
+        stog = StoG()
+        stog.files = kwargs['Files']
+        stog.read_all_data()
+        stog.merge_data()
+
+        # Check S(Q) data against targets
+        self.assertEqual(len(stog.files), len(kwargs['Files']))
+        self.assertEqual(stog.df_individuals.iloc[self.first].name, 1.94)
+        self.assertAlmostEqual(stog.df_sq_master.iloc[self.first][stog.sq_title],
+                               self.sq_target[0],
+                               places=places)
