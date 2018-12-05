@@ -5,7 +5,7 @@ import pandas as pd
 # Utilities
 
 ReciprocalSpaceChoices = {"S(Q)": "S(Q)",
-                          "F(Q)": "=Q[S(Q) - 1]",
+                          "Q[S(Q)-1]": "=Q[S(Q) - 1]",
                           "FK(Q)": "Keen's F(Q)",
                           "DCS(Q)": "Differential Cross-Section"}
 RealSpaceChoices = {"g(r)": ' "little" g(r)',
