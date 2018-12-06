@@ -11,7 +11,7 @@ From total scattering functions, we have reciprocal-space structure factors and 
 
 The name **PyStoG** comes from the fact that this is a *Pythonized* version of **StoG**, a ~30 year old Fortran program that is part of the RMCProfile_ software suite. **StoG** means **"S(Q) to G(r)"** for the fact that it takes recirpocal-space S(Q) patterns from files and transforms them into a single G(r) pattern. The original *StoG* program has been developed, in reverse chronological order, by:
 
- * Matthew Tucker (~2009)
+ * Matthew Tucker and Martin Dove (~2009)
  * Spencer Howells (~1989)
  * Jack Carpenter (prior to 1989)
 
