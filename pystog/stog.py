@@ -1050,6 +1050,8 @@ class StoG(object):
         sq = self.df_sq_master[self.sq_title].values
 
         # Fourier filter g(r)
+        # NOTE: Real space function setter will catch ValueError so
+        # so no need for `else` to catch error
         if self.real_space_function == "g(r)":
             q_ft, sq_ft, q, sq, r, gr = self.filter.g_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
@@ -1059,10 +1061,6 @@ class StoG(object):
         elif self.real_space_function == "GK(r)":
             q_ft, sq_ft, q, sq, r, gr = self.filter.GK_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
-        else:
-            raise Exception(
-                "ERROR: Unknown real space function %s" %
-                self.real_space_function)
 
         # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(
