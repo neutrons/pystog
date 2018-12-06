@@ -1,9 +1,9 @@
 import unittest
 import numpy
-from utils import \
-    load_test_data, get_index_of_function, \
+from tests.utils import \
+    load_data, get_index_of_function, \
     REAL_HEADERS, RECIPROCAL_HEADERS
-from materials import Nickel, Argon
+from tests.materials import Nickel, Argon
 from pystog.converter import Converter
 
 # Real Space Function
@@ -21,7 +21,7 @@ class TestConverterRealSpaceBase(unittest.TestCase):
         self.first = self.material.real_space_first
         self.last = self.material.real_space_last
 
-        data = load_test_data(self.material.real_space_filename)
+        data = load_data(self.material.real_space_filename)
         self.r = data[:, get_index_of_function("r", REAL_HEADERS)]
         self.gofr = data[:, get_index_of_function("g(r)", REAL_HEADERS)]
         self.GofR = data[:, get_index_of_function("G(r)", REAL_HEADERS)]
@@ -143,7 +143,7 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         self.first = self.material.reciprocal_space_first
         self.last = self.material.reciprocal_space_last
 
-        data = load_test_data(self.material.reciprocal_space_filename)
+        data = load_data(self.material.reciprocal_space_filename)
         self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
         self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
         self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]

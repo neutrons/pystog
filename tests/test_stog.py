@@ -1,10 +1,10 @@
 import unittest
 import numpy as np
 import pandas as pd
-from utils import \
-    get_test_data_path, load_test_data, get_index_of_function, \
+from tests.utils import \
+    get_data_path, load_data, get_index_of_function, \
     REAL_HEADERS, RECIPROCAL_HEADERS
-from materials import Argon
+from tests.materials import Argon
 from pystog.stog import StoG
 
 # Real Space Function
@@ -22,7 +22,7 @@ class TestStogBase(unittest.TestCase):
         self.first = self.material.reciprocal_space_first
         self.last = self.material.reciprocal_space_last
 
-        data = load_test_data(self.material.reciprocal_space_filename)
+        data = load_data(self.material.reciprocal_space_filename)
         self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
         self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
         self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]
@@ -40,7 +40,7 @@ class TestStogBase(unittest.TestCase):
         self.real_space_first = self.material.real_space_first
         self.real_space_last = self.material.real_space_last
 
-        data = load_test_data(self.material.real_space_filename)
+        data = load_data(self.material.real_space_filename)
         self.r = data[:, get_index_of_function("r", REAL_HEADERS)]
         self.gofr = data[:, get_index_of_function("g(r)", REAL_HEADERS)]
         self.GofR = data[:, get_index_of_function("G(r)", REAL_HEADERS)]
@@ -65,9 +65,10 @@ class TestStogBase(unittest.TestCase):
         self.reciprocal_xtarget = 1.94
         self.fourier_filter_cutoff = 1.5
 
+        filename = self.material.reciprocal_space_filename
         self.kwargs_for_files = {
             'Files': [
-                {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+                {'Filename': get_data_path(filename),
                  'ReciprocalFunction': 'S(Q)',
                  'Qmin': 0.02,
                  'Qmax': 15.0,
@@ -75,7 +76,7 @@ class TestStogBase(unittest.TestCase):
                        'Scale': 1.0},
                  'X': {'Offset': 0.0}
                  },
-                {'Filename': get_test_data_path(self.material.reciprocal_space_filename),
+                {'Filename': get_data_path(self.material.reciprocal_space_filename),
                  'ReciprocalFunction': 'S(Q)',
                  'Qmin': 1.90,
                  'Qmax': 35.2,
@@ -511,7 +512,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog = StoG(**{'<b_coh>^2': self.kwargs['<b_coh>^2'],
                        '<b_tot^2>': self.kwargs['<b_tot^2>']})
         info = {
-            'Filename': get_test_data_path(
+            'Filename': get_data_path(
                 self.material.reciprocal_space_filename),
             'ReciprocalFunction': 'S(Q)',
             'Qmin': 0.02,
@@ -631,14 +632,13 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
         super(TestStogTransformSpecificMethods, self).setUp()
 
-    def test_stog_transform_merged(self):
+    def test_stog_transform_merged_default(self):
         # Number of decimal places for precision
         places = 2
 
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = True
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
@@ -649,6 +649,58 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
                                places=places)
         self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
                                self.gofr_target[0],
+                               places=places)
+
+        # Test if no dr defined
+        stog.dr = None
+        stog.transform_merged()
+
+        # Check g(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+                               self.gofr_target[0],
+                               places=places)
+
+    def test_stog_transform_merged_GofR(self):
+        # Number of decimal places for precision
+        places = 2
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.real_space_function = "G(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+
+        # Check G(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+                               self.GofR_target[0],
+                               places=places)
+
+    def test_stog_transform_merged_GKofR(self):
+        # Number of decimal places for precision
+        places = 2
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.real_space_function = "G(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+
+        # Check GK(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+                               self.GofR_target[0],
                                places=places)
 
     def test_stog_fourier_filter(self):
@@ -662,6 +714,26 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
+        stog.fourier_filter()
+
+        # Check g(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+                               self.gofr_ff_target[0],
+                               places=places)
+
+    def test_stog_fourier_filter_before_transform_merged_call(self):
+        # Number of decimal places for precision
+        places = 1
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.read_all_data()
+        stog.merge_data()
         stog.fourier_filter()
 
         # Check g(r) data against targets

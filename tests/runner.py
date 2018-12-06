@@ -2,10 +2,11 @@ import sys
 import unittest
 
 # import test modules
-import test_converter
-import test_transformer
-import test_fourier_filter
-import test_stog
+from tests import \
+    test_converter, \
+    test_transformer, \
+    test_fourier_filter, \
+    test_stog
 
 # initialize the test suite
 loader = unittest.TestLoader()
@@ -18,6 +19,6 @@ suite.addTests(loader.loadTestsFromModule(test_fourier_filter))
 suite.addTests(loader.loadTestsFromModule(test_stog))
 
 # initialize a runner and run it
-runner = unittest.TextTestRunner(verbosity=3)
+runner = unittest.TextTestRunner(verbosity=3, buffer=True)
 result = runner.run(suite).wasSuccessful()
 sys.exit(not result)  # weird "opposite" logic
