@@ -690,7 +690,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.real_space_function = "G(r)"
+        stog.real_space_function = "GK(r)"
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
@@ -700,7 +700,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
                                self.real_xtarget,
                                places=places)
         self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
-                               self.GofR_target[0],
+                               self.GKofR_target[0],
                                places=places)
 
     def test_stog_fourier_filter(self):
