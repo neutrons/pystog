@@ -11,7 +11,7 @@ setuptools.setup(
     description="Transforms reciprocal and real space function",
     long_description_content_type="text/markdown",
     url="https://github.com/marshallmcdonnell/pystog",
-    packages=setuptools.find_packages(exclude=["data", "tests", "fortran"]),
+    packages=setuptools.find_packages(exclude=["data", "fortran"]),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
