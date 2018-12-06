@@ -590,6 +590,42 @@ class TestStogDatasetSpecificMethods(TestStogBase):
                                self.sq_target[0],
                                places=places)
 
+    def test_stog_merge_data_qsq_opts_scale(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG()
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        qsq_opts = {'Y': {'Scale': 2.0}}
+
+        # Test Q[S(Q)-1] scale
+        stog.merged_opts['Q[S(Q)-1]'] = qsq_opts
+        stog.merge_data()
+        self.assertAlmostEqual(
+            stog.df_sq_master.iloc[self.first][stog.qsq_minus_one_title],
+            qsq_opts['Y']['Scale'] * self.fq_target[0],
+            places=places)
+
+    def test_stog_merge_data_qsq_opts_offset(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG()
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        qsq_opts = {'Y': {'Offset': 1.0}}
+
+        # Test Q[S(Q)-1] scale
+        stog.merged_opts['Q[S(Q)-1]'] = qsq_opts
+        stog.merge_data()
+        self.assertAlmostEqual(
+            stog.df_sq_master.iloc[self.first][stog.qsq_minus_one_title],
+            qsq_opts['Y']['Offset'] + self.fq_target[0],
+            places=places)
+
 
 class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
