@@ -103,8 +103,15 @@ class Transformer:
                       (x + PiOverXmax)) / (2. * PiOverXmax)
             else:
                 F1 = (2. * v * np.sin(v) - (v * v - 2.) *
-                      np.cos(v) - 2.) / x / x / x
-                F2 = (np.sin(v) - v * np.cos(v)) / x / x
+                      np.cos(v) - 2.)
+                F1 = np.divide(
+                    F1,
+                    x * x * x,
+                    out=np.zeros_like(F1),
+                    where=x != 0)
+
+                F2 = (np.sin(v) - v * np.cos(v))
+                F2 = np.divide(F2, x * x, out=np.zeros_like(F2), where=x != 0)
 
             num = F1 * yin_xmin
             factor = np.divide(num, xmin,
