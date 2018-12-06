@@ -733,7 +733,14 @@ class StoG(object):
             file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
 
-    def read_dataset(self, info, xcol=0, ycol=1, sep=r"\s+", skiprows=2, **kwargs):
+    def read_dataset(
+            self,
+            info,
+            xcol=0,
+            ycol=1,
+            sep=r"\s+",
+            skiprows=2,
+            **kwargs):
         """Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
@@ -765,7 +772,14 @@ class StoG(object):
         info['data'] = data
         self.add_dataset(info, index=info['index'], **kwargs)
 
-    def add_dataset(self, info, index=0, yscale=1., yoffset=0., xoffset=0., **kwargs):
+    def add_dataset(
+            self,
+            info,
+            index=0,
+            yscale=1.,
+            yoffset=0.,
+            xoffset=0.,
+            **kwargs):
         """Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
         an invidual DataFrame.
@@ -805,7 +819,8 @@ class StoG(object):
                 xoffset = info['X']['Offset']
 
         if adjusting:
-            x, y = self._apply_scales_and_offset(x, y, yscale, yoffset, xoffset)
+            x, y = self._apply_scales_and_offset(
+                x, y, yscale, yoffset, xoffset)
 
         # Save overal x-axis min and max
         self.xmin = min(self.xmin, xmin)
@@ -832,7 +847,10 @@ class StoG(object):
             raise ValueError(error)
 
         # Save reciprocal space function to the "invididuals" DataFrame
-        df = pd.DataFrame(y, columns=['%s_%d' % (info['ReciprocalFunction'], index)], index=x)
+        df = pd.DataFrame(
+            y, columns=[
+                '%s_%d' %
+                (info['ReciprocalFunction'], index)], index=x)
         self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
 
         # Convert to S(Q) and save to the individual S(Q) DataFrame
@@ -849,7 +867,13 @@ class StoG(object):
         self.df_sq_individuals = pd.concat(
             [self.df_sq_individuals, df], axis=1)
 
-    def _apply_scales_and_offset(self, x, y, yscale=1.0, yoffset=0.0, xoffset=0.0):
+    def _apply_scales_and_offset(
+            self,
+            x,
+            y,
+            yscale=1.0,
+            yoffset=0.0,
+            xoffset=0.0):
         """Applies scales to the Y-axis and offsets to both X and Y axes.
 
         :param x: X-axis data
@@ -977,9 +1001,11 @@ class StoG(object):
                             '<b_coh>^2': self.bcoh_sqrd
                             }
         if self.real_space_function == "g(r)":
-            r, gofr = self.transformer.S_to_g(q, sq, self.dr, **transform_kwargs)
+            r, gofr = self.transformer.S_to_g(
+                q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "G(r)":
-            r, gofr = self.transformer.S_to_G(q, sq, self.dr, **transform_kwargs)
+            r, gofr = self.transformer.S_to_G(
+                q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "GK(r)":
             r, gofr = self.transformer.S_to_GK(
                 q, sq, self.dr, **transform_kwargs)
@@ -1059,8 +1085,12 @@ class StoG(object):
                 title="Fourier Transform of the low-r region below cutoff",
                 exclude_list=exclude_list)
             exclude_list = [self.qsq_minus_one_title]
-            self.plot_sq(title="Fourier Filtered S(Q)", exclude_list=exclude_list)
-            self.plot_gr(title="Fourier Filtered %s" % self.real_space_function)
+            self.plot_sq(
+                title="Fourier Filtered S(Q)",
+                exclude_list=exclude_list)
+            self.plot_gr(
+                title="Fourier Filtered %s" %
+                self.real_space_function)
 
         return q, sq, r, gr
 
