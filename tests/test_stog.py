@@ -253,6 +253,21 @@ class TestStogAttributes(TestStogBase):
         stog.rdelta = 0.5
         self.assertEqual(stog.dr[1] - stog.dr[0], 0.5)
 
+    def test_stog_gr_title_function_setter(self):
+        stog = StoG()
+        stog.gr_title = "G(r) dog"
+        self.assertEqual(stog.gr_title, "G(r) dog")
+
+    def test_stog_gr_ft_title_function_setter(self):
+        stog = StoG()
+        stog.gr_ft_title = "G(r) FT dog"
+        self.assertEqual(stog.gr_ft_title, "G(r) FT dog")
+
+    def test_stog_gr_lorch_title_function_setter(self):
+        stog = StoG()
+        stog.gr_lorch_title = "G(r) FT Lorch dog"
+        self.assertEqual(stog.gr_lorch_title, "G(r) FT Lorch dog")
+
     def test_stog_sq_title_function_setter(self):
         stog = StoG()
         stog.sq_title = "S(Q) dog"
