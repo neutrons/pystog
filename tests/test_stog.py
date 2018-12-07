@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+import os
 import sys
 from tests.utils import \
     get_data_path, load_data, get_index_of_function, \
@@ -8,6 +9,7 @@ from tests.utils import \
 from tests.materials import Argon
 from pystog.stog import StoG
 
+import tempfile
 import unittest
 if sys.version_info >= (3, 3):
     from unittest.mock import patch
@@ -907,6 +909,74 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
     def test_stog_plot_summary_gr(self, mock_show):
         self.stog.plot_summary_gr()
         mock_show.assert_called_with()
+
+
+class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
+    def setUp(self):
+        super(TestStogOutputDataFrameMethods, self).setUp()
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+
+        self.stog = stog
+
+    def test_stog_write_df(self):
+        stog = self.stog
+        outfile_path = tempfile.mkstemp()[1]
+        stog._write_out_df(stog.df_sq_master,
+                           [stog.sq_title], outfile_path)
+        data = pd.read_csv(outfile_path,
+                           sep=r"\s+",
+                           usecols=[0, 1],
+                           names=['x', 'y'],
+                           skiprows=2,
+                           engine='python')
+
+        q = stog.df_sq_master[stog.sq_title].index.values
+        sq = stog.df_sq_master[stog.sq_title].values
+
+        self.assertTrue(np.allclose(data['x'], q))
+        self.assertTrue(np.allclose(data['y'], sq))
+        os.remove(outfile_path)
+
+    def test_stog_write_out_merged_sq(self):
+        stog = self.stog
+
+        # Using stem name
+        stog.stem_name = "dog"
+        outfile_path = "%s.sq" % stog.stem_name
+        stog.write_out_merged_sq()
+        data = pd.read_csv(outfile_path,
+                           sep=r"\s+",
+                           usecols=[0, 1],
+                           names=['x', 'y'],
+                           skiprows=2,
+                           engine='python')
+
+        q = stog.df_sq_master[stog.sq_title].index.values
+        sq = stog.df_sq_master[stog.sq_title].values
+
+        self.assertTrue(np.allclose(data['x'], q))
+        self.assertTrue(np.allclose(data['y'], sq))
+
+        # Using set filename
+        outfile_path = tempfile.mkstemp()[1]
+        stog.write_out_merged_sq(filename=outfile_path)
+        data = pd.read_csv(outfile_path,
+                           sep=r"\s+",
+                           usecols=[0, 1],
+                           names=['x', 'y'],
+                           skiprows=2,
+                           engine='python')
+
+        q = stog.df_sq_master[stog.sq_title].index.values
+        sq = stog.df_sq_master[stog.sq_title].values
+
+        self.assertTrue(np.allclose(data['x'], q))
+        self.assertTrue(np.allclose(data['y'], sq))
+        os.remove(outfile_path)
 
 
 if __name__ == '__main__':
