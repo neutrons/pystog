@@ -807,6 +807,13 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
         super(TestStogPlottingDataFrameMethods, self).setUp()
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+
+        self.stog = stog
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_df(self, mock_show):
@@ -819,50 +826,27 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_sq(self, mock_show):
-        stog = StoG(**self.kwargs_for_stog_input)
-        stog.files = self.kwargs_for_files['Files']
-        stog.read_all_data()
-        stog.merge_data()
-        stog.plot_sq()
+        self.stog.plot_sq()
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_merged_sq(self, mock_show):
-        stog = StoG(**self.kwargs_for_stog_input)
-        stog.files = self.kwargs_for_files['Files']
-        stog.read_all_data()
-        stog.merge_data()
-        stog.plot_merged_sq()
+        self.stog.plot_merged_sq()
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_gr(self, mock_show):
-        stog = StoG(**self.kwargs_for_stog_input)
-        stog.files = self.kwargs_for_files['Files']
-        stog.read_all_data()
-        stog.merge_data()
-        stog.transform_merged()
-        stog.plot_gr()
+        self.stog.plot_gr()
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_sq(self, mock_show):
-        stog = StoG(**self.kwargs_for_stog_input)
-        stog.files = self.kwargs_for_files['Files']
-        stog.read_all_data()
-        stog.merge_data()
-        stog.transform_merged()
-        stog.plot_summary_sq()
+        self.stog.plot_summary_sq()
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_gr(self, mock_show):
-        stog = StoG(**self.kwargs_for_stog_input)
-        stog.files = self.kwargs_for_files['Files']
-        stog.read_all_data()
-        stog.merge_data()
-        stog.transform_merged()
-        stog.plot_summary_gr()
+        self.stog.plot_summary_gr()
         mock_show.assert_called_once()
 
 
