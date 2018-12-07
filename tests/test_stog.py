@@ -1,6 +1,9 @@
-import unittest
 import numpy as np
 import pandas as pd
+
+import unittest
+from unittest.mock import patch
+
 from tests.utils import \
     get_data_path, load_data, get_index_of_function, \
     REAL_HEADERS, RECIPROCAL_HEADERS
@@ -766,7 +769,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
                                self.GofR_ff_target[0],
                                places=places)
 
-    def test_stog_fourier_filterGKofR(self):
+    def test_stog_fourier_filter_GKofR(self):
         # Number of decimal places for precision
         places = 1
 
@@ -787,6 +790,80 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
                                self.GKofR_ff_target[0],
                                places=places)
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_fourier_filter_with_plot_flag(self, mock_show):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = True
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.fourier_filter()
+        mock_show.assert_called()
+
+
+class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
+    def setUp(self):
+        super(TestStogPlottingDataFrameMethods, self).setUp()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_df(self, mock_show):
+        df = pd.DataFrame(np.random.randn(10, 2),
+                          index=np.arange(10),
+                          columns=list('XY'))
+        stog = StoG()
+        stog._plot_df(df, 'x', 'y', 'title', None)
+        mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_sq(self, mock_show):
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.plot_sq()
+        mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_merged_sq(self, mock_show):
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.plot_merged_sq()
+        mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_gr(self, mock_show):
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.plot_gr()
+        mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_summary_sq(self, mock_show):
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.plot_summary_sq()
+        mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_plot_summary_gr(self, mock_show):
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.plot_summary_gr()
+        mock_show.assert_called_once()
 
 
 if __name__ == '__main__':
