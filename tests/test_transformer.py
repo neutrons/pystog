@@ -10,8 +10,8 @@ from pystog.transformer import Transformer
 
 
 class TestTransformerBase(unittest.TestCase):
-    rtol = 0.2
-    atol = 0.2
+    rtol = 1e-2
+    atol = 1e-2
 
     def initialize_material(self):
         # setup input data
