@@ -1235,7 +1235,8 @@ class StoG(object):
         """
         if exclude_list:
             columns_diff = df.columns.difference(exclude_list)
-            df = df.ix[:, columns_diff]
+            columns_diff_ids = df.columns.get_indexer(columns_diff)
+            df = df.iloc[:, columns_diff_ids]
         df.plot(**self.plotting_kwargs)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -1258,23 +1259,6 @@ class StoG(object):
         """
         df_sq = self.df_sq_master
         self._plot_df(df_sq, xlabel, ylabel, title, exclude_list)
-
-    def plot_gr(self, xlabel='r', ylabel='G(r)', title='', exclude_list=None):
-        """Helper function to plot the real space functions
-        in the "master" DataFrame, **df_gr_master**.
-
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame to exclude from plot
-        :type exclude_list: list of str
-        """
-        df_gr = self.df_gr_master
-        self._plot_df(df_gr, xlabel, ylabel, title, exclude_list)
 
     def plot_merged_sq(self):
         """Helper function to multiplot the individual
@@ -1303,18 +1287,35 @@ class StoG(object):
         axes[0, 1].set_title("Individual S(Q)")
 
         # Plot the merged S(Q)
-        df_sq = self.df_sq_master.ix[:, [self.sq_title]]
+        df_sq = self.df_sq_master.loc[:, [self.sq_title]]
         df_sq.plot(ax=axes[1, 0], **plot_kwargs)
         axes[1, 0].set_title("Merged S(Q)")
         axes[1, 0].set_ylabel("S(Q)")
 
         # Plot the merged Q[S(Q)-1]
-        df_fq = self.df_sq_master.ix[:, [self.qsq_minus_one_title]]
+        df_fq = self.df_sq_master.loc[:, [self.qsq_minus_one_title]]
         df_fq.plot(ax=axes[1, 1], **plot_kwargs)
         axes[1, 1].set_title("Merged Q[S(Q)-1]")
         axes[1, 1].set_ylabel("Q[S(Q)-1]")
 
         plt.show()
+
+    def plot_gr(self, xlabel='r', ylabel='G(r)', title='', exclude_list=None):
+        """Helper function to plot the real space functions
+        in the "master" DataFrame, **df_gr_master**.
+
+        :param xlabel: X-axis label
+        :type xlabel: str
+        :param ylabel: Y-axis label
+        :type ylabel: str
+        :param title: Title of plot
+        :type title: str
+        :param exclude_list: List of titles of columns in
+                        DataFrame to exclude from plot
+        :type exclude_list: list of str
+        """
+        df_gr = self.df_gr_master
+        self._plot_df(df_gr, xlabel, ylabel, title, exclude_list)
 
     def plot_summary_sq(self):
         """Helper function to multiplot the reciprocal space
@@ -1322,11 +1323,12 @@ class StoG(object):
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         exclude_list = [self.__fq_rmc_title]
-        columns = self.df_sq_master.columns
-        columns_diff = columns.difference(exclude_list)
-        df_sq = self.df_sq_master.ix[:, columns_diff]
+        df = self.df_sq_master
+        columns_diff = df.columns.difference(exclude_list)
+        columns_diff_ids = df.columns.get_indexer(columns_diff)
+        df_sq = self.df_sq_master.iloc[:, columns_diff_ids]
         df_sq.plot(ax=ax1, **self.plotting_kwargs)
-        df_fq = self.df_sq_master.ix[:, [self.__fq_rmc_title]]
+        df_fq = self.df_sq_master.loc[:, [self.__fq_rmc_title]]
         df_fq.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("Q")
         ax1.set_ylabel("S(Q)")
@@ -1340,11 +1342,12 @@ class StoG(object):
         functions during processing and the :math:`G_{Keen Version}(Q)` function.
         """
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        columns = self.df_gr_master.columns
-        columns_diff = columns.difference([self.__gr_rmc_title])
-        df_gr = self.df_gr_master.ix[:, columns_diff]
+        df = self.df_gr_master
+        columns_diff = df.columns.difference([self.__gr_rmc_title])
+        columns_diff_ids = df.columns.get_indexer(columns_diff)
+        df_gr = df.iloc[:, columns_diff_ids]
         df_gr.plot(ax=ax1, **self.plotting_kwargs)
-        df_gk = self.df_gr_master.ix[:, [self.__gr_rmc_title]]
+        df_gk = df.loc[:, [self.__gr_rmc_title]]
         df_gk.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("r")
         ax1.set_ylabel(self.real_space_function)
