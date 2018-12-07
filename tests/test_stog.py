@@ -806,7 +806,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.merge_data()
         stog.transform_merged()
         stog.fourier_filter()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
 
 class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
@@ -827,32 +827,32 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
                           columns=list('XY'))
         stog = StoG()
         stog._plot_df(df, 'x', 'y', 'title', None)
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_sq(self, mock_show):
         self.stog.plot_sq()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_merged_sq(self, mock_show):
         self.stog.plot_merged_sq()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_gr(self, mock_show):
         self.stog.plot_gr()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_sq(self, mock_show):
         self.stog.plot_summary_sq()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_gr(self, mock_show):
         self.stog.plot_summary_gr()
-        mock_show.assert_called()
+        mock_show.assert_called_with()
 
 
 if __name__ == '__main__':
