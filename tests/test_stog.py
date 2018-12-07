@@ -839,8 +839,24 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
         stog._add_keen_fq(q, sq)
         self.assertTrue(stog.fq_title in stog.df_sq_master.columns)
 
-    def test_stog_add_keen_gr(self):
+    def test_stog_add_keen_gr_default(self):
         stog = self.stog
+        r = stog.df_gr_master[stog.gr_title].index.values
+        gr = stog.df_gr_master[stog.gr_title].values
+        stog._add_keen_gr(r, gr)
+        self.assertTrue(stog.GKofR_title in stog.df_gr_master.columns)
+
+    def test_stog_add_keen_gr_GofR(self):
+        stog = self.stog
+        stog.real_space_function = "G(r)"
+        r = stog.df_gr_master[stog.gr_title].index.values
+        gr = stog.df_gr_master[stog.gr_title].values
+        stog._add_keen_gr(r, gr)
+        self.assertTrue(stog.GKofR_title in stog.df_gr_master.columns)
+
+    def test_stog_add_keen_gr_GKofR(self):
+        stog = self.stog
+        stog.real_space_function = "GK(r)"
         r = stog.df_gr_master[stog.gr_title].index.values
         gr = stog.df_gr_master[stog.gr_title].values
         stog._add_keen_gr(r, gr)
