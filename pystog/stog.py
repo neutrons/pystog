@@ -92,9 +92,9 @@ class StoG(object):
         self.__qsq_minus_one_title = "Q[S(Q)-1] Merged"
         self.__ft_title = "FT term"
         self.__sq_ft_title = "S(Q) FT"
-        self.__fq_rmc_title = "F(Q) (Keen version)"
+        self.__fq_title = "F(Q) Merged"
         self.__dr_ft_title = "D(r) FT"
-        self.__gr_rmc_title = "G(r) (Keen version)"
+        self.__GKofR_title = "G(r) (Keen Version)"
 
         # Set real space title attributes
         self.__gr_title = "%s Merged" % self.__real_space_function
@@ -678,6 +678,21 @@ class StoG(object):
         self.__sq_ft_title = title
 
     @property
+    def fq_title(self):
+        """The title of the :math:`F(Q)` function after
+        merging and a fourier filter correction.
+
+        :getter: Returns the current title for this function
+        :setter: Sets the title for this function
+        :type: str
+        """
+        return self.__fq_title
+
+    @fq_title.setter
+    def fq_title(self, title):
+        self.__fq_title = title
+
+    @property
     def gr_title(self):
         """The title of the real space function directly after merging
         the reciprocal space functions without any further corrections.
@@ -720,6 +735,21 @@ class StoG(object):
     @gr_lorch_title.setter
     def gr_lorch_title(self, title):
         self.__gr_lorch_title = title
+
+    @property
+    def GKofR_title(self):
+        """The title of the :math:`G_{Keen Version}(r)` with
+        all corrections applied.
+
+        :getter: Returns the current title for this function
+        :setter: Sets the title for this function
+        :type: str
+        """
+        return self.__GKofR_title
+
+    @GKofR_title.setter
+    def GKofR_title(self, title):
+        self.__GKofR_title = title
 
 # -------------------------------------#
 # Reading and Merging Spectrum
@@ -1191,9 +1221,9 @@ class StoG(object):
         :type sq: numpy.array or list
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
-        fq_rmc = self.converter.S_to_FK(q, sq, **kwargs)
+        fq = self.converter.S_to_FK(q, sq, **kwargs)
         self.df_sq_master = self.add_to_dataframe(
-            q, fq_rmc, self.df_sq_master, self.__fq_rmc_title)
+            q, fq, self.df_sq_master, self.fq_title)
         self.write_out_rmc_fq()
 
     def _add_keen_gr(self, r, gr):
@@ -1208,14 +1238,14 @@ class StoG(object):
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         if self.real_space_function == "g(r)":
-            gr_rmc = self.converter.g_to_GK(r, gr, **kwargs)
+            GKofR = self.converter.g_to_GK(r, gr, **kwargs)
         elif self.real_space_function == "G(r)":
-            gr_rmc = self.converter.G_to_GK(r, gr, **kwargs)
+            GKofR = self.converter.G_to_GK(r, gr, **kwargs)
         elif self.real_space_function == "GK(r)":
-            gr_rmc = gr
+            GKofR = gr
 
         self.df_gr_master = self.add_to_dataframe(
-            r, gr_rmc, self.df_gr_master, self.__gr_rmc_title)
+            r, GKofR, self.df_gr_master, self.GKofR_title)
         self.write_out_rmc_gr()
 
     # -------------------------------------#
@@ -1324,19 +1354,19 @@ class StoG(object):
         """Helper function to multiplot the reciprocal space
         functions during processing and the :math:`F(Q)` function.
         """
-        if self.__fq_rmc_title not in self.df_sq_master.columns:
+        if self.fq_title not in self.df_sq_master.columns:
             q = self.df_sq_master[self.sq_title].index.values
             sq = self.df_sq_master[self.sq_title].values
             self._add_keen_fq(q, sq)
 
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        exclude_list = [self.__fq_rmc_title]
+        exclude_list = [self.fq_title]
         df = self.df_sq_master
         columns_diff = df.columns.difference(exclude_list)
         columns_diff_ids = df.columns.get_indexer(columns_diff)
         df_sq = self.df_sq_master.iloc[:, columns_diff_ids]
         df_sq.plot(ax=ax1, **self.plotting_kwargs)
-        df_fq = self.df_sq_master.loc[:, [self.__fq_rmc_title]]
+        df_fq = self.df_sq_master.loc[:, [self.fq_title]]
         df_fq.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("Q")
         ax1.set_ylabel("S(Q)")
@@ -1349,17 +1379,17 @@ class StoG(object):
         """Helper function to multiplot the real space
         functions during processing and the :math:`G_{Keen Version}(Q)` function.
         """
-        if self.__gr_rmc_title not in self.df_gr_master.columns:
+        if self.GKofR_title not in self.df_gr_master.columns:
             r = self.df_gr_master[self.gr_title].index.values
             gr = self.df_gr_master[self.gr_title].values
             self._add_keen_gr(r, gr)
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         df = self.df_gr_master
-        columns_diff = df.columns.difference([self.__gr_rmc_title])
+        columns_diff = df.columns.difference([self.GKofR_title])
         columns_diff_ids = df.columns.get_indexer(columns_diff)
         df_gr = df.iloc[:, columns_diff_ids]
         df_gr.plot(ax=ax1, **self.plotting_kwargs)
-        df_gk = df.loc[:, [self.__gr_rmc_title]]
+        df_gk = df.loc[:, [self.GKofR_title]]
         df_gk.plot(ax=ax2, **self.plotting_kwargs)
         plt.xlabel("r")
         ax1.set_ylabel(self.real_space_function)
@@ -1490,7 +1520,7 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.fq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.__fq_rmc_title], filename)
+        self._write_out_df(self.df_sq_master, [self.fq_title], filename)
 
     def write_out_rmc_gr(self, filename=None):
         """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
@@ -1500,4 +1530,4 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.__gr_rmc_title], filename)
+        self._write_out_df(self.df_gr_master, [self.GKofR_title], filename)
