@@ -1321,6 +1321,11 @@ class StoG(object):
         """Helper function to multiplot the reciprocal space
         functions during processing and the :math:`F(Q)` function.
         """
+        if self.__fq_rmc_title not in self.df_sq_master.columns:
+            q = self.df_sq_master[self.sq_title].index.values
+            sq = self.df_sq_master[self.sq_title].values
+            self._add_keen_fq(q, sq)
+
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         exclude_list = [self.__fq_rmc_title]
         df = self.df_sq_master
@@ -1341,6 +1346,10 @@ class StoG(object):
         """Helper function to multiplot the real space
         functions during processing and the :math:`G_{Keen Version}(Q)` function.
         """
+        if self.__gr_rmc_title not in self.df_gr_master.columns:
+            r = self.df_gr_master[self.gr_title].index.values
+            gr = self.df_gr_master[self.gr_title].values
+            self._add_keen_gr(r, gr)
         fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
         df = self.df_gr_master
         columns_diff = df.columns.difference([self.__gr_rmc_title])
