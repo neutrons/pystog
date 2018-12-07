@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
 
+import sys
 import unittest
-from unittest.mock import patch
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 from tests.utils import \
     get_data_path, load_data, get_index_of_function, \
