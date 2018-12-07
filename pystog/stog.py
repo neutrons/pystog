@@ -1213,10 +1213,6 @@ class StoG(object):
             gr_rmc = self.converter.G_to_GK(r, gr, **kwargs)
         elif self.real_space_function == "GK(r)":
             gr_rmc = gr
-        else:
-            raise Exception(
-                "ERROR: Unknown real space function %s" %
-                self.real_space_function)
 
         self.df_gr_master = self.add_to_dataframe(
             r, gr_rmc, self.df_gr_master, self.__gr_rmc_title)
