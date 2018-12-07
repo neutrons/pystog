@@ -124,10 +124,12 @@ class TestStogInit(TestStogBase):
         self.assertEqual(stog.sq_title, "S(Q) Merged")
         self.assertEqual(stog.qsq_minus_one_title, "Q[S(Q)-1] Merged")
         self.assertEqual(stog.sq_ft_title, "S(Q) FT")
+        self.assertEqual(stog.fq_title, "F(Q) Merged")
         self.assertEqual(stog.real_space_function, "g(r)")
         self.assertEqual(stog.gr_title, "g(r) Merged")
         self.assertEqual(stog.gr_ft_title, "g(r) FT")
         self.assertEqual(stog.gr_lorch_title, "g(r) FT Lorched")
+        self.assertEqual(stog.GKofR_title, "G(r) (Keen Version)")
         self.assertEqual(stog.rmin, 0.0)
         self.assertEqual(stog.rmax, 50.0)
         self.assertEqual(stog.rdelta, 0.01)
@@ -277,10 +279,20 @@ class TestStogAttributes(TestStogBase):
         stog.gr_lorch_title = "G(r) FT Lorch dog"
         self.assertEqual(stog.gr_lorch_title, "G(r) FT Lorch dog")
 
+    def test_stog_GKofR_title_function_setter(self):
+        stog = StoG()
+        stog.GKofR_title = "GK(r) dog"
+        self.assertEqual(stog.GKofR_title, "GK(r) dog")
+
     def test_stog_sq_title_function_setter(self):
         stog = StoG()
         stog.sq_title = "S(Q) dog"
         self.assertEqual(stog.sq_title, "S(Q) dog")
+
+    def test_stog_fq_title_function_setter(self):
+        stog = StoG()
+        stog.fq_title = "F(Q) dog"
+        self.assertEqual(stog.fq_title, "F(Q) dog")
 
     def test_stog_qsq_minus_one_title_setter(self):
         stog = StoG()
@@ -819,6 +831,20 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
 
         self.stog = stog
+
+    def test_stog_add_keen_fq(self):
+        stog = self.stog
+        q = stog.df_sq_master[stog.sq_title].index.values
+        sq = stog.df_sq_master[stog.sq_title].values
+        stog._add_keen_fq(q, sq)
+        self.assertTrue(stog.fq_title in stog.df_sq_master.columns)
+
+    def test_stog_add_keen_gr(self):
+        stog = self.stog
+        r = stog.df_gr_master[stog.gr_title].index.values
+        gr = stog.df_gr_master[stog.gr_title].values
+        stog._add_keen_gr(r, gr)
+        self.assertTrue(stog.GKofR_title in stog.df_gr_master.columns)
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_df(self, mock_show):
