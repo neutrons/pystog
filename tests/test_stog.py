@@ -744,6 +744,50 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
                                self.gofr_ff_target[0],
                                places=places)
 
+    def test_stog_fourier_filter_GofR(self):
+        # Number of decimal places for precision
+        places = 1
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.real_space_function = "G(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.fourier_filter()
+
+        # Check g(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+                               self.GofR_ff_target[0],
+                               places=places)
+
+    def test_stog_fourier_filterGKofR(self):
+        # Number of decimal places for precision
+        places = 1
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.real_space_function = "GK(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.fourier_filter()
+
+        # Check g(r) data against targets
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
+                               self.real_xtarget,
+                               places=places)
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+                               self.GKofR_ff_target[0],
+                               places=places)
+
 
 if __name__ == '__main__':
     unittest.main()  # pragma: no cover
