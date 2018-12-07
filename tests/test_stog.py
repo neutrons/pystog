@@ -2,17 +2,18 @@ import numpy as np
 import pandas as pd
 
 import sys
+from tests.utils import \
+    get_data_path, load_data, get_index_of_function, \
+    REAL_HEADERS, RECIPROCAL_HEADERS
+from tests.materials import Argon
+from pystog.stog import StoG
+
 import unittest
 if sys.version_info >= (3, 3):
     from unittest.mock import patch
 else:
     from mock import patch
 
-from tests.utils import \
-    get_data_path, load_data, get_index_of_function, \
-    REAL_HEADERS, RECIPROCAL_HEADERS
-from tests.materials import Argon
-from pystog.stog import StoG
 
 # Real Space Function
 
@@ -826,32 +827,32 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
                           columns=list('XY'))
         stog = StoG()
         stog._plot_df(df, 'x', 'y', 'title', None)
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_sq(self, mock_show):
         self.stog.plot_sq()
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_merged_sq(self, mock_show):
         self.stog.plot_merged_sq()
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_gr(self, mock_show):
         self.stog.plot_gr()
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_sq(self, mock_show):
         self.stog.plot_summary_sq()
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_summary_gr(self, mock_show):
         self.stog.plot_summary_gr()
-        mock_show.assert_called_once()
+        mock_show.assert_called()
 
 
 if __name__ == '__main__':
