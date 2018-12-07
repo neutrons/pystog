@@ -1009,10 +1009,6 @@ class StoG(object):
         elif self.real_space_function == "GK(r)":
             r, gofr = self.transformer.S_to_GK(
                 q, sq, self.dr, **transform_kwargs)
-        else:
-            raise Exception(
-                "ERROR: Unknown real space function %s" %
-                self.real_space_function)
 
         self.df_gr_master[self.gr_title] = gofr
         self.df_gr_master = self.df_gr_master.set_index(r)
