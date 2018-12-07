@@ -12,12 +12,19 @@ with the ability to re-construct the workflow.
 import json
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from pystog.utils import create_domain, RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
 from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
+
+# Required for non-display environment (i.e. Travis-CI)
+import os
+import matplotlib as mpl
+if os.environ.get('DISPLAY', '') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
+import matplotlib.pyplot as plt  # noqa: E402
 
 
 class StoG(object):
