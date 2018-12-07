@@ -847,16 +847,24 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
         self.assertTrue(stog.GKofR_title in stog.df_gr_master.columns)
 
     def test_stog_add_keen_gr_GofR(self):
-        stog = self.stog
+        stog = StoG(**self.kwargs_for_stog_input)
         stog.real_space_function = "G(r)"
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
         r = stog.df_gr_master[stog.gr_title].index.values
         gr = stog.df_gr_master[stog.gr_title].values
         stog._add_keen_gr(r, gr)
         self.assertTrue(stog.GKofR_title in stog.df_gr_master.columns)
 
     def test_stog_add_keen_gr_GKofR(self):
-        stog = self.stog
+        stog = StoG(**self.kwargs_for_stog_input)
         stog.real_space_function = "GK(r)"
+        stog.files = self.kwargs_for_files['Files']
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
         r = stog.df_gr_master[stog.gr_title].index.values
         gr = stog.df_gr_master[stog.gr_title].values
         stog._add_keen_gr(r, gr)
@@ -878,6 +886,10 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
 
     @patch("matplotlib.pyplot.show")
     def test_stog_plot_merged_sq(self, mock_show):
+        self.stog.plot_merged_sq()
+        mock_show.assert_called_with()
+
+        self.stog.df_individuals = pd.DataFrame()
         self.stog.plot_merged_sq()
         mock_show.assert_called_with()
 
