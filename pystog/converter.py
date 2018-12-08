@@ -44,7 +44,10 @@ class Converter:
         :return: :math:`S(Q)` vector
         :rtype: numpy.array
         """
-        return (fq / q) + 1.
+        mask = (q != 0.0)
+        fq_new = np.zeros_like(fq)
+        fq_new[mask] = fq[mask] / q[mask]
+        return fq_new + 1.
 
     def F_to_FK(self, q, fq, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`F(Q)`

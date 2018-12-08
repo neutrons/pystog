@@ -1,17 +1,18 @@
 import unittest
 import numpy
-from utils import \
-    load_test_data, get_index_of_function, \
-    REAL_HEADERS, RECIPROCAL_HEADERS
-from materials import Nickel, Argon
+from tests.utils import \
+    load_data, get_index_of_function
+from tests.materials import Nickel, Argon
+from pystog.utils import \
+    RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.transformer import Transformer
 
 # Real Space Function
 
 
 class TestTransformerBase(unittest.TestCase):
-    rtol = 0.2
-    atol = 0.2
+    rtol = 1e-2
+    atol = 1e-2
 
     def initialize_material(self):
         # setup input data
@@ -21,11 +22,11 @@ class TestTransformerBase(unittest.TestCase):
         self.real_space_first = self.material.real_space_first
         self.real_space_last = self.material.real_space_last
 
-        data = load_test_data(self.material.real_space_filename)
-        self.r = data[:, get_index_of_function("r", REAL_HEADERS)]
-        self.gofr = data[:, get_index_of_function("g(r)", REAL_HEADERS)]
-        self.GofR = data[:, get_index_of_function("G(r)", REAL_HEADERS)]
-        self.GKofR = data[:, get_index_of_function("GK(r)", REAL_HEADERS)]
+        data = load_data(self.material.real_space_filename)
+        self.r = data[:, get_index_of_function("r", RealSpaceHeaders)]
+        self.gofr = data[:, get_index_of_function("g(r)", RealSpaceHeaders)]
+        self.GofR = data[:, get_index_of_function("G(r)", RealSpaceHeaders)]
+        self.GKofR = data[:, get_index_of_function("GK(r)", RealSpaceHeaders)]
 
         # targets for 1st peaks
         self.gofr_target = self.material.gofr_target
@@ -36,13 +37,16 @@ class TestTransformerBase(unittest.TestCase):
         self.reciprocal_space_first = self.material.reciprocal_space_first
         self.reciprocal_space_last = self.material.reciprocal_space_last
 
-        data = load_test_data(self.material.reciprocal_space_filename)
-        self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
-        self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
-        self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]
+        data = load_data(self.material.reciprocal_space_filename)
+        self.q = data[:, get_index_of_function("Q", ReciprocalSpaceHeaders)]
+        self.sq = data[:, get_index_of_function(
+            "S(Q)", ReciprocalSpaceHeaders)]
+        self.fq = data[:, get_index_of_function(
+            "Q[S(Q)-1]", ReciprocalSpaceHeaders)]
         self.fq_keen = data[:, get_index_of_function(
-            "FK(Q)", RECIPROCAL_HEADERS)]
-        self.dcs = data[:, get_index_of_function("DCS(Q)", RECIPROCAL_HEADERS)]
+            "FK(Q)", ReciprocalSpaceHeaders)]
+        self.dcs = data[:, get_index_of_function(
+            "DCS(Q)", ReciprocalSpaceHeaders)]
 
         # targets for 1st peaks
         self.sq_target = self.material.sq_target
@@ -56,7 +60,7 @@ class TestTransformerBase(unittest.TestCase):
 
         # Parameters for fourier transform testing
         self._ft_first = 28
-        self._ft_last = 33
+        self._ft_last = 35
         fs = 100  # sample rate
         f = 10  # the frequency of the signal
         self._ft_xin = numpy.linspace(0.0, 100., 1000)
@@ -72,8 +76,8 @@ class TestTransformerBase(unittest.TestCase):
     def test_extend_axis_to_low_end(self):
         xin = numpy.linspace(0.5, 1.0, 11)
         xout = self.transformer._extend_axis_to_low_end(xin)
-        self.assertEqual(xout[0], 0.05)
-        self.assertEqual(xout[-1], 1.0)
+        self.assertAlmostEqual(xout[0], 0.5)
+        self.assertAlmostEqual(xout[-1], 1.0)
 
     def test_apply_cropping(self):
         xin = numpy.linspace(0.5, 1.0, 11)
@@ -86,11 +90,13 @@ class TestTransformerBase(unittest.TestCase):
         xout, yout = self.transformer.fourier_transform(self._ft_xin,
                                                         self._ft_yin,
                                                         self._ft_xout)
-        yout_target = [-6.99109862,
-                       31.19080001113671,
-                       48.394807800183614,
-                       12.598301416877067,
-                       -10.486717499230888]
+        yout_target = [-0.14265772,
+                       -10.8854444,
+                       18.13582784,
+                       49.72976782,
+                       26.3590524,
+                       -8.08540764,
+                       -3.38810001]
         self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
@@ -101,11 +107,13 @@ class TestTransformerBase(unittest.TestCase):
                                                         self._ft_yin,
                                                         self._ft_xout,
                                                         **kwargs)
-        yout_target = [7.36295491382,
-                       23.3584279212,
-                       29.0370190673,
-                       16.889216949,
-                       2.41130973148]
+        yout_target = [-1.406162,
+                       3.695632,
+                       18.788041,
+                       29.370677,
+                       21.980533,
+                       6.184271,
+                       -1.234159]
         self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
@@ -116,16 +124,13 @@ class TestTransformerBase(unittest.TestCase):
                                                         self._ft_yin,
                                                         self._ft_xout,
                                                         **kwargs)
-        yout_target = [7.36295491382,
-                       23.3584279212,
-                       29.0370190673,
-                       16.889216949,
-                       2.41130973148]
-        yout_target = [-6.99109862,
-                       31.19080001,
-                       48.3948078,
-                       12.59830142,
-                       -10.4867175]
+        yout_target = [-0.142658,
+                       -10.885444,
+                       18.135828,
+                       49.729768,
+                       26.359052,
+                       -8.085408,
+                       -3.388100]
         self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
@@ -140,11 +145,13 @@ class TestTransformerBase(unittest.TestCase):
                                                   self._ft_yin,
                                                   xout, yout,
                                                   **kwargs)
-        yout_target = [-6.99109862,
-                       31.19080001,
-                       48.3948078,
-                       12.59830142,
-                       -10.4867175]
+        yout_target = [-0.142658,
+                       -10.885444,
+                       18.135828,
+                       49.729768,
+                       26.359052,
+                       -8.085408,
+                       -3.388100]
         self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
@@ -159,11 +166,13 @@ class TestTransformerBase(unittest.TestCase):
                                                   self._ft_yin,
                                                   xout, yout,
                                                   **kwargs)
-        yout_target = [7.36295491,
-                       23.35842792,
-                       29.03701907,
-                       16.88921695,
-                       2.41130973]
+        yout_target = [-1.406162,
+                       3.695632,
+                       18.788041,
+                       29.370677,
+                       21.980533,
+                       6.184271,
+                       -1.234159]
         self.assertTrue(numpy.allclose(yout[self._ft_first:self._ft_last],
                                        yout_target,
                                        rtol=self.rtol, atol=self.atol))
@@ -297,7 +306,7 @@ class TestTransformerBase(unittest.TestCase):
         self.assertTrue(numpy.allclose(GKofR[first:last],
                                        self.GKofR_target,
                                        rtol=self.rtol, atol=self.atol))
-    # F(Q) tests
+    # Q[S(Q)-1] tests
 
     def F_to_g(self):
         r, gofr = self.transformer.F_to_g(
@@ -494,3 +503,7 @@ class TestTransformerArgon(TestTransformerBase):
 
     def test_DCS_to_GK(self):
         self.DCS_to_GK()
+
+
+if __name__ == '__main__':
+    unittest.main()  # pragma: no cover

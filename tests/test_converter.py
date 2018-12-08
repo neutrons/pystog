@@ -1,9 +1,10 @@
 import unittest
 import numpy
-from utils import \
-    load_test_data, get_index_of_function, \
-    REAL_HEADERS, RECIPROCAL_HEADERS
-from materials import Nickel, Argon
+from tests.utils import \
+    load_data, get_index_of_function
+from tests.materials import Nickel, Argon
+from pystog.utils import \
+    RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.converter import Converter
 
 # Real Space Function
@@ -21,11 +22,11 @@ class TestConverterRealSpaceBase(unittest.TestCase):
         self.first = self.material.real_space_first
         self.last = self.material.real_space_last
 
-        data = load_test_data(self.material.real_space_filename)
-        self.r = data[:, get_index_of_function("r", REAL_HEADERS)]
-        self.gofr = data[:, get_index_of_function("g(r)", REAL_HEADERS)]
-        self.GofR = data[:, get_index_of_function("G(r)", REAL_HEADERS)]
-        self.GKofR = data[:, get_index_of_function("GK(r)", REAL_HEADERS)]
+        data = load_data(self.material.real_space_filename)
+        self.r = data[:, get_index_of_function("r", RealSpaceHeaders)]
+        self.gofr = data[:, get_index_of_function("g(r)", RealSpaceHeaders)]
+        self.GofR = data[:, get_index_of_function("G(r)", RealSpaceHeaders)]
+        self.GKofR = data[:, get_index_of_function("GK(r)", RealSpaceHeaders)]
 
         # targets for 1st peaks
         self.gofr_target = self.material.gofr_target
@@ -143,13 +144,16 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         self.first = self.material.reciprocal_space_first
         self.last = self.material.reciprocal_space_last
 
-        data = load_test_data(self.material.reciprocal_space_filename)
-        self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
-        self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
-        self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]
+        data = load_data(self.material.reciprocal_space_filename)
+        self.q = data[:, get_index_of_function("Q", ReciprocalSpaceHeaders)]
+        self.sq = data[:, get_index_of_function(
+            "S(Q)", ReciprocalSpaceHeaders)]
+        self.fq = data[:, get_index_of_function(
+            "Q[S(Q)-1]", ReciprocalSpaceHeaders)]
         self.fq_keen = data[:, get_index_of_function(
-            "FK(Q)", RECIPROCAL_HEADERS)]
-        self.dcs = data[:, get_index_of_function("DCS(Q)", RECIPROCAL_HEADERS)]
+            "FK(Q)", ReciprocalSpaceHeaders)]
+        self.dcs = data[:, get_index_of_function(
+            "DCS(Q)", ReciprocalSpaceHeaders)]
 
         # targets for 1st peaks
         self.sq_target = self.material.sq_target
@@ -182,7 +186,7 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         self.assertTrue(numpy.allclose(dcs[self.first:self.last],
                                        self.dcs_target,
                                        rtol=self.rtol, atol=self.atol))
-    # F(Q) tests
+    # Q[S(Q)-1] tests
 
     def F_to_S(self):
         sq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
@@ -325,3 +329,7 @@ class TestConverterReciprocalSpaceArgon(TestConverterReciprocalSpaceBase):
 
     def test_DCS_to_FK(self):
         self.DCS_to_FK()
+
+
+if __name__ == '__main__':
+    unittest.main()  # pragma: no cover

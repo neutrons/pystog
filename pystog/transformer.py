@@ -11,6 +11,7 @@ that performs the Fourier transforms
 from __future__ import (absolute_import, division, print_function)
 import numpy as np
 
+from pystog.utils import create_domain
 from pystog.converter import Converter
 
 # -------------------------------------------------------#
@@ -39,8 +40,7 @@ class Transformer:
         self.converter = Converter()
 
     def _extend_axis_to_low_end(self, x, decimals=4):
-        """Utility to setup axis for the forward transform space
-        by setting the lowend to dx, which assumes constant spacing.
+        """Utility to setup axis for the forward transform space.
 
         :param x: vector
         :type x: numpy.array or list
@@ -49,11 +49,7 @@ class Transformer:
         :return: vector
         :rtype: numpy.array
         """
-        dx = x[1] - x[0]
-        if x[0] == 0.0:
-            x[0] = 1e-6
-        x = np.linspace(dx, x[-1], int(x[-1] / dx), endpoint=True)
-        return np.around(x, decimals=decimals)
+        return create_domain(min(x), max(x), x[1] - x[0])
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
         """Omitted low-x range correction performed in the
@@ -107,8 +103,15 @@ class Transformer:
                       (x + PiOverXmax)) / (2. * PiOverXmax)
             else:
                 F1 = (2. * v * np.sin(v) - (v * v - 2.) *
-                      np.cos(v) - 2.) / x / x / x
-                F2 = (np.sin(v) - v * np.cos(v)) / x / x
+                      np.cos(v) - 2.)
+                F1 = np.divide(
+                    F1,
+                    x * x * x,
+                    out=np.zeros_like(F1),
+                    where=x != 0)
+
+                F2 = (np.sin(v) - v * np.cos(v))
+                F2 = np.divide(F2, x * x, out=np.zeros_like(F2), where=x != 0)
 
             num = F1 * yin_xmin
             factor = np.divide(num, xmin,
