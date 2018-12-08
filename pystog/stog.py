@@ -1509,16 +1509,6 @@ class StoG(object):
             filename = "%s_ft.gr" % self.stem_name
         self._write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
 
-    def write_out_ft_dr(self, filename=None):
-        """Helper function for writing out the Fourier filtered :math:`D(r)`
-
-        :param filename: Filename to write to
-        :type filename: str
-        """
-        if filename is None:
-            filename = "%s_ft.dr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.__dr_ft_title], filename)
-
     def write_out_lorched_gr(self, filename=None):
         """Helper function for writing out the Lorch dampened real space function
 
