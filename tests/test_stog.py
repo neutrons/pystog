@@ -4,9 +4,10 @@ import pandas as pd
 import os
 import sys
 from tests.utils import \
-    get_data_path, load_data, get_index_of_function, \
-    REAL_HEADERS, RECIPROCAL_HEADERS
+    get_data_path, load_data, get_index_of_function
 from tests.materials import Argon
+from pystog.utils import \
+    RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.stog import StoG
 
 import tempfile
@@ -33,12 +34,15 @@ class TestStogBase(unittest.TestCase):
         self.last = self.material.reciprocal_space_last
 
         data = load_data(self.material.reciprocal_space_filename)
-        self.q = data[:, get_index_of_function("Q", RECIPROCAL_HEADERS)]
-        self.sq = data[:, get_index_of_function("S(Q)", RECIPROCAL_HEADERS)]
-        self.fq = data[:, get_index_of_function("F(Q)", RECIPROCAL_HEADERS)]
+        self.q = data[:, get_index_of_function("Q", ReciprocalSpaceHeaders)]
+        self.sq = data[:, get_index_of_function(
+            "S(Q)", ReciprocalSpaceHeaders)]
+        self.fq = data[:, get_index_of_function(
+            "Q[S(Q)-1]", ReciprocalSpaceHeaders)]
         self.fq_keen = data[:, get_index_of_function(
-            "FK(Q)", RECIPROCAL_HEADERS)]
-        self.dcs = data[:, get_index_of_function("DCS(Q)", RECIPROCAL_HEADERS)]
+            "FK(Q)", ReciprocalSpaceHeaders)]
+        self.dcs = data[:, get_index_of_function(
+            "DCS(Q)", ReciprocalSpaceHeaders)]
 
         # targets for 1st peaks
         self.sq_target = self.material.sq_target
@@ -51,10 +55,10 @@ class TestStogBase(unittest.TestCase):
         self.real_space_last = self.material.real_space_last
 
         data = load_data(self.material.real_space_filename)
-        self.r = data[:, get_index_of_function("r", REAL_HEADERS)]
-        self.gofr = data[:, get_index_of_function("g(r)", REAL_HEADERS)]
-        self.GofR = data[:, get_index_of_function("G(r)", REAL_HEADERS)]
-        self.GKofR = data[:, get_index_of_function("GK(r)", REAL_HEADERS)]
+        self.r = data[:, get_index_of_function("r", RealSpaceHeaders)]
+        self.gofr = data[:, get_index_of_function("g(r)", RealSpaceHeaders)]
+        self.GofR = data[:, get_index_of_function("G(r)", RealSpaceHeaders)]
+        self.GKofR = data[:, get_index_of_function("GK(r)", RealSpaceHeaders)]
 
         # targets for 1st peaks
         self.gofr_target = self.material.gofr_target
@@ -942,8 +946,14 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
                                    engine='python')
 
                 self.assertTrue(np.allclose(data['x'], x))
-                self.assertTrue(np.allclose(data['y'] - y, np.zeros(len(y)),
-                                            rtol=2.0, atol=2.0, equal_nan=True))
+                self.assertTrue(
+                    np.allclose(
+                        data['y'] - y,
+                        np.zeros(
+                            len(y)),
+                        rtol=2.0,
+                        atol=2.0,
+                        equal_nan=True))
 
                 os.remove(outfile_path)
 
@@ -988,24 +998,39 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         os.remove(outfile_path)
 
     def test_write_out_merged_sq(self):
-        # Have to decorate after the setUp() is called for the self.* args to work
-        @self.data_provider(self.stog, self.stog.df_sq_master, self.stog.sq_title, "dog.sq")
+        # Have to decorate after the setUp() is called for the self.* args to
+        # work
+        @self.data_provider(
+            self.stog,
+            self.stog.df_sq_master,
+            self.stog.sq_title,
+            "dog.sq")
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_merged_sq(*args, **kwargs)
         decorated_write_out_merged()
 
     def test_write_out_merged_gr(self):
-        # Have to decorate after the setUp() is called for the self.* args to work
-        @self.data_provider(self.stog, self.stog.df_gr_master, self.stog.gr_title, "dog.gr")
+        # Have to decorate after the setUp() is called for the self.* args to
+        # work
+        @self.data_provider(
+            self.stog,
+            self.stog.df_gr_master,
+            self.stog.gr_title,
+            "dog.gr")
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_merged_gr(*args, **kwargs)
         decorated_write_out_merged()
 
     def test_write_out_ft_sq(self):
         self.stog.fourier_filter()
-        # Have to decorate after the setUp() is called for the self.* args to work
+        # Have to decorate after the setUp() is called for the self.* args to
+        # work
 
-        @self.data_provider(self.stog, self.stog.df_sq_master, self.stog.sq_ft_title, 'dog_ft.sq')
+        @self.data_provider(
+            self.stog,
+            self.stog.df_sq_master,
+            self.stog.sq_ft_title,
+            'dog_ft.sq')
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_ft_sq(*args, **kwargs)
         decorated_write_out_merged()
