@@ -1451,8 +1451,8 @@ class StoG(object):
         :type filename: str
         """
         if df.empty:
-            print("Empty dataframe.")
-            return
+            raise ValueError("Empty dataframe. Cannot write out.")
+
         with open(filename, 'w') as f:
             f.write("%d \n" % df.shape[0])
             f.write("# Comment line\n")

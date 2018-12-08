@@ -1024,6 +1024,9 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         self.assertTrue(np.allclose(data['y'], sq))
         os.remove(outfile_path)
 
+        with self.assertRaises(ValueError):
+            self.stog._write_out_df(pd.DataFrame(), 'title', outfile_path)
+
     def test_write_out_merged_sq(self):
         # Have to decorate after the setUp() is called for the self.* args to
         # work
