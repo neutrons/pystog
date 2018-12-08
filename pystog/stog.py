@@ -1179,7 +1179,6 @@ class StoG(object):
 
         if self.plot_flag:
             self.plot_gr(
-                self.df_gr_master,
                 title="Lorched %s" %
                 self.real_space_function)
 
@@ -1431,6 +1430,9 @@ class StoG(object):
         :rtype: pandas.DataFrame
         """
         df_temp = pd.DataFrame(y, columns=[title], index=x)
+        if title in df.columns:
+            df[title] = df_temp[title]
+            return df
         df = pd.concat([df, df_temp], axis=1)
         return df
 
