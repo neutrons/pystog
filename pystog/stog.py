@@ -1171,11 +1171,7 @@ class StoG(object):
             r, gr_lorch = self.transformer.S_to_G(q, sq, r, **{'lorch': True})
         elif self.real_space_function == "GK(r)":
             r, gr_lorch = self.transformer.S_to_GK(
-                q, sq, r, **{'lorch': True, 'rho': self.density})
-        else:
-            raise Exception(
-                "ERROR: Unknown real space function %s" %
-                self.real_space_function)
+                q, sq, r, **{'lorch': True, 'rho': self.density, '<b_coh>^2': self.bcoh_sqrd})
 
         self.df_gr_master = self.add_to_dataframe(
             r, gr_lorch, self.df_gr_master, self.gr_lorch_title)
