@@ -60,15 +60,17 @@ class TestStogBase(unittest.TestCase):
         self.GofR = data[:, get_index_of_function("G(r)", RealSpaceHeaders)]
         self.GKofR = data[:, get_index_of_function("GK(r)", RealSpaceHeaders)]
 
-        # targets for 1st peaks
         self.gofr_target = self.material.gofr_target
         self.GofR_target = self.material.GofR_target
         self.GKofR_target = self.material.GKofR_target
 
-        # targets for 1st peaks
         self.gofr_ff_target = self.material.gofr_ff_target
         self.GofR_ff_target = self.material.GofR_ff_target
         self.GKofR_ff_target = self.material.GKofR_ff_target
+
+        self.gofr_lorch_target = self.material.gofr_lorch_target
+        self.GofR_lorch_target = self.material.GofR_lorch_target
+        self.GKofR_lorch_target = self.material.GKofR_lorch_target
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -738,8 +740,10 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.merge_data()
         stog.transform_merged()
 
-        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_title].values).any())
-        self.assertFalse(np.isnan(stog.df_gr_master[stog.gr_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_sq_master[stog.sq_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_gr_master[stog.gr_title].values).any())
 
     def test_stog_fourier_filter(self):
         # Number of decimal places for precision
@@ -848,10 +852,82 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
         stog.fourier_filter()
 
-        self.assertFalse(np.isnan(stog.df_gr_master[stog.gr_title].values).any())
-        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_title].values).any())
-        self.assertFalse(np.isnan(stog.df_sq_master[stog._ft_title].values).any())
-        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_ft_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_gr_master[stog.gr_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_sq_master[stog.sq_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_sq_master[stog._ft_title].values).any())
+        self.assertFalse(
+            np.isnan(stog.df_sq_master[stog.sq_ft_title].values).any())
+
+    def test_stog_apply_lorch_default(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        q, sq, r, gr = stog.fourier_filter()
+        stog.apply_lorch(q, sq, r)
+
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
+                               self.gofr_lorch_target[0],
+                               places=places)
+
+    def test_stog_apply_lorch_GofR(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.real_space_function = "G(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        q, sq, r, gr = stog.fourier_filter()
+        stog.apply_lorch(q, sq, r)
+
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
+                               self.GofR_lorch_target[0],
+                               places=places)
+
+    def test_stog_apply_lorch_GKofR(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.real_space_function = "GK(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        q, sq, r, gr = stog.fourier_filter()
+        stog.apply_lorch(q, sq, r)
+
+        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][
+                               stog.gr_lorch_title], self.GKofR_lorch_target[0], places=places)
+
+    @patch("matplotlib.pyplot.show")
+    def test_stog_apply_lorch_with_plot_flag(self, mock_show):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = True
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        q, sq, r, gr = stog.fourier_filter()
+        stog.apply_lorch(q, sq, r)
+        mock_show.assert_called_with()
 
 
 class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
