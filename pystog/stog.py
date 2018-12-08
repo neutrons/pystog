@@ -816,6 +816,8 @@ class StoG(object):
             yscale=1.,
             yoffset=0.,
             xoffset=0.,
+            xdecimals=2,
+            ydecimals=16,
             **kwargs):
         """Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
@@ -827,10 +829,22 @@ class StoG(object):
 
         :param info: Dict with information for dataset (filename, manipulations, etc.)
         :type info: dict
+        :param index: Index of the added reciprocal space function dataset
+        :type index: int
+        :param yscale: Scale factor for the Y data (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
+        :type yscale: float
+        :param yoffset: Offset factor for the Y data (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
+        :type yoffset: float
+        :param xoffset: Offset factor for the X data (i.e. :math:`Q`)
+        :type yoffset: float
+        :param xdecimals: Number of decimal places to use for rounding the X axis
+        :type xdecimals: int
+        :param ydecimals: Number of decimal places to use for rounding the Y axis
+        :type ydecimals: int
         """
         # Extract data
-        x = np.array(info['data']['x'])
-        y = np.array(info['data']['y'])
+        x = np.around(np.array(info['data']['x']), decimals=xdecimals)
+        y = np.around(np.array(info['data']['y']), decimals=ydecimals)
 
         # Cropping
         xmin = min(x)
