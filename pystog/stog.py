@@ -1197,7 +1197,7 @@ class StoG(object):
         # TODO: Automate the :math:`Q_{max}` adjustment in an iterative loop
         # using a minimizer.
         gr = self.df_gr_master[self.gr_title].values
-        return self.lowR_mean_square(self.dr, gr)
+        return self._lowR_mean_square(self.dr, gr)
 
     def _lowR_mean_square(self, r, gr, limit=1.01):
         """Calculates the low-R mean square value from a given real space function.
