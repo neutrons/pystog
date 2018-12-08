@@ -1117,6 +1117,10 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         df = self.stog.add_to_dataframe(x, y2, df, 'y2')
         self.assertTrue(df.equals(df_target))
 
+        y3 = np.random.randn(10)
+        df = self.stog.add_to_dataframe(x, y3, df, 'y2')
+        self.assertFalse(df.equals(df_target))
+
     def test_stog_write_df(self):
         outfile_path = tempfile.mkstemp()[1]
         self.stog._write_out_df(self.stog.df_sq_master,
