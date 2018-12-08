@@ -659,6 +659,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
         super(TestStogTransformSpecificMethods, self).setUp()
+        self.lowR_target = 0.4720653
 
     def test_stog_transform_merged_default(self):
         # Number of decimal places for precision
@@ -929,6 +930,30 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.apply_lorch(q, sq, r)
         mock_show.assert_called_with()
 
+    def test_stog_lowR_mean_square(self):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        gr = stog.df_gr_master[stog.gr_title].values
+        cost = stog._lowR_mean_square(stog.dr, gr)
+        self.assertAlmostEqual(cost, self.lowR_target, places=7)
+
+    def test_stog_get_lowR_mean_square(self):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        q, sq, r, gr = stog.fourier_filter()
+        cost = stog._get_lowR_mean_square()
+        self.assertAlmostEqual(cost, self.lowR_target, places=7)
+
 
 class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
@@ -1082,6 +1107,16 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         return write_out_decorator
 
     # Tests
+    def test_stog_add_to_dataframe(self):
+        x = np.random.randn(10)
+        y1 = np.random.randn(10)
+        y2 = np.random.randn(10)
+        df_target = pd.DataFrame(np.column_stack(
+            [y1, y2]), columns=['y1', 'y2'], index=x)
+        df = pd.DataFrame(np.column_stack([y1]), columns=['y1'], index=x)
+        df = self.stog.add_to_dataframe(x, y2, df, 'y2')
+        self.assertTrue(df.equals(df_target))
+
     def test_stog_write_df(self):
         outfile_path = tempfile.mkstemp()[1]
         self.stog._write_out_df(self.stog.df_sq_master,
