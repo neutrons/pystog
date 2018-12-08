@@ -56,6 +56,8 @@ class StoG(object):
 
     def __init__(self, **kwargs):
         # General attributes
+        self.__xdecimals = 2
+        self.__ydecimals = 16
         self.__xmin = 100
         self.__xmax = 0
         self.__qmin = None
@@ -90,7 +92,7 @@ class StoG(object):
         # Attributes that do not (currently) change
         self.__sq_title = "S(Q) Merged"
         self.__qsq_minus_one_title = "Q[S(Q)-1] Merged"
-        self.__ft_title = "FT term"
+        self._ft_title = "FT term"
         self.__sq_ft_title = "S(Q) FT"
         self.__fq_title = "F(Q) Merged"
         self.__dr_ft_title = "D(r) FT"
@@ -816,7 +818,6 @@ class StoG(object):
             yscale=1.,
             yoffset=0.,
             xoffset=0.,
-            xdecimals=2,
             ydecimals=16,
             **kwargs):
         """Takes the info with the dataset and manipulations,
@@ -837,14 +838,10 @@ class StoG(object):
         :type yoffset: float
         :param xoffset: Offset factor for the X data (i.e. :math:`Q`)
         :type yoffset: float
-        :param xdecimals: Number of decimal places to use for rounding the X axis
-        :type xdecimals: int
-        :param ydecimals: Number of decimal places to use for rounding the Y axis
-        :type ydecimals: int
         """
         # Extract data
-        x = np.around(np.array(info['data']['x']), decimals=xdecimals)
-        y = np.around(np.array(info['data']['y']), decimals=ydecimals)
+        x = np.around(np.array(info['data']['x']), decimals=self.__xdecimals)
+        y = np.around(np.array(info['data']['y']), decimals=self.__ydecimals)
 
         # Cropping
         xmin = min(x)
@@ -1109,9 +1106,15 @@ class StoG(object):
             q_ft, sq_ft, q, sq, r, gr = self.filter.GK_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
 
+        # Round to avoid mismatch index in DataFrame and NaN for column values
+        q = np.around(q, decimals=self.__xdecimals)
+        sq = np.around(sq, decimals=self.__ydecimals)
+        q_ft = np.around(q_ft, decimals=self.__xdecimals)
+        sq_ft = np.around(sq_ft, decimals=self.__ydecimals)
+
         # Add output to master dataframes and write files
         self.df_sq_master = self.add_to_dataframe(
-            q_ft, sq_ft, self.df_sq_master, self.__ft_title)
+            q_ft, sq_ft, self.df_sq_master, self._ft_title)
         self.write_out_ft()
 
         self.df_sq_master = self.add_to_dataframe(
@@ -1484,7 +1487,7 @@ class StoG(object):
         """
         if filename is None:
             filename = "ft.dat"
-        self._write_out_df(self.df_sq_master, [self.__ft_title], filename)
+        self._write_out_df(self.df_sq_master, [self._ft_title], filename)
 
     def write_out_ft_sq(self, filename=None):
         """Helper function for writing out the Fourier filtered :math:`S(Q)`
