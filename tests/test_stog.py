@@ -729,6 +729,18 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
                                self.GKofR_target[0],
                                places=places)
 
+    def test_stog_transform_merged_for_nan_after_filter(self):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.real_space_function = "GK(r)"
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+
+        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_title].values).any())
+        self.assertFalse(np.isnan(stog.df_gr_master[stog.gr_title].values).any())
+
     def test_stog_fourier_filter(self):
         # Number of decimal places for precision
         places = 1
@@ -825,6 +837,21 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
         stog.fourier_filter()
         mock_show.assert_called_with()
+
+    def test_stog_fourier_filter_for_nan_after_filter(self):
+        # Load S(Q) for Argon from test data
+        stog = StoG(**self.kwargs_for_stog_input)
+        stog.files = self.kwargs_for_files['Files']
+        stog.plot_flag = False
+        stog.read_all_data()
+        stog.merge_data()
+        stog.transform_merged()
+        stog.fourier_filter()
+
+        self.assertFalse(np.isnan(stog.df_gr_master[stog.gr_title].values).any())
+        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_title].values).any())
+        self.assertFalse(np.isnan(stog.df_sq_master[stog._ft_title].values).any())
+        self.assertFalse(np.isnan(stog.df_sq_master[stog.sq_ft_title].values).any())
 
 
 class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
