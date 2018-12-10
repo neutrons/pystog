@@ -62,8 +62,9 @@ from pystog import Transformer
 from pystog import FourierFilter
 from pystog import StoG
 ```
+** WARNING: Testing of the CLI is still ongoing**
 
-Also, there is a beta-version of a python script in the package that can be run on JSON input files and operates similarly to the original **StoG** program, only with extra `matplotlib` visualization of the output. This is `python_cli` and can be used as follows:
+Also, there is a beta-version of a python script in the package that can be run on JSON input files and operates similarly to the original **StoG** program, only with extra `matplotlib` visualization of the output. This is `python cli` and can be used as follows:
 
 ```bash
 pystog_cli --json <input json>
@@ -75,9 +76,11 @@ The official documentation is hosted on readthedocs.org: [https://pystog.readthe
 
 Also, a useful example reference is the [PDFFourierTransform](http://docs.mantidproject.org/nightly/algorithms/PDFFourierTransform-v1.html) algorithm in the Mantid Framework that has similar yet limited capabilities.
 
+Finally, tutorials in the form of Jupyter Notebooks can be launched via Binder by clicking the badge here [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/marshallmcdonnell/pystog/master?filepath=tutorials) or at the top of the page.
+
 ## Running the tests
 From the parent directory of the module, run:
 
 ```bash
-python tests/runner.py
+python etup.py test
 ```
