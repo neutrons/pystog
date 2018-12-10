@@ -5,7 +5,7 @@ Total Scattering Function Manipulator:
 |-----|-------|
 |[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog) | [![Documentation Status](https://readthedocs.org/projects/pystog/badge/?version=latest)](https://pystog.readthedocs.io/en/latest/?badge=latest) |
 | [![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog) | [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) |
-| [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) | |
+| [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip) |[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/marshallmcdonnell/pystog/master?filepath=tutorials) |
 
 From total scattering functions, we have reciprocal-space structure factors and real-space pair distribution functions that are related via a Fourier transform. PyStoG is a package that allows for:
 1. Converting between the various functions used by different "communities" (ie researchers who study crystalline versus amorphous or glass materials). Conversions are for either real-space or reciprocal-space.
