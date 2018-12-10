@@ -82,5 +82,5 @@ Finally, tutorials in the form of Jupyter Notebooks can be launched via Binder b
 From the parent directory of the module, run:
 
 ```bash
-python etup.py test
+python setup.py test
 ```
