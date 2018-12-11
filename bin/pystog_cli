@@ -34,7 +34,6 @@ def main(kwargs=None):
     if "PlotFlag" in kwargs:
         if kwargs["PlotFlag"]:
             stog.plot_gr(
-                stog.df_gr_master,
                 ylabel=stog.real_space_function,
                 title="Merged %s" %
                 stog.real_space_function)
