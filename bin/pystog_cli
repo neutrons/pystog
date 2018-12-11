@@ -15,7 +15,7 @@ def main(kwargs=None):
                 kwargs = json.load(f)
 
         else:
-            kwargs = parser_cli_args(args)
+            kwargs = parse_cli_args(args)
 
     # Merge S(Q) files
     stog = StoG(**kwargs)
