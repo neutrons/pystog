@@ -1,0 +1,2 @@
+include versioneer.py
+include pystog/_version.py

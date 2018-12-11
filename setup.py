@@ -1,11 +1,13 @@
 import setuptools
+import versioneer
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="pystog",
-    version="0.1.3",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="Marshall McDonnell",
     author_email="mcdonnellmt@ornl.gov",
     description="Transforms reciprocal and real space function",
