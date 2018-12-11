@@ -47,7 +47,6 @@ def main(kwargs=None):
 
     # Apply Fourier Filter
     if "FourierFilter" in kwargs:
-        print(len(sq))
         q, sq, r, gr_out = stog.fourier_filter()
 
     # Apply Lorch Modification
@@ -55,8 +54,8 @@ def main(kwargs=None):
         r, gr_out = stog.apply_lorch(q, sq, r)
 
     # Apply final scale number
-    stog.add_keen_fq(q, sq)
-    stog.add_keen_gr(r, gr_out)
+    stog._add_keen_fq(q, sq)
+    stog._add_keen_gr(r, gr_out)
 
     if "PlotFlag" in kwargs:
         if kwargs["PlotFlag"]:

@@ -222,7 +222,7 @@ class Converter:
         :rtype: numpy.array
         """
         factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
-        return factor * (gr / r)
+        return factor * self._safe_divide(gr, r)
 
     def G_to_g(self, r, gr, **kwargs):
         """Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
