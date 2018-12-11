@@ -31,6 +31,12 @@ class Converter:
     def __init__(self):
         pass
 
+    def _safe_divide(self, numerator, denominator):
+        mask = (denominator != 0.0)
+        out = np.zeros_like(numerator)
+        out[mask] = numerator[mask] / denominator[mask]
+        return out
+
     # Reciprocal Space Conversions
 
     def F_to_S(self, q, fq, **kwargs):
@@ -44,10 +50,7 @@ class Converter:
         :return: :math:`S(Q)` vector
         :rtype: numpy.array
         """
-        mask = (q != 0.0)
-        fq_new = np.zeros_like(fq)
-        fq_new[mask] = fq[mask] / q[mask]
-        return fq_new + 1.
+        return self._safe_divide(fq, q) + 1.
 
     def F_to_FK(self, q, fq, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`F(Q)`
@@ -63,7 +66,7 @@ class Converter:
         mask = (q != 0.0)
         fq_new = np.zeros_like(fq)
         fq_new[mask] = fq[mask] / q[mask]
-        return kwargs['<b_coh>^2'] * fq_new
+        return kwargs['<b_coh>^2'] * self._safe_divide(fq, q)
 
     def F_to_DCS(self, q, fq, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
@@ -219,7 +222,7 @@ class Converter:
         :rtype: numpy.array
         """
         factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
-        return factor * (gr / r)
+        return factor * self._safe_divide(gr, r)
 
     def G_to_g(self, r, gr, **kwargs):
         """Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
@@ -233,7 +236,7 @@ class Converter:
         :rtype: numpy.array
         """
         factor = 4. * np.pi * kwargs['rho']
-        return gr / (factor * r) + 1.
+        return self._safe_divide(gr, factor * r) + 1.
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, **kwargs):
