@@ -11,7 +11,6 @@ that performs the Fourier transforms
 from __future__ import (absolute_import, division, print_function)
 import numpy as np
 
-from pystog.utils import create_domain
 from pystog.converter import Converter
 
 # -------------------------------------------------------#
@@ -38,18 +37,6 @@ class Transformer:
 
     def __init__(self):
         self.converter = Converter()
-
-    def _extend_axis_to_low_end(self, x, decimals=4):
-        """Utility to setup axis for the forward transform space.
-
-        :param x: vector
-        :type x: numpy.array or list
-        :param decimals: max decimals in output
-        :type decimals: integer
-        :return: vector
-        :rtype: numpy.array
-        """
-        return create_domain(min(x), max(x), x[1] - x[0])
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
         """Omitted low-x range correction performed in the
@@ -169,8 +156,6 @@ class Transformer:
             xmin = min(xin)
 
         xin, yin = self.apply_cropping(xin, yin, xmin, xmax)
-
-        xout = self._extend_axis_to_low_end(xout)
 
         factor = np.full_like(yin, 1.0)
         if 'lorch' in kwargs:
@@ -434,7 +419,6 @@ class Transformer:
         :return: :math:`Q` and :math:`Q[S(Q)-1]` vector pair
         :rtype: numpy.array pair
         """
-        q = self._extend_axis_to_low_end(q)
         q, fq = self.fourier_transform(r, gr, q, **kwargs)
         return q, fq
 

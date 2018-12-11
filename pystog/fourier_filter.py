@@ -75,8 +75,7 @@ class FourierFilter:
         gr_tmp = gr_tmp_initial + 1
 
         # Transform the shifted low-r region to F(Q) to get F(Q)_ft
-        q_ft = self.transformer._extend_axis_to_low_end(q)
-        q_ft, fq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q_ft, **kwargs)
+        q_ft, fq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q, **kwargs)
         q_ft, fq_ft = self.transformer.apply_cropping(q_ft, fq_ft, qmin, qmax)
 
         # Subtract F(Q)_ft from original F(Q) = delta_F(Q)

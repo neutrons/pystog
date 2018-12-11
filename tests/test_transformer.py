@@ -73,12 +73,6 @@ class TestTransformerBase(unittest.TestCase):
 
     # Utilities
 
-    def test_extend_axis_to_low_end(self):
-        xin = numpy.linspace(0.5, 1.0, 11)
-        xout = self.transformer._extend_axis_to_low_end(xin)
-        self.assertAlmostEqual(xout[0], 0.5)
-        self.assertAlmostEqual(xout[-1], 1.0)
-
     def test_apply_cropping(self):
         xin = numpy.linspace(0.5, 1.0, 11)
         yin = numpy.linspace(4.5, 5.0, 11)

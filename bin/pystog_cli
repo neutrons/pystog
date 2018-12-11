@@ -47,6 +47,7 @@ def main(kwargs=None):
 
     # Apply Fourier Filter
     if "FourierFilter" in kwargs:
+        print(len(sq))
         q, sq, r, gr_out = stog.fourier_filter()
 
     # Apply Lorch Modification
