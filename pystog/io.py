@@ -68,7 +68,7 @@ def get_cli_args():
     return parser.parse_args()
 
 
-def parser_cli_args(args):
+def parse_cli_args(args):
     # Get each file's info and story in dictionary
     files_info = list()
     for f in args.filenames:
