@@ -1,0 +1,2 @@
+ignore:
+  - "./versioneer.py"  # ignore versioneer from testing
