@@ -1,11 +1,25 @@
 import unittest
-import numpy
+import numpy as np
 from tests.utils import \
     load_data, get_index_of_function
 from tests.materials import Nickel, Argon
 from pystog.utils import \
     RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.converter import Converter
+
+
+class TestConverterUtilities(unittest.TestCase):
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        self.converter = Converter()
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+
+    def test_safe_divide(self):
+        self.assertTrue(np.array_equal(self.converter._safe_divide(np.arange(10), np.arange(10)),
+                                       [0, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
+
 
 # Real Space Function
 
@@ -43,41 +57,41 @@ class TestConverterRealSpaceBase(unittest.TestCase):
     # g(r) tests
     def g_to_G(self):
         GofR = self.converter.g_to_G(self.r, self.gofr, **self.kwargs)
-        self.assertTrue(numpy.allclose(GofR[self.first:self.last],
-                                       self.GofR_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(GofR[self.first:self.last],
+                                    self.GofR_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def g_to_GK(self):
         GKofR = self.converter.g_to_GK(self.r, self.gofr, **self.kwargs)
-        self.assertTrue(numpy.allclose(GKofR[self.first:self.last],
-                                       self.GKofR_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(GKofR[self.first:self.last],
+                                    self.GKofR_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     # G(r) tests
     def G_to_g(self):
         gofr = self.converter.G_to_g(self.r, self.GofR, **self.kwargs)
-        self.assertTrue(numpy.allclose(gofr[self.first:self.last],
-                                       self.gofr_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(gofr[self.first:self.last],
+                                    self.gofr_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def G_to_GK(self):
         GKofR = self.converter.G_to_GK(self.r, self.GofR, **self.kwargs)
-        self.assertTrue(numpy.allclose(GKofR[self.first:self.last],
-                                       self.GKofR_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(GKofR[self.first:self.last],
+                                    self.GKofR_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     # GK(r) tests
     def GK_to_g(self):
         gofr = self.converter.GK_to_g(self.r, self.GKofR, **self.kwargs)
-        self.assertTrue(numpy.allclose(gofr[self.first:self.last],
-                                       self.gofr_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(gofr[self.first:self.last],
+                                    self.gofr_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def GK_to_G(self):
         GofR = self.converter.GK_to_G(self.r, self.GKofR, **self.kwargs)
-        self.assertTrue(numpy.allclose(GofR[self.first:self.last],
-                                       self.GofR_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(GofR[self.first:self.last],
+                                    self.GofR_target,
+                                    rtol=self.rtol, atol=self.atol))
 
 
 class TestConverterRealSpaceNickel(TestConverterRealSpaceBase):
@@ -171,78 +185,78 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
     # S(Q) tests
     def S_to_F(self):
         fq = self.converter.S_to_F(self.q, self.sq, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq[self.first:self.last],
-                                       self.fq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq[self.first:self.last],
+                                    self.fq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def S_to_FK(self):
         fq_keen = self.converter.S_to_FK(self.q, self.sq, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq_keen[self.first:self.last],
-                                       self.fq_keen_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq_keen[self.first:self.last],
+                                    self.fq_keen_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def S_to_DCS(self):
         dcs = self.converter.S_to_DCS(self.q, self.sq, **self.kwargs)
-        self.assertTrue(numpy.allclose(dcs[self.first:self.last],
-                                       self.dcs_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(dcs[self.first:self.last],
+                                    self.dcs_target,
+                                    rtol=self.rtol, atol=self.atol))
     # Q[S(Q)-1] tests
 
     def F_to_S(self):
         sq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
-        self.assertTrue(numpy.allclose(sq[self.first:self.last],
-                                       self.sq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(sq[self.first:self.last],
+                                    self.sq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def F_to_FK(self):
         fq_keen = self.converter.F_to_FK(self.q, self.fq, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq_keen[self.first:self.last],
-                                       self.fq_keen_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq_keen[self.first:self.last],
+                                    self.fq_keen_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def F_to_DCS(self):
         dcs = self.converter.F_to_DCS(self.q, self.fq, **self.kwargs)
-        self.assertTrue(numpy.allclose(dcs[self.first:self.last],
-                                       self.dcs_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(dcs[self.first:self.last],
+                                    self.dcs_target,
+                                    rtol=self.rtol, atol=self.atol))
     # FK(Q) tests
 
     def FK_to_S(self):
         sq = self.converter.FK_to_S(self.q, self.fq_keen, **self.kwargs)
-        self.assertTrue(numpy.allclose(sq[self.first:self.last],
-                                       self.sq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(sq[self.first:self.last],
+                                    self.sq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def FK_to_F(self):
         fq = self.converter.FK_to_F(self.q, self.fq_keen, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq[self.first:self.last],
-                                       self.fq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq[self.first:self.last],
+                                    self.fq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def FK_to_DCS(self):
         dcs = self.converter.FK_to_DCS(self.q, self.fq_keen, **self.kwargs)
-        self.assertTrue(numpy.allclose(dcs[self.first:self.last],
-                                       self.dcs_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(dcs[self.first:self.last],
+                                    self.dcs_target,
+                                    rtol=self.rtol, atol=self.atol))
     # DCS(Q) tests
 
     def DCS_to_S(self):
         sq = self.converter.DCS_to_S(self.q, self.dcs, **self.kwargs)
-        self.assertTrue(numpy.allclose(sq[self.first:self.last],
-                                       self.sq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(sq[self.first:self.last],
+                                    self.sq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def DCS_to_F(self):
         fq = self.converter.DCS_to_F(self.q, self.dcs, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq[self.first:self.last],
-                                       self.fq_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq[self.first:self.last],
+                                    self.fq_target,
+                                    rtol=self.rtol, atol=self.atol))
 
     def DCS_to_FK(self):
         fq_keen = self.converter.DCS_to_FK(self.q, self.dcs, **self.kwargs)
-        self.assertTrue(numpy.allclose(fq_keen[self.first:self.last],
-                                       self.fq_keen_target,
-                                       rtol=self.rtol, atol=self.atol))
+        self.assertTrue(np.allclose(fq_keen[self.first:self.last],
+                                    self.fq_keen_target,
+                                    rtol=self.rtol, atol=self.atol))
 
 
 class TestConverterReciprocalSpaceNickel(TestConverterReciprocalSpaceBase):
