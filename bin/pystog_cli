@@ -42,6 +42,7 @@ def main(kwargs=None):
     # print stog.get_lowR_mean_square()
 
     # Set the S(Q) and g(r) if no Fourier Filter
+    r = stog.df_sq_master[stog.gr_title].values
     q = stog.df_sq_master[stog.sq_title].values
     sq = stog.df_sq_master[stog.sq_title].values
     gr_out = stog.df_gr_master[stog.gr_title].values
