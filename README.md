@@ -3,8 +3,8 @@ Total Scattering Function Manipulator:
 
 | Dev | Other | Tutorials  |
 |-----|-------|------------|
-|[![Build Status](https://travis-ci.org/marshallmcdonnell/pystog.svg?branch=master)](https://travis-ci.org/marshallmcdonnell/pystog) | [![PyPI version](https://badge.fury.io/py/pystog.svg)](https://badge.fury.io/py/pystog) | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/marshallmcdonnell/pystog/master?filepath=tutorials) |
-| [![codecov](https://codecov.io/gh/marshallmcdonnell/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/marshallmcdonnell/pystog) | [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active) | |
+|[![Build Status](https://travis-ci.org/neutrons/pystog.svg?branch=master)](https://travis-ci.org/neutrons/pystog) | [![PyPI version](https://badge.fury.io/py/pystog.svg)](https://badge.fury.io/py/pystog) | [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/neutrons/pystog/master?filepath=tutorials) |
+| [![codecov](https://codecov.io/gh/neutrons/pystog/branch/master/graph/badge.svg)](https://codecov.io/gh/neutrons/pystog) | [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active) | |
 |[![Documentation Status](https://readthedocs.org/projects/pystog/badge/?version=latest)](https://pystog.readthedocs.io/en/latest/?badge=latest)  |  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)   | |
 
 From total scattering functions, we have reciprocal-space structure factors and real-space pair distribution functions that are related via a Fourier transform. PyStoG is a package that allows for:
