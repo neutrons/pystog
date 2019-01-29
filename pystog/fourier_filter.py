@@ -56,7 +56,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`Q[S(Q)-1]`,
+                 the corrected :math:`Q` and :math:`Q[S(Q)-1]`,
                  and the filtered :math:`r` and :math:`g(r)`.
 
                  Thus,
@@ -104,7 +104,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`S(Q)`,
+                 the corrected :math:`Q` and :math:`S(Q)`,
                  and the filtered :math:`r` and :math:`g(r)`.
 
                  Thus,
@@ -136,7 +136,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`F(Q)`,
+                 the corrected :math:`Q` and :math:`F(Q)`,
                  and the filtered :math:`r` and :math:`g(r)`.
 
                  Thus,
@@ -170,7 +170,7 @@ class FourierFilter:
         :return: A tuple of the :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and
+                 the corrected :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
                  and the filtered :math:`r` and :math:`g(r)`.
 
@@ -205,7 +205,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`Q[S(Q)-1]`,
+                 the corrected :math:`Q` and :math:`Q[S(Q)-1]`,
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
@@ -236,7 +236,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`S(Q)`,
+                 the corrected :math:`Q` and :math:`S(Q)`,
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
@@ -268,7 +268,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`F(Q)`,
+                 the corrected :math:`Q` and :math:`F(Q)`,
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
@@ -302,7 +302,7 @@ class FourierFilter:
         :return: A tuple of the :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and
+                 the corrected :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
@@ -337,7 +337,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`Q[S(Q)-1]`,
+                 the corrected :math:`Q` and :math:`Q[S(Q)-1]`,
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
@@ -369,7 +369,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`S(Q)`,
+                 the corrected :math:`Q` and :math:`S(Q)`,
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
@@ -402,7 +402,7 @@ class FourierFilter:
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and :math:`F(Q)`,
+                 the corrected :math:`Q` and :math:`F(Q)`,
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
@@ -437,7 +437,7 @@ class FourierFilter:
         :return: A tuple of the :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
                  for the 0. to cutoff transform,
-                 the original :math:`Q` and
+                 the corrected :math:`Q` and
                  :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
