@@ -97,8 +97,8 @@ class nickel(object):
         self._sigmas = [0.01*r for r in self._distances]
         self._concentrations = np.full_like(self._distances, 1./self._Np)
         sum_term = np.sum(self._b*self._concentrations/self._Np)
-        self._avg_scat_lengths = np.full_like(self._distances, sum_term)
-        self._scat_lengths = np.full_like(self._distances, self._b)
+        self._avg_scat_lengths = np.ones_like(self._distances) * sum_term
+        self._scat_lengths = np.ones_like(self._distances) * self._b
 
     def get_distances(self):
         return self._distances

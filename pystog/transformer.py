@@ -157,7 +157,7 @@ class Transformer:
 
         xin, yin = self.apply_cropping(xin, yin, xmin, xmax)
 
-        factor = np.full_like(yin, 1.0)
+        factor = np.ones_like(yin)
         if 'lorch' in kwargs:
             if kwargs['lorch']:
                 PiOverXmax = np.pi / xmax
