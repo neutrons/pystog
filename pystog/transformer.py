@@ -183,7 +183,7 @@ class Transformer:
             if kwargs["OmittedXrangeCorrection"]:
                 self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
-        return xout, yout
+        return xout, yout, np.zeros(yout.shape)
 
     # Reciprocal -> Real Space Transforms  #
 
@@ -412,7 +412,7 @@ class Transformer:
     # Real -> Reciprocal Space Transforms  #
 
     # G(R) = PDF
-    def G_to_F(self, r, gr, q, **kwargs):
+    def G_to_F(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
@@ -422,12 +422,13 @@ class Transformer:
         :type gr: numpy.array or list
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
+        :param dgr: uncertainty vector
+        :type dgr: numpy.array or list
 
         :return: :math:`Q` and :math:`Q[S(Q)-1]` vector pair
         :rtype: numpy.array pair
         """
-        q, fq = self.fourier_transform(r, gr, q, **kwargs)
-        return q, fq
+        return self.fourier_transform(r, gr, q, dyin=dgr,**kwargs)
 
     def G_to_S(self, r, gr, q, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
@@ -605,7 +606,7 @@ class Transformer:
         gr = self.converter.g_to_G(r, gr, **kwargs)
         return self.G_to_FK(r, gr, q, **kwargs)
 
-    def g_to_DCS(self, r, gr, q, **kwargs):
+    def g_to_DCS(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`g(r)`
         to reciprocal space :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
