@@ -76,7 +76,7 @@ class TestTransformerBase(unittest.TestCase):
     def test_apply_cropping(self):
         xin = numpy.linspace(0.5, 1.0, 11)
         yin = numpy.linspace(4.5, 5.0, 11)
-        x, y = self.transformer.apply_cropping(xin, yin, 0.6, 0.7)
+        x, y, _ = self.transformer.apply_cropping(xin, yin, 0.6, 0.7)
         self.assertTrue(numpy.alltrue(x == [0.6, 0.65, 0.7]))
         self.assertTrue(numpy.alltrue(y == [4.6, 4.65, 4.7]))
 
