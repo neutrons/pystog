@@ -278,7 +278,7 @@ class Converter:
         """
         factor = 4. * np.pi * kwargs['rho']
         if dgr is not None:
-            err = self._safe_divide(dgr, factor * r) 
+            err = self._safe_divide(dgr, factor * r)
         else:
             err = np.zeros(gr.shape)
         return self._safe_divide(gr, factor * r) + 1., err

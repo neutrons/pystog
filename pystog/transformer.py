@@ -110,7 +110,7 @@ class Transformer:
 
         return yout
 
-    def apply_cropping(self, x, y, xmin, xmax):
+    def apply_cropping(self, x, y, xmin, xmax, dy=None):
         """Utility to crop x and y based on xmin and xmax along x.
         Provides the capability to specify the (Qmin,Qmax)
         or (Rmin,Rmax) in the Fourier transform
@@ -123,12 +123,19 @@ class Transformer:
         :type xmin: float
         :param xmax: maximum x-value for crop
         :type xmax: float
+        :param dy: uncertainty vector
+        :type dy: numpy.array or list
         :return: vector pair (x,y) with cropping applied
         :rtype: numpy.array pair
         """
-        y = y[np.logical_and(x >= xmin, x <= xmax)]
+        indices = np.logical_and(x >= xmin, x <= xmax)
+        y = y[indices]
+        if dy is not None:
+            err = dy[indices]
+        else:
+            err = np.zeros(y.shape)
         x = x[np.logical_and(x >= xmin, x <= xmax)]
-        return x, y
+        return x, y, err
 
     def fourier_transform(self, xin, yin, xout,
                           xmin=None, xmax=None, **kwargs):
