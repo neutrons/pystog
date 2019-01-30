@@ -32,7 +32,9 @@ class Converter:
         pass
 
     def _safe_divide(self, numerator, denominator):
-        mask = (denominator != 0.0)
+        numerator = np.array(numerator)
+        denominator = np.array(denominator)
+        mask = (denominator > 0.0)
         out = np.zeros_like(numerator)
         out[mask] = numerator[mask] / denominator[mask]
         return out
