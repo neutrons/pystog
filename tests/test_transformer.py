@@ -81,9 +81,9 @@ class TestTransformerBase(unittest.TestCase):
         self.assertTrue(numpy.alltrue(y == [4.6, 4.65, 4.7]))
 
     def test_fourier_transform(self):
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout)
         yout_target = [-0.14265772,
                        -10.8854444,
                        18.13582784,
@@ -97,10 +97,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_fourier_transform_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout_target = [-1.406162,
                        3.695632,
                        18.788041,
@@ -114,10 +114,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_fourier_transform_with_low_x(self):
         kwargs = {"OmittedXrangeCorrection": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout_target = [-0.142658,
                        -10.885444,
                        18.135828,
@@ -131,10 +131,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_low_x_correction(self):
         kwargs = {"lorch": False}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout = self.transformer._low_x_correction(self._ft_xin,
                                                   self._ft_yin,
                                                   xout, yout,
@@ -152,10 +152,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_low_x_correction_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout = self.transformer._low_x_correction(self._ft_xin,
                                                   self._ft_yin,
                                                   xout, yout,
