@@ -184,76 +184,76 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
 
     # S(Q) tests
     def S_to_F(self):
-        fq = self.converter.S_to_F(self.q, self.sq, **self.kwargs)
+        fq, dfq = self.converter.S_to_F(self.q, self.sq, **self.kwargs)
         self.assertTrue(np.allclose(fq[self.first:self.last],
                                     self.fq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def S_to_FK(self):
-        fq_keen = self.converter.S_to_FK(self.q, self.sq, **self.kwargs)
+        fq_keen, dfq_keen = self.converter.S_to_FK(self.q, self.sq, **self.kwargs)
         self.assertTrue(np.allclose(fq_keen[self.first:self.last],
                                     self.fq_keen_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def S_to_DCS(self):
-        dcs = self.converter.S_to_DCS(self.q, self.sq, **self.kwargs)
+        dcs, ddcs = self.converter.S_to_DCS(self.q, self.sq, **self.kwargs)
         self.assertTrue(np.allclose(dcs[self.first:self.last],
                                     self.dcs_target,
                                     rtol=self.rtol, atol=self.atol))
     # Q[S(Q)-1] tests
 
     def F_to_S(self):
-        sq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
+        sq, dsq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
         self.assertTrue(np.allclose(sq[self.first:self.last],
                                     self.sq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def F_to_FK(self):
-        fq_keen = self.converter.F_to_FK(self.q, self.fq, **self.kwargs)
+        fq_keen, dfq_keen = self.converter.F_to_FK(self.q, self.fq, **self.kwargs)
         self.assertTrue(np.allclose(fq_keen[self.first:self.last],
                                     self.fq_keen_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def F_to_DCS(self):
-        dcs = self.converter.F_to_DCS(self.q, self.fq, **self.kwargs)
+        dcs, ddcs = self.converter.F_to_DCS(self.q, self.fq, **self.kwargs)
         self.assertTrue(np.allclose(dcs[self.first:self.last],
                                     self.dcs_target,
                                     rtol=self.rtol, atol=self.atol))
     # FK(Q) tests
 
     def FK_to_S(self):
-        sq = self.converter.FK_to_S(self.q, self.fq_keen, **self.kwargs)
+        sq, dsq = self.converter.FK_to_S(self.q, self.fq_keen, **self.kwargs)
         self.assertTrue(np.allclose(sq[self.first:self.last],
                                     self.sq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def FK_to_F(self):
-        fq = self.converter.FK_to_F(self.q, self.fq_keen, **self.kwargs)
+        fq, dfq = self.converter.FK_to_F(self.q, self.fq_keen, **self.kwargs)
         self.assertTrue(np.allclose(fq[self.first:self.last],
                                     self.fq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def FK_to_DCS(self):
-        dcs = self.converter.FK_to_DCS(self.q, self.fq_keen, **self.kwargs)
+        dcs, ddcs = self.converter.FK_to_DCS(self.q, self.fq_keen, **self.kwargs)
         self.assertTrue(np.allclose(dcs[self.first:self.last],
                                     self.dcs_target,
                                     rtol=self.rtol, atol=self.atol))
     # DCS(Q) tests
 
     def DCS_to_S(self):
-        sq = self.converter.DCS_to_S(self.q, self.dcs, **self.kwargs)
+        sq, dsq = self.converter.DCS_to_S(self.q, self.dcs, **self.kwargs)
         self.assertTrue(np.allclose(sq[self.first:self.last],
                                     self.sq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def DCS_to_F(self):
-        fq = self.converter.DCS_to_F(self.q, self.dcs, **self.kwargs)
+        fq, dfq = self.converter.DCS_to_F(self.q, self.dcs, **self.kwargs)
         self.assertTrue(np.allclose(fq[self.first:self.last],
                                     self.fq_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def DCS_to_FK(self):
-        fq_keen = self.converter.DCS_to_FK(self.q, self.dcs, **self.kwargs)
+        fq_keen, dfq_keen = self.converter.DCS_to_FK(self.q, self.dcs, **self.kwargs)
         self.assertTrue(np.allclose(fq_keen[self.first:self.last],
                                     self.fq_keen_target,
                                     rtol=self.rtol, atol=self.atol))

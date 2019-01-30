@@ -39,173 +39,206 @@ class Converter:
 
     # Reciprocal Space Conversions
 
-    def F_to_S(self, q, fq, **kwargs):
+    def F_to_S(self, q, fq, dfq=None, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
+        :param dfq: uncertainty vector
+        :type dfq: numpy.array or list
 
-        :return: :math:`S(Q)` vector
-        :rtype: numpy.array
+        :return: (:math:`S(Q)` vector, uncertainty vector)
+        :rtype: (numpy.array, numpy.array)
         """
-        return self._safe_divide(fq, q) + 1.
+        if dfq is None:
+            dfq = np.zeros_like(fq)
+        return (self._safe_divide(fq, q) + 1., self._safe_divide(dfq, q))
 
-    def F_to_FK(self, q, fq, **kwargs):
+    def F_to_FK(self, q, fq, dfq=None, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
+        :param dfq: uncertainty vector
+        :type dfq: numpy.array or list
 
-        :return: :math:`F(Q)` vector
+        :return: (:math:`F(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        mask = (q != 0.0)
-        fq_new = np.zeros_like(fq)
-        fq_new[mask] = fq[mask] / q[mask]
-        return kwargs['<b_coh>^2'] * self._safe_divide(fq, q)
+        if dfq is None:
+            dfq = np.zeros_like(fq)
+        return (kwargs['<b_coh>^2'] * self._safe_divide(fq, q),
+                kwargs['<b_coh>^2'] * self._safe_divide(dfq, q))
 
-    def F_to_DCS(self, q, fq, **kwargs):
+    def F_to_DCS(self, q, fq, dfq=None, **kwargs):
         """Converts from :math:`Q[S(Q)-1]` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
+        :param dfq: uncertainty vector
+        :type dfq: numpy.array or list
 
-        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.F_to_FK(q, fq, **kwargs)
-        return self.FK_to_DCS(q, fq, **kwargs)
+        fq, dfq= self.F_to_FK(q, fq, dfq, **kwargs)
+        return self.FK_to_DCS(q, fq, dfq, **kwargs)
 
     # S(Q)
-    def S_to_F(self, q, sq, **kwargs):
+    def S_to_F(self, q, sq, dsq=None, **kwargs):
         """Convert :math:`S(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
+        :param dfq: uncertainty vector
+        :type dfq: numpy.array or list
+        :param dsq: uncertainty vector
+        :type dsq: numpy.array or list
 
-        :return: :math:`Q[S(Q)-1]` vector
+        :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        return q * (sq - 1.)
+        if dsq is None:
+            dsq = np.zeros_like(sq)
+        return (q * (sq - 1.), q*dsq)
 
-    def S_to_FK(self, q, sq, **kwargs):
+    def S_to_FK(self, q, sq, dsq=None, **kwargs):
         """Convert :math:`S(Q)` to :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
+        :param dsq: uncertainty vector
+        :type dsq: numpy.array or list
 
-        :return: :math:`F(Q)` vector
+        :return: (:math:`F(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.S_to_F(q, sq)
-        return self.F_to_FK(q, fq, **kwargs)
+        fq, dfq = self.S_to_F(q, sq, dsq)
+        return self.F_to_FK(q, fq, dfq, **kwargs)
 
-    def S_to_DCS(self, q, sq, **kwargs):
+    def S_to_DCS(self, q, sq, dsq=None, **kwargs):
         """Convert :math:`S(Q)` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
+        :param dsq: uncertainty vector
+        :type dsq: numpy.array or list
 
-        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.S_to_FK(q, sq, **kwargs)
-        return self.FK_to_DCS(q, fq, **kwargs)
+        fq, dfq = self.S_to_FK(q, sq, dsq, **kwargs)
+        return self.FK_to_DCS(q, fq, dfq, **kwargs)
 
     # Keen's F(Q)
-    def FK_to_F(self, q, fq_keen, **kwargs):
+    def FK_to_F(self, q, fq_keen, dfq_keen=None, **kwargs):
         """Convert :math:`F(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
-        :param fq: :math:`F(Q)` vector
-        :type fq: numpy.array or list
+        :param fq_keen: :math:`F(Q)` vector
+        :type fq_keen: numpy.array or list
+        :param dfq_keen: uncertainty vector
+        :type dfq_keen: numpy.array or list
 
-        :return: :math:`Q[S(Q)-1]` vector
+        :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        return q * fq_keen / kwargs['<b_coh>^2']
+        if dfq_keen is None:
+            dfq_keen = np.zeros_like(fq_keen)
+        return (q * fq_keen / kwargs['<b_coh>^2'],
+                q * dfq_keen / kwargs['<b_coh>^2'])
 
-    def FK_to_S(self, q, fq_keen, **kwargs):
+    def FK_to_S(self, q, fq_keen, dfq_keen=None, **kwargs):
         """Convert :math:`F(Q)` to :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
-        :param fq: :math:`F(Q)` vector
-        :type fq: numpy.array or list
+        :param fq_keen: :math:`F(Q)` vector
+        :type fq_keen: numpy.array or list
+        :param dfq_keen: uncertainty vector
+        :type dfq_keen: numpy.array or list
 
-        :return: :math:`S(Q)` vector
+        :return: (:math:`S(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.FK_to_F(q, fq_keen, **kwargs)
-        return self.F_to_S(q, fq)
+        fq, dfq = self.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
+        return self.F_to_S(q, fq, dfq)
 
-    def FK_to_DCS(self, q, fq, **kwargs):
+    def FK_to_DCS(self, q, fq, dfq=None, **kwargs):
         """Convert :math:`F(Q)` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`F(Q)` vector
         :type fq: numpy.array or list
+        :param dfq: uncertainty vector
+        :type dfq: numpy.array or list
 
-        :return: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        return fq + kwargs['<b_tot^2>']
+        return fq + kwargs['<b_tot^2>'], dfq
 
     # Differential cross-section = d_simga / d_Omega
-    def DCS_to_F(self, q, dcs, **kwargs):
+    def DCS_to_F(self, q, dcs, ddcs=None, **kwargs):
         """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`Q[S(Q)-1]`
 
         :param q: Q-space vector
         :type q: numpy.array or list
         :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
+        :param ddcs: uncertainty vector
+        :type ddcs: numpy.array or list
 
-        :return: :math:`Q[S(Q)-1]` vector
+        :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.DCS_to_FK(q, dcs, **kwargs)
-        return self.FK_to_F(q, fq, **kwargs)
+        fq, dfq = self.DCS_to_FK(q, dcs, ddcs, **kwargs)
+        return self.FK_to_F(q, fq, dfq, **kwargs)
 
-    def DCS_to_S(self, q, dcs, **kwargs):
+    def DCS_to_S(self, q, dcs, ddcs=None, **kwargs):
         """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`S(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
+        :param ddcs: uncertainty vector
+        :type ddcs: numpy.array or list
 
-        :return: :math:`S(Q)` vector
+        :return: (:math:`S(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq = self.DCS_to_FK(q, dcs, **kwargs)
-        return self.FK_to_S(q, fq, **kwargs)
+        fq, dfq = self.DCS_to_FK(q, dcs, ddcs, **kwargs)
+        return self.FK_to_S(q, fq, dfq, **kwargs)
 
-    def DCS_to_FK(self, q, dcs, **kwargs):
+    def DCS_to_FK(self, q, dcs, ddcs=None, **kwargs):
         """Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`F(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
         :param fq: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type fq: numpy.array or list
+        :param ddcs: uncertainty vector
+        :type ddcs: numpy.array or list
 
-        :return: :math:`F(Q)` vector
+        :return: (:math:`F(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        return dcs - kwargs['<b_tot^2>']
+        return (dcs - kwargs['<b_tot^2>'], ddcs)
 
     # Real Space Conversions
 
