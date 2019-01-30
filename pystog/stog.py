@@ -908,8 +908,8 @@ class StoG(object):
             y, dy = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
             y, dy = self.converter.DCS_to_S(x, y,
-                                        **{'<b_coh>^2': self.bcoh_sqrd,
-                                           '<b_tot^2>': self.btot_sqrd})
+                                            **{'<b_coh>^2': self.bcoh_sqrd,
+                                               '<b_tot^2>': self.btot_sqrd})
 
         df = pd.DataFrame(y, columns=['S(Q)_%d' % index], index=x)
         self.df_sq_individuals = pd.concat(

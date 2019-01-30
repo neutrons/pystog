@@ -259,7 +259,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def GK_to_FK(self):
-        q, fq_keen, _  = self.transformer.GK_to_FK(
+        q, fq_keen, _ = self.transformer.GK_to_FK(
             self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq_keen[first:last],
@@ -361,7 +361,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def DCS_to_G(self):
-        r, GofR, _  = self.transformer.DCS_to_G(
+        r, GofR, _ = self.transformer.DCS_to_G(
             self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GofR[first:last],
