@@ -15,8 +15,8 @@ suite = unittest.TestSuite()
 # add tests to the test suite
 suite.addTests(loader.loadTestsFromModule(test_converter))
 suite.addTests(loader.loadTestsFromModule(test_transformer))
-#suite.addTests(loader.loadTestsFromModule(test_fourier_filter))
-#suite.addTests(loader.loadTestsFromModule(test_stog))
+suite.addTests(loader.loadTestsFromModule(test_fourier_filter))
+suite.addTests(loader.loadTestsFromModule(test_stog))
 
 # initialize a runner and run it
 runner = unittest.TextTestRunner(verbosity=3, buffer=True)
