@@ -87,7 +87,7 @@ class Converter:
         :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
         :rtype: numpy.array
         """
-        fq, dfq= self.F_to_FK(q, fq, dfq, **kwargs)
+        fq, dfq = self.F_to_FK(q, fq, dfq, **kwargs)
         return self.FK_to_DCS(q, fq, dfq, **kwargs)
 
     # S(Q)
