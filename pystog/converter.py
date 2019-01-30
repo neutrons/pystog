@@ -243,88 +243,116 @@ class Converter:
     # Real Space Conversions
 
     # G(r) = PDF
-    def G_to_GK(self, r, gr, **kwargs):
+    def G_to_GK(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`G_{PDFFIT}(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`G_{PDFFIT}(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`G_{Keen Version}(r)` vector
-        :rtype: numpy.array
+        :return: :math:`G_{Keen Version}(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
         factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
-        return factor * self._safe_divide(gr, r)
+        if dgr is not None:
+            err = factor * self._safe_divide(dgr, r)
+        else:
+            err = np.zeros(gr.shape)
+        return factor * self._safe_divide(gr, r), err
 
-    def G_to_g(self, r, gr, **kwargs):
+    def G_to_g(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`G_{PDFFIT}(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`g(r)` vector
-        :rtype: numpy.array
+        :return: :math:`g(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
         factor = 4. * np.pi * kwargs['rho']
-        return self._safe_divide(gr, factor * r) + 1.
+        if dgr is not None:
+            err = self._safe_divide(dgr, factor * r) 
+        else:
+            err = np.zeros(gr.shape)
+        return self._safe_divide(gr, factor * r) + 1., err
 
     # Keen's G(r)
-    def GK_to_G(self, r, gr, **kwargs):
+    def GK_to_G(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`G_{Keen Version}(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`G_{Keen Version}(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`G_{PDFFIT}(r)` vector
-        :rtype: numpy.array
+        :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
         factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
-        return factor * r * gr
+        if dgr is not None:
+            err = factor * r * dgr
+        else:
+            err = np.zeros(gr.shape)
+        return factor * r * gr, err
 
-    def GK_to_g(self, r, gr, **kwargs):
+    def GK_to_g(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`G_{Keen Version}(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`g(r)` vector
-        :rtype: numpy.array
+        :return: :math:`g(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
-        gr = self.GK_to_G(r, gr, **kwargs)
-        return self.G_to_g(r, gr, **kwargs)
+        _gr, _dgr = self.GK_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_g(r, _gr, dgr=_dgr, **kwargs)
 
     # g(r)
-    def g_to_G(self, r, gr, **kwargs):
+    def g_to_G(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`g(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`g(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`G_{PDFFIT}(r)` vector
-        :rtype: numpy.array
+        :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
         factor = 4. * np.pi * r * kwargs['rho']
-        return factor * (gr - 1.)
+        if dgr is not None:
+            err = factor * dgr
+        else:
+            err = np.zeros(gr.shape)
+        return factor * (gr - 1.), err
 
-    def g_to_GK(self, r, gr, **kwargs):
+    def g_to_GK(self, r, gr, dgr=None, **kwargs):
         """Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
         :param gr: :math:`g(r)` vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector :math:`\Delta g(r)`
+        :type dgr: numpy.array or list
 
-        :return: :math:`G_{Keen Version}(r)` vector
-        :rtype: numpy.array
+        :return: :math:`G_{Keen Version}(r)` vector, uncertainty vector
+        :rtype: numpy.array, numpy.array
         """
-        gr = self.g_to_G(r, gr, **kwargs)
-        return self.G_to_GK(r, gr, **kwargs)
+        _gr, _dgr = self.g_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_GK(r, _gr, dgr=_dgr, **kwargs)

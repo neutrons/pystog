@@ -56,39 +56,39 @@ class TestConverterRealSpaceBase(unittest.TestCase):
 
     # g(r) tests
     def g_to_G(self):
-        GofR = self.converter.g_to_G(self.r, self.gofr, **self.kwargs)
+        GofR, _ = self.converter.g_to_G(self.r, self.gofr, **self.kwargs)
         self.assertTrue(np.allclose(GofR[self.first:self.last],
                                     self.GofR_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def g_to_GK(self):
-        GKofR = self.converter.g_to_GK(self.r, self.gofr, **self.kwargs)
+        GKofR, _ = self.converter.g_to_GK(self.r, self.gofr, **self.kwargs)
         self.assertTrue(np.allclose(GKofR[self.first:self.last],
                                     self.GKofR_target,
                                     rtol=self.rtol, atol=self.atol))
 
     # G(r) tests
     def G_to_g(self):
-        gofr = self.converter.G_to_g(self.r, self.GofR, **self.kwargs)
+        gofr, _ = self.converter.G_to_g(self.r, self.GofR, **self.kwargs)
         self.assertTrue(np.allclose(gofr[self.first:self.last],
                                     self.gofr_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def G_to_GK(self):
-        GKofR = self.converter.G_to_GK(self.r, self.GofR, **self.kwargs)
+        GKofR, _ = self.converter.G_to_GK(self.r, self.GofR, **self.kwargs)
         self.assertTrue(np.allclose(GKofR[self.first:self.last],
                                     self.GKofR_target,
                                     rtol=self.rtol, atol=self.atol))
 
     # GK(r) tests
     def GK_to_g(self):
-        gofr = self.converter.GK_to_g(self.r, self.GKofR, **self.kwargs)
+        gofr, _ = self.converter.GK_to_g(self.r, self.GKofR, **self.kwargs)
         self.assertTrue(np.allclose(gofr[self.first:self.last],
                                     self.gofr_target,
                                     rtol=self.rtol, atol=self.atol))
 
     def GK_to_G(self):
-        GofR = self.converter.GK_to_G(self.r, self.GKofR, **self.kwargs)
+        GofR, _ = self.converter.GK_to_G(self.r, self.GKofR, **self.kwargs)
         self.assertTrue(np.allclose(GofR[self.first:self.last],
                                     self.GofR_target,
                                     rtol=self.rtol, atol=self.atol))
