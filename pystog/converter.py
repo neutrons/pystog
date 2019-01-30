@@ -244,7 +244,7 @@ class Converter:
 
     # G(r) = PDF
     def G_to_GK(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`G_{PDFFIT}(r)` to :math:`G_{Keen Version}(r)`
+        r"""Convert :math:`G_{PDFFIT}(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
@@ -264,7 +264,7 @@ class Converter:
         return factor * self._safe_divide(gr, r), err
 
     def G_to_g(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
+        r"""Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
@@ -285,7 +285,7 @@ class Converter:
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`G_{Keen Version}(r)` to :math:`G_{PDFFIT}(r)`
+        r"""Convert :math:`G_{Keen Version}(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
@@ -305,7 +305,7 @@ class Converter:
         return factor * r * gr, err
 
     def GK_to_g(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
+        r"""Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
@@ -322,7 +322,7 @@ class Converter:
 
     # g(r)
     def g_to_G(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`g(r)` to :math:`G_{PDFFIT}(r)`
+        r"""Convert :math:`g(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
@@ -342,7 +342,7 @@ class Converter:
         return factor * (gr - 1.), err
 
     def g_to_GK(self, r, gr, dgr=None, **kwargs):
-        """Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
+        r"""Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
         :type r: numpy.array or list
