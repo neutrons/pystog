@@ -76,14 +76,14 @@ class TestTransformerBase(unittest.TestCase):
     def test_apply_cropping(self):
         xin = numpy.linspace(0.5, 1.0, 11)
         yin = numpy.linspace(4.5, 5.0, 11)
-        x, y = self.transformer.apply_cropping(xin, yin, 0.6, 0.7)
+        x, y, _ = self.transformer.apply_cropping(xin, yin, 0.6, 0.7)
         self.assertTrue(numpy.alltrue(x == [0.6, 0.65, 0.7]))
         self.assertTrue(numpy.alltrue(y == [4.6, 4.65, 4.7]))
 
     def test_fourier_transform(self):
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout)
         yout_target = [-0.14265772,
                        -10.8854444,
                        18.13582784,
@@ -97,10 +97,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_fourier_transform_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout_target = [-1.406162,
                        3.695632,
                        18.788041,
@@ -114,10 +114,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_fourier_transform_with_low_x(self):
         kwargs = {"OmittedXrangeCorrection": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout_target = [-0.142658,
                        -10.885444,
                        18.135828,
@@ -131,10 +131,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_low_x_correction(self):
         kwargs = {"lorch": False}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout = self.transformer._low_x_correction(self._ft_xin,
                                                   self._ft_yin,
                                                   xout, yout,
@@ -152,10 +152,10 @@ class TestTransformerBase(unittest.TestCase):
 
     def test_low_x_correction_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout = self.transformer.fourier_transform(self._ft_xin,
-                                                        self._ft_yin,
-                                                        self._ft_xout,
-                                                        **kwargs)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
+                                                           self._ft_yin,
+                                                           self._ft_xout,
+                                                           **kwargs)
         yout = self.transformer._low_x_correction(self._ft_xin,
                                                   self._ft_yin,
                                                   xout, yout,
@@ -176,7 +176,7 @@ class TestTransformerBase(unittest.TestCase):
     # g(r) tests
 
     def g_to_S(self):
-        q, sq = self.transformer.g_to_S(
+        q, sq, _ = self.transformer.g_to_S(
             self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(sq[first:last],
@@ -184,7 +184,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def g_to_F(self):
-        q, fq = self.transformer.g_to_F(
+        q, fq, _ = self.transformer.g_to_F(
             self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq[first:last],
@@ -192,7 +192,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def g_to_FK(self):
-        q, fq_keen = self.transformer.g_to_FK(
+        q, fq_keen, _ = self.transformer.g_to_FK(
             self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq_keen[first:last],
@@ -200,7 +200,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def g_to_DCS(self):
-        q, dcs = self.transformer.g_to_DCS(
+        q, dcs, _ = self.transformer.g_to_DCS(
             self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(dcs[first:last],
@@ -210,7 +210,7 @@ class TestTransformerBase(unittest.TestCase):
     # G(r) tests
 
     def G_to_S(self):
-        q, sq = self.transformer.G_to_S(
+        q, sq, _ = self.transformer.G_to_S(
             self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(sq[first:last],
@@ -218,7 +218,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def G_to_F(self):
-        q, fq = self.transformer.G_to_F(
+        q, fq, _ = self.transformer.G_to_F(
             self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq[first:last],
@@ -226,7 +226,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def G_to_FK(self):
-        q, fq_keen = self.transformer.G_to_FK(
+        q, fq_keen, _ = self.transformer.G_to_FK(
             self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq_keen[first:last],
@@ -234,7 +234,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def G_to_DCS(self):
-        q, dcs = self.transformer.G_to_DCS(
+        q, dcs, _ = self.transformer.G_to_DCS(
             self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(dcs[first:last],
@@ -243,7 +243,7 @@ class TestTransformerBase(unittest.TestCase):
     # GK(r) tests
 
     def GK_to_S(self):
-        q, sq = self.transformer.GK_to_S(
+        q, sq, _ = self.transformer.GK_to_S(
             self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(sq[first:last],
@@ -251,7 +251,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def GK_to_F(self):
-        q, fq = self.transformer.GK_to_F(
+        q, fq, _ = self.transformer.GK_to_F(
             self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq[first:last],
@@ -259,7 +259,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def GK_to_FK(self):
-        q, fq_keen = self.transformer.GK_to_FK(
+        q, fq_keen, _ = self.transformer.GK_to_FK(
             self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(fq_keen[first:last],
@@ -267,7 +267,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def GK_to_DCS(self):
-        q, dcs = self.transformer.GK_to_DCS(
+        q, dcs, _ = self.transformer.GK_to_DCS(
             self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
         self.assertTrue(numpy.allclose(dcs[first:last],
@@ -278,7 +278,7 @@ class TestTransformerBase(unittest.TestCase):
 
     # S(Q) tests
     def S_to_g(self):
-        r, gofr = self.transformer.S_to_g(
+        r, gofr, _ = self.transformer.S_to_g(
             self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(gofr[first:last],
@@ -286,7 +286,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def S_to_G(self):
-        r, GofR = self.transformer.S_to_G(
+        r, GofR, _ = self.transformer.S_to_G(
             self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GofR[first:last],
@@ -294,7 +294,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def S_to_GK(self):
-        r, GKofR = self.transformer.S_to_GK(
+        r, GKofR, _ = self.transformer.S_to_GK(
             self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GKofR[first:last],
@@ -303,7 +303,7 @@ class TestTransformerBase(unittest.TestCase):
     # Q[S(Q)-1] tests
 
     def F_to_g(self):
-        r, gofr = self.transformer.F_to_g(
+        r, gofr, _ = self.transformer.F_to_g(
             self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(gofr[first:last],
@@ -311,7 +311,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def F_to_G(self):
-        r, GofR = self.transformer.F_to_G(
+        r, GofR, _ = self.transformer.F_to_G(
             self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GofR[first:last],
@@ -319,7 +319,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def F_to_GK(self):
-        r, GKofR = self.transformer.F_to_GK(
+        r, GKofR, _ = self.transformer.F_to_GK(
             self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GKofR[first:last],
@@ -328,7 +328,7 @@ class TestTransformerBase(unittest.TestCase):
     # FK(Q) tests
 
     def FK_to_g(self):
-        r, gofr = self.transformer.FK_to_g(
+        r, gofr, _ = self.transformer.FK_to_g(
             self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(gofr[first:last],
@@ -336,7 +336,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def FK_to_G(self):
-        r, GofR = self.transformer.FK_to_G(
+        r, GofR, _ = self.transformer.FK_to_G(
             self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GofR[first:last],
@@ -344,7 +344,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def FK_to_GK(self):
-        r, GKofR = self.transformer.FK_to_GK(
+        r, GKofR, _ = self.transformer.FK_to_GK(
             self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GKofR[first:last],
@@ -353,7 +353,7 @@ class TestTransformerBase(unittest.TestCase):
     # DCS(Q) tests
 
     def DCS_to_g(self):
-        r, gofr = self.transformer.DCS_to_g(
+        r, gofr, _ = self.transformer.DCS_to_g(
             self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(gofr[first:last],
@@ -361,7 +361,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def DCS_to_G(self):
-        r, GofR = self.transformer.DCS_to_G(
+        r, GofR, _ = self.transformer.DCS_to_G(
             self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GofR[first:last],
@@ -369,7 +369,7 @@ class TestTransformerBase(unittest.TestCase):
                                        rtol=self.rtol, atol=self.atol))
 
     def DCS_to_GK(self):
-        r, GKofR = self.transformer.DCS_to_GK(
+        r, GKofR, _ = self.transformer.DCS_to_GK(
             self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         self.assertTrue(numpy.allclose(GKofR[first:last],

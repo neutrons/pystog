@@ -110,7 +110,7 @@ class Transformer:
 
         return yout
 
-    def apply_cropping(self, x, y, xmin, xmax):
+    def apply_cropping(self, x, y, xmin, xmax, dy=None):
         """Utility to crop x and y based on xmin and xmax along x.
         Provides the capability to specify the (Qmin,Qmax)
         or (Rmin,Rmax) in the Fourier transform
@@ -123,15 +123,22 @@ class Transformer:
         :type xmin: float
         :param xmax: maximum x-value for crop
         :type xmax: float
+        :param dy: uncertainty vector
+        :type dy: numpy.array or list
         :return: vector pair (x,y) with cropping applied
         :rtype: numpy.array pair
         """
-        y = y[np.logical_and(x >= xmin, x <= xmax)]
-        x = x[np.logical_and(x >= xmin, x <= xmax)]
-        return x, y
+        indices = np.logical_and(x >= xmin, x <= xmax)
+        y = y[indices]
+        if dy is not None:
+            err = np.asarray(dy)[indices]
+        else:
+            err = np.zeros(y.shape)
+        x = x[indices]
+        return x, y, err
 
     def fourier_transform(self, xin, yin, xout,
-                          xmin=None, xmax=None, **kwargs):
+                          xmin=None, xmax=None, dyin=None, **kwargs):
         """The Fourier transform function. The kwargs
         argument allows for different modifications:
         Lorch dampening, omitted low-x range correction,
@@ -155,7 +162,7 @@ class Transformer:
         if xmin is None:
             xmin = min(xin)
 
-        xin, yin = self.apply_cropping(xin, yin, xmin, xmax)
+        xin, yin, err = self.apply_cropping(xin, yin, xmin, xmax, dyin)
 
         factor = np.ones_like(yin)
         if 'lorch' in kwargs:
@@ -168,19 +175,22 @@ class Transformer:
                                    where=denom != 0)
 
         yout = np.zeros_like(xout)
+        eout = np.zeros_like(xout)
         for i, x in enumerate(xout):
             kernel = factor * yin * np.sin(xin * x)
+            ekernel = factor * np.square(err * np.sin(xin * x))
             yout[i] = np.trapz(kernel, x=xin)
+            eout[i] = np.sqrt(np.trapz(ekernel, x=xin))
 
         if 'OmittedXrangeCorrection' in kwargs:
             if kwargs["OmittedXrangeCorrection"]:
                 self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
-        return xout, yout
+        return xout, yout, eout
 
     # Reciprocal -> Real Space Transforms  #
 
-    def F_to_G(self, q, fq, r, **kwargs):
+    def F_to_G(self, q, fq, r, dfq=None, **kwargs):
         """Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`G_{PDFFIT}(r)`
 
@@ -194,11 +204,12 @@ class Transformer:
         :return: :math:`r` and :math:`G_{PDFFIT}(r)` vector pair
         :rtype: numpy.array pair
         """
-        r, gr = self.fourier_transform(q, fq, r, **kwargs)
-        gr = 2. / np.pi * gr
-        return r, gr
+        r, gr, dgr = self.fourier_transform(q, fq, r, dyin=dfq, **kwargs)
+        gr *= 2. / np.pi
+        dgr *= 2. / np.pi
+        return r, gr, dgr
 
-    def F_to_GK(self, q, fq, r, **kwargs):
+    def F_to_GK(self, q, fq, r, dfq=None, **kwargs):
         """Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`G_{Keen Version}(r)`
 
@@ -212,11 +223,11 @@ class Transformer:
         :return: :math:`r` and :math:`G_{Keen Version}(r)` vector pair
         :rtype: numpy.array pair
         """
-        r, gr = self.F_to_G(q, fq, r, **kwargs)
-        gr = self.converter.G_to_GK(r, gr, **kwargs)
-        return r, gr
+        r, gr, dgr = self.F_to_G(q, fq, r, dfq, **kwargs)
+        gr, dgr = self.converter.G_to_GK(r, gr, dgr, **kwargs)
+        return r, gr, dgr
 
-    def F_to_g(self, q, fq, r, **kwargs):
+    def F_to_g(self, q, fq, r, dfq=None, **kwargs):
         """Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`g(r)`
 
@@ -230,12 +241,12 @@ class Transformer:
         :return: :math:`r` and :math:`g(r)` vector pair
         :rtype: numpy.array pair
         """
-        r, gr = self.F_to_G(q, fq, r, **kwargs)
-        gr = self.converter.G_to_g(r, gr, **kwargs)
-        return r, gr
+        r, gr, dgr = self.F_to_G(q, fq, r, dfq, **kwargs)
+        gr, dgr = self.converter.G_to_g(r, gr, dgr, **kwargs)
+        return r, gr, dgr
 
     # S(Q)
-    def S_to_G(self, q, sq, r, **kwargs):
+    def S_to_G(self, q, sq, r, dsq=None, **kwargs):
         """Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`G_{PDFFIT}(r)`
 
@@ -249,11 +260,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{PDFFIT}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.S_to_F(q, sq)
-        r, gr = self.F_to_G(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.S_to_F(q, sq, dsq)
+        return self.F_to_G(q, fq, r, dfq, **kwargs)
 
-    def S_to_GK(self, q, sq, r, **kwargs):
+    def S_to_GK(self, q, sq, r, dsq=None, **kwargs):
         """Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`G_{Keen Version}(r)`
 
@@ -267,11 +277,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{Keen Version}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.S_to_F(q, sq)
-        r, gr = self.F_to_GK(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.S_to_F(q, sq, dsq)
+        return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
-    def S_to_g(self, q, sq, r, **kwargs):
+    def S_to_g(self, q, sq, r, dsq=None, **kwargs):
         """Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`g(r)`
 
@@ -285,12 +294,11 @@ class Transformer:
         :return: :math:`r` and :math:`g(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.S_to_F(q, sq)
-        r, gr = self.F_to_g(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.S_to_F(q, sq, dsq)
+        return self.F_to_g(q, fq, r, dfq, **kwargs)
 
     # Keen's F(Q)
-    def FK_to_G(self, q, fq_keen, r, **kwargs):
+    def FK_to_G(self, q, fq_keen, r, dfq_keen=None, **kwargs):
         """Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`G_{PDFFIT}(r)`
 
@@ -304,11 +312,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{PDFFIT}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr = self.F_to_G(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
+        return self.F_to_G(q, fq, r, dfq, **kwargs)
 
-    def FK_to_GK(self, q, fq_keen, r, **kwargs):
+    def FK_to_GK(self, q, fq_keen, r, dfq_keen=None, **kwargs):
         """Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`G_{Keen Version}(r)`
 
@@ -322,11 +329,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{Keen Version}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr = self.F_to_GK(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
+        return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
-    def FK_to_g(self, q, fq_keen, r, **kwargs):
+    def FK_to_g(self, q, fq_keen, r, dfq_keen=None, **kwargs):
         """Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`g(r)`
 
@@ -340,12 +346,11 @@ class Transformer:
         :return: :math:`r` and :math:`g(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.FK_to_F(q, fq_keen, **kwargs)
-        r, gr = self.F_to_g(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
+        return self.F_to_g(q, fq, r, dfq, **kwargs)
 
     # Differential cross-section = d_simga / d_Omega
-    def DCS_to_G(self, q, dcs, r, **kwargs):
+    def DCS_to_G(self, q, dcs, r, ddcs=None, **kwargs):
         """Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`G_{PDFFIT}(r)`
@@ -360,11 +365,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{PDFFIT}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
-        r, gr = self.F_to_G(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs, **kwargs)
+        return self.F_to_G(q, fq, r, dfq, **kwargs)
 
-    def DCS_to_GK(self, q, dcs, r, **kwargs):
+    def DCS_to_GK(self, q, dcs, r, ddcs=None, **kwargs):
         """Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`G_{Keen Version}(r)`
@@ -379,11 +383,10 @@ class Transformer:
         :return: :math:`r` and :math:`G_{Keen Version}(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
-        r, gr = self.F_to_GK(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs, **kwargs)
+        return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
-    def DCS_to_g(self, q, dcs, r, **kwargs):
+    def DCS_to_g(self, q, dcs, r, ddcs=None, **kwargs):
         """Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`g(r)`
@@ -398,14 +401,13 @@ class Transformer:
         :return: :math:`r` and :math:`g(r)` vector pair
         :rtype: numpy.array pair
         """
-        fq = self.converter.DCS_to_F(q, dcs, **kwargs)
-        r, gr = self.F_to_g(q, fq, r, **kwargs)
-        return r, gr
+        fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs, **kwargs)
+        return self.F_to_g(q, fq, r, dfq, **kwargs)
 
     # Real -> Reciprocal Space Transforms  #
 
     # G(R) = PDF
-    def G_to_F(self, r, gr, q, **kwargs):
+    def G_to_F(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
@@ -415,14 +417,15 @@ class Transformer:
         :type gr: numpy.array or list
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
+        :param dgr: uncertainty vector
+        :type dgr: numpy.array or list
 
-        :return: :math:`Q` and :math:`Q[S(Q)-1]` vector pair
-        :rtype: numpy.array pair
+        :return: :math:`Q` and :math:`Q[S(Q)-1]` vector list
+        :rtype: numpy.array list
         """
-        q, fq = self.fourier_transform(r, gr, q, **kwargs)
-        return q, fq
+        return self.fourier_transform(r, gr, q, dyin=dgr, **kwargs)
 
-    def G_to_S(self, r, gr, q, **kwargs):
+    def G_to_S(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`S(Q)`
 
@@ -436,11 +439,11 @@ class Transformer:
         :return: :math:`Q` and :math:`S(Q)` vector pair
         :rtype: numpy.array pair
         """
-        q, fq = self.G_to_F(r, gr, q, **kwargs)
-        sq = self.converter.F_to_S(q, fq)
-        return q, sq
+        q, fq, dfq = self.G_to_F(r, gr, q, dgr=dgr, **kwargs)
+        sq, dsq = self.converter.F_to_S(q, fq, dfq=dfq)
+        return q, sq, dsq
 
-    def G_to_FK(self, r, gr, q, **kwargs):
+    def G_to_FK(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`F(Q)`
 
@@ -454,11 +457,11 @@ class Transformer:
         :return: :math:`Q` and :math:`F(Q)` vector pair
         :rtype: numpy.array pair
         """
-        q, fq = self.G_to_F(r, gr, q, **kwargs)
-        fq = self.converter.F_to_FK(q, fq, **kwargs)
-        return q, fq
+        q, fq, dfq = self.G_to_F(r, gr, q, dgr=dgr, **kwargs)
+        fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
+        return q, fq, dfq
 
-    def G_to_DCS(self, r, gr, q, **kwargs):
+    def G_to_DCS(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
@@ -473,12 +476,12 @@ class Transformer:
         :return: :math:`Q` and :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector pair
         :rtype: numpy.array pair
         """
-        q, fq = self.G_to_F(r, gr, q, **kwargs)
-        dcs = self.converter.F_to_DCS(q, fq, **kwargs)
-        return q, dcs
+        q, fq, dfq = self.G_to_F(r, gr, q, dgr=dgr, **kwargs)
+        dcs, ddcs = self.converter.F_to_DCS(q, fq, dfq=dfq, **kwargs)
+        return q, dcs, ddcs
 
     # Keen's G(r)
-    def GK_to_F(self, r, gr, q, **kwargs):
+    def GK_to_F(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
@@ -492,10 +495,10 @@ class Transformer:
         :return: :math:`Q` and :math:`Q[S(Q)-1]` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_F(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.GK_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_F(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def GK_to_S(self, r, gr, q, **kwargs):
+    def GK_to_S(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`S(Q)`
 
@@ -509,10 +512,10 @@ class Transformer:
         :return: :math:`Q` and :math:`S(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_S(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.GK_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_S(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def GK_to_FK(self, r, gr, q, **kwargs):
+    def GK_to_FK(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`F(Q)`
 
@@ -526,10 +529,10 @@ class Transformer:
         :return: :math:`Q` and :math:`F(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_FK(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.GK_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_FK(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def GK_to_DCS(self, r, gr, q, **kwargs):
+    def GK_to_DCS(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -543,11 +546,11 @@ class Transformer:
         :return: :math:`Q` and :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.GK_to_G(r, gr, **kwargs)
-        return self.G_to_DCS(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.GK_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_DCS(r, _gr, q, dgr=_dgr, **kwargs)
 
     # g(r)
-    def g_to_F(self, r, gr, q, **kwargs):
+    def g_to_F(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`g(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
@@ -561,10 +564,10 @@ class Transformer:
         :return: :math:`Q` and :math:`Q[S(Q)-1]` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_F(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_F(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def g_to_S(self, r, gr, q, **kwargs):
+    def g_to_S(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`g(r)`
         to reciprocal space :math:`S(Q)`
 
@@ -578,10 +581,10 @@ class Transformer:
         :return: :math:`Q` and :math:`S(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_S(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_S(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def g_to_FK(self, r, gr, q, **kwargs):
+    def g_to_FK(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`g(r)`
         to reciprocal space :math:`F(Q)`
 
@@ -595,10 +598,10 @@ class Transformer:
         :return: :math:`Q` and :math:`F(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_FK(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_FK(r, _gr, q, dgr=_dgr, **kwargs)
 
-    def g_to_DCS(self, r, gr, q, **kwargs):
+    def g_to_DCS(self, r, gr, q, dgr=None, **kwargs):
         """Transforms from real space :math:`g(r)`
         to reciprocal space :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -612,5 +615,5 @@ class Transformer:
         :return: :math:`Q` and :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector pair
         :rtype: numpy.array pair
         """
-        gr = self.converter.g_to_G(r, gr, **kwargs)
-        return self.G_to_DCS(r, gr, q, **kwargs)
+        _gr, _dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)
+        return self.G_to_DCS(r, _gr, q, dgr=_dgr, **kwargs)

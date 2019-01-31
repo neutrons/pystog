@@ -850,7 +850,7 @@ class StoG(object):
             xmin = info['Qmin']
         if 'Qmax' in info:
             xmax = info['Qmax']
-        x, y = self.transformer.apply_cropping(x, y, xmin, xmax)
+        x, y, _ = self.transformer.apply_cropping(x, y, xmin, xmax)
 
         # Offset and scale
         adjusting = False
@@ -877,11 +877,11 @@ class StoG(object):
         # Use Qmin and Qmax to crop datasets
         if self.qmin is not None:
             if self.xmin < self.qmin:
-                x, y = self.transformer.apply_cropping(
+                x, y, _ = self.transformer.apply_cropping(
                     x, y, self.qmin, self.xmax)
         if self.qmax is not None:
             if self.xmax > self.qmax:
-                x, y = self.transformer.apply_cropping(
+                x, y, _ = self.transformer.apply_cropping(
                     x, y, self.xmin, self.qmax)
 
         # Default to S(Q) if function type not defined
@@ -903,13 +903,13 @@ class StoG(object):
 
         # Convert to S(Q) and save to the individual S(Q) DataFrame
         if info["ReciprocalFunction"] == "Q[S(Q)-1]":
-            y = self.converter.F_to_S(x, y)
+            y, dy = self.converter.F_to_S(x, y)
         elif info["ReciprocalFunction"] == "FK(Q)":
-            y = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
+            y, dy = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
-            y = self.converter.DCS_to_S(x, y,
-                                        **{'<b_coh>^2': self.bcoh_sqrd,
-                                           '<b_tot^2>': self.btot_sqrd})
+            y, dy = self.converter.DCS_to_S(x, y,
+                                            **{'<b_coh>^2': self.bcoh_sqrd,
+                                               '<b_tot^2>': self.btot_sqrd})
 
         df = pd.DataFrame(y, columns=['S(Q)_%d' % index], index=x)
         self.df_sq_individuals = pd.concat(
@@ -1011,7 +1011,7 @@ class StoG(object):
         self.df_sq_master[self.sq_title] = sq
 
         # Also, create merged Q[S(Q)-1] with modifications, if specified
-        fofq = self.converter.S_to_F(q, sq)
+        fofq, dfofq = self.converter.S_to_F(q, sq)
         if "Q[S(Q)-1]" in self.merged_opts:
             fofq_opts = self.merged_opts["Q[S(Q)-1]"]
             if "Y" in fofq_opts:
@@ -1022,7 +1022,7 @@ class StoG(object):
         self.df_sq_master[self.qsq_minus_one_title] = fofq
 
         # Convert this Q[S(Q)-1] back to S(Q) and overwrite the 1st one
-        sq = self.converter.F_to_S(q, fofq)
+        sq, dsq = self.converter.F_to_S(q, fofq)
         sq[np.isnan(sq)] = 0
         self.df_sq_master[self.sq_title] = sq
 
@@ -1049,13 +1049,13 @@ class StoG(object):
                             '<b_coh>^2': self.bcoh_sqrd
                             }
         if self.real_space_function == "g(r)":
-            r, gofr = self.transformer.S_to_g(
+            r, gofr, dgofr = self.transformer.S_to_g(
                 q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "G(r)":
-            r, gofr = self.transformer.S_to_G(
+            r, gofr, dgofr = self.transformer.S_to_G(
                 q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "GK(r)":
-            r, gofr = self.transformer.S_to_GK(
+            r, gofr, dgofr = self.transformer.S_to_GK(
                 q, sq, self.dr, **transform_kwargs)
 
         self.df_gr_master[self.gr_title] = gofr
@@ -1097,13 +1097,13 @@ class StoG(object):
         # NOTE: Real space function setter will catch ValueError so
         # so no need for `else` to catch error
         if self.real_space_function == "g(r)":
-            q_ft, sq_ft, q, sq, r, gr = self.filter.g_using_S(
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.g_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
         elif self.real_space_function == "G(r)":
-            q_ft, sq_ft, q, sq, r, gr = self.filter.G_using_S(
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.G_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
         elif self.real_space_function == "GK(r)":
-            q_ft, sq_ft, q, sq, r, gr = self.filter.GK_using_S(
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.GK_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
 
         # Round to avoid mismatch index in DataFrame and NaN for column values
@@ -1165,12 +1165,12 @@ class StoG(object):
         :rtype: tuple of numpy.array
         """
         if self.real_space_function == "g(r)":
-            r, gr_lorch = self.transformer.S_to_g(
+            r, gr_lorch, _ = self.transformer.S_to_g(
                 q, sq, r, **{'lorch': True, 'rho': self.density})
         elif self.real_space_function == "G(r)":
-            r, gr_lorch = self.transformer.S_to_G(q, sq, r, **{'lorch': True})
+            r, gr_lorch, _ = self.transformer.S_to_G(q, sq, r, **{'lorch': True})
         elif self.real_space_function == "GK(r)":
-            r, gr_lorch = self.transformer.S_to_GK(
+            r, gr_lorch, _ = self.transformer.S_to_GK(
                 q, sq, r, **{'lorch': True, 'rho': self.density, '<b_coh>^2': self.bcoh_sqrd})
 
         self.df_gr_master = self.add_to_dataframe(
@@ -1233,7 +1233,7 @@ class StoG(object):
         :type sq: numpy.array or list
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
-        fq = self.converter.S_to_FK(q, sq, **kwargs)
+        fq, dfq = self.converter.S_to_FK(q, sq, **kwargs)
         self.df_sq_master = self.add_to_dataframe(
             q, fq, self.df_sq_master, self.fq_title)
         self.write_out_rmc_fq()
@@ -1250,9 +1250,9 @@ class StoG(object):
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         if self.real_space_function == "g(r)":
-            GKofR = self.converter.g_to_GK(r, gr, **kwargs)
+            GKofR, dGKofR = self.converter.g_to_GK(r, gr, **kwargs)
         elif self.real_space_function == "G(r)":
-            GKofR = self.converter.G_to_GK(r, gr, **kwargs)
+            GKofR, dGKofR = self.converter.G_to_GK(r, gr, **kwargs)
         elif self.real_space_function == "GK(r)":
             GKofR = gr
 
