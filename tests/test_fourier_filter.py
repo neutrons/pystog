@@ -1,5 +1,5 @@
 import unittest
-import numpy
+from numpy.testing import assert_allclose
 from tests.utils import \
     load_data, get_index_of_function
 from tests.materials import Nickel, Argon
@@ -60,33 +60,33 @@ class TestFourierFilterBase(unittest.TestCase):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.g_using_F(
             self.r, self.gofr, self.q, self.fq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.gofr_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.gofr_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def g_using_S(self):
         q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.ff.g_using_S(
             self.r, self.gofr, self.q, self.sq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.gofr_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.gofr_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def g_using_FK(self):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.g_using_FK(
             self.r, self.gofr, self.q, self.fq_keen, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.gofr_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.gofr_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def g_using_DCS(self):
         q_ft, dcs_ft, q, dcs, r, gr, _, _, _ = self.ff.g_using_DCS(
             self.r, self.gofr, self.q, self.dcs, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.gofr_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.gofr_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     # G(r) tests
 
@@ -94,33 +94,33 @@ class TestFourierFilterBase(unittest.TestCase):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.G_using_F(
             self.r, self.GofR, self.q, self.fq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def G_using_S(self):
         q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.ff.G_using_S(
             self.r, self.GofR, self.q, self.sq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def G_using_FK(self):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.G_using_FK(
             self.r, self.GofR, self.q, self.fq_keen, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def G_using_DCS(self):
         q_ft, dcs_ft, q, dcs, r, gr, _, _, _ = self.ff.G_using_DCS(
             self.r, self.GofR, self.q, self.dcs, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     # G(r) tests
 
@@ -128,33 +128,33 @@ class TestFourierFilterBase(unittest.TestCase):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.GK_using_F(
             self.r, self.GKofR, self.q, self.fq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GKofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GKofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def GK_using_S(self):
         q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.ff.GK_using_S(
             self.r, self.GKofR, self.q, self.sq, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GKofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GKofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def GK_using_FK(self):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.GK_using_FK(
             self.r, self.GKofR, self.q, self.fq_keen, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GKofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GKofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
     def GK_using_DCS(self):
         q_ft, dcs_ft, q, dcs, r, gr, _, _, _ = self.ff.GK_using_DCS(
             self.r, self.GKofR, self.q, self.dcs, self.cutoff, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        self.assertTrue(numpy.allclose(gr[first:last],
-                                       self.GKofR_ff_target,
-                                       rtol=self.rtol, atol=self.atol))
+        assert_allclose(gr[first:last],
+                        self.GKofR_ff_target,
+                        rtol=self.rtol, atol=self.atol)
 
 
 class TestFourierFilterNickel(TestFourierFilterBase):

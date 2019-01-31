@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from numpy.testing import assert_allclose
 
 import os
 import sys
@@ -1073,15 +1074,14 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
                                    skiprows=2,
                                    engine='python')
 
-                self.assertTrue(np.allclose(data['x'], x))
-                self.assertTrue(
-                    np.allclose(
-                        data['y'] - y,
-                        np.zeros(
-                            len(y)),
-                        rtol=2.0,
-                        atol=2.0,
-                        equal_nan=True))
+                assert_allclose(data['x'], x)
+                assert_allclose(
+                    data['y'] - y,
+                    np.zeros(
+                        len(y)),
+                    rtol=2.0,
+                    atol=2.0,
+                    equal_nan=True)
 
                 os.remove(outfile_path)
 
@@ -1099,8 +1099,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
                                    skiprows=2,
                                    engine='python')
 
-                self.assertTrue(np.allclose(data['x'], x))
-                self.assertTrue(np.allclose(data['y'], y))
+                assert_allclose(data['x'], x)
+                assert_allclose(data['y'], y)
                 os.remove(outfile_path)
 
             return wrap_function
@@ -1135,8 +1135,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         q = self.stog.df_sq_master[self.stog.sq_title].index.values
         sq = self.stog.df_sq_master[self.stog.sq_title].values
 
-        self.assertTrue(np.allclose(data['x'], q))
-        self.assertTrue(np.allclose(data['y'], sq))
+        assert_allclose(data['x'], q)
+        assert_allclose(data['y'], sq)
         os.remove(outfile_path)
 
         with self.assertRaises(ValueError):

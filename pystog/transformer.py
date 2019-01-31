@@ -63,10 +63,7 @@ class Transformer:
         Replace this if equal (within tolerance)
         """
 
-        lorch_flag = False
-        if 'lorch' in kwargs:
-            if kwargs['lorch']:
-                lorch_flag = True
+        lorch_flag = kwargs.get('lorch', False)
 
         xmin = min(xin)
         xmax = max(xin)
@@ -128,14 +125,12 @@ class Transformer:
         :return: vector pair (x,y) with cropping applied
         :rtype: (numpy.array, numpy.array, numpy.array)
         """
-        indices = np.logical_and(x >= xmin, x <= xmax)
-        y = y[indices]
         if dy is not None:
-            err = np.asarray(dy)[indices]
+            err = np.asarray(dy)
         else:
             err = np.zeros_like(y)
-        x = x[indices]
-        return x, y, err
+        indices = np.logical_and(x >= xmin, x <= xmax)
+        return x[indices], y[indices], err[indices]
 
     def fourier_transform(self, xin, yin, xout,
                           xmin=None, xmax=None, dyin=None, **kwargs):
@@ -167,14 +162,12 @@ class Transformer:
         xin, yin, err = self.apply_cropping(xin, yin, xmin, xmax, dyin)
 
         factor = np.ones_like(yin)
-        if 'lorch' in kwargs:
-            if kwargs['lorch']:
-                PiOverXmax = np.pi / xmax
-                num = np.sin(PiOverXmax * xin)
-                denom = PiOverXmax * xin
-                factor = np.divide(num, denom,
-                                   out=np.zeros_like(num),
-                                   where=denom != 0)
+        if kwargs.get('lorch', False):
+            PiOverXmax = np.pi / xmax
+            num = np.sin(PiOverXmax * xin)
+            denom = PiOverXmax * xin
+            factor = np.divide(num, denom,
+                               where=denom != 0)
 
         yout = np.zeros_like(xout)
         eout = np.zeros_like(xout)
@@ -184,9 +177,8 @@ class Transformer:
             yout[i] = np.trapz(kernel, x=xin)
             eout[i] = np.sqrt((np.diff(xin)**2*(ekernel[1:]+ekernel[:-1])/2).sum())
 
-        if 'OmittedXrangeCorrection' in kwargs:
-            if kwargs["OmittedXrangeCorrection"]:
-                self._low_x_correction(xin, yin, xout, yout, **kwargs)
+        if kwargs.get('OmittedXrangeCorrection', False):
+            self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout, eout
 
