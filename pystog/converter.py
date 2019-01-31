@@ -22,10 +22,10 @@ class Converter:
     >>> from pystog import Converter
     >>> converter = Converter()
     >>> q, sq = numpy.loadtxt("my_sofq_file.txt",unpack=True)
-    >>> fq = converter.S_to_F(q, sq)
+    >>> fq, dfq = converter.S_to_F(q, sq)
     >>> r, gr = numpy.loadtxt("my_gofr_file.txt",unpack=True)
     >>> kwargs = {'rho' : 1.0}
-    >>> gr_keen = converter.g_to_GK(r, gr, **kwargs)
+    >>> gr_keen, dgr_keen = converter.g_to_GK(r, gr, **kwargs)
     """
 
     def __init__(self):
@@ -67,7 +67,7 @@ class Converter:
         :type dfq: numpy.array or list
 
         :return: (:math:`F(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         if dfq is None:
             dfq = np.zeros_like(fq)
@@ -85,7 +85,7 @@ class Converter:
         :type dfq: numpy.array or list
 
         :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.F_to_FK(q, fq, dfq, **kwargs)
         return self.FK_to_DCS(q, fq, dfq, **kwargs)
@@ -104,7 +104,7 @@ class Converter:
         :type dsq: numpy.array or list
 
         :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         if dsq is None:
             dsq = np.zeros_like(sq)
@@ -121,7 +121,7 @@ class Converter:
         :type dsq: numpy.array or list
 
         :return: (:math:`F(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.S_to_F(q, sq, dsq)
         return self.F_to_FK(q, fq, dfq, **kwargs)
@@ -137,7 +137,7 @@ class Converter:
         :type dsq: numpy.array or list
 
         :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.S_to_FK(q, sq, dsq, **kwargs)
         return self.FK_to_DCS(q, fq, dfq, **kwargs)
@@ -154,7 +154,7 @@ class Converter:
         :type dfq_keen: numpy.array or list
 
         :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         if dfq_keen is None:
             dfq_keen = np.zeros_like(fq_keen)
@@ -172,7 +172,7 @@ class Converter:
         :type dfq_keen: numpy.array or list
 
         :return: (:math:`S(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
         return self.F_to_S(q, fq, dfq)
@@ -188,7 +188,7 @@ class Converter:
         :type dfq: numpy.array or list
 
         :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         return fq + kwargs['<b_tot^2>'], dfq
 
@@ -204,7 +204,7 @@ class Converter:
         :type ddcs: numpy.array or list
 
         :return: (:math:`Q[S(Q)-1]` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.DCS_to_FK(q, dcs, ddcs, **kwargs)
         return self.FK_to_F(q, fq, dfq, **kwargs)
@@ -220,7 +220,7 @@ class Converter:
         :type ddcs: numpy.array or list
 
         :return: (:math:`S(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.DCS_to_FK(q, dcs, ddcs, **kwargs)
         return self.FK_to_S(q, fq, dfq, **kwargs)
@@ -236,7 +236,7 @@ class Converter:
         :type ddcs: numpy.array or list
 
         :return: (:math:`F(Q)` vector, uncertainty vector)
-        :rtype: numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         return (dcs - kwargs['<b_tot^2>'], ddcs)
 
@@ -254,14 +254,13 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`G_{Keen Version}(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
-        if dgr is not None:
-            err = factor * self._safe_divide(dgr, r)
-        else:
-            err = np.zeros(gr.shape)
-        return factor * self._safe_divide(gr, r), err
+        if dgr is None:
+            dgr = np.zeros_like(gr)
+        return (factor * self._safe_divide(gr, r),
+                factor * self._safe_divide(dgr, r))
 
     def G_to_g(self, r, gr, dgr=None, **kwargs):
         r"""Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
@@ -274,14 +273,13 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`g(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         factor = 4. * np.pi * kwargs['rho']
-        if dgr is not None:
-            err = self._safe_divide(dgr, factor * r)
-        else:
-            err = np.zeros(gr.shape)
-        return self._safe_divide(gr, factor * r) + 1., err
+        if dgr is None:
+            dgr = np.zeros_like(gr)
+        return (self._safe_divide(gr, factor * r) + 1.,
+                self._safe_divide(dgr, factor * r))
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, dgr=None, **kwargs):
@@ -295,14 +293,12 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
-        if dgr is not None:
-            err = factor * r * dgr
-        else:
-            err = np.zeros(gr.shape)
-        return factor * r * gr, err
+        if dgr is None:
+            dgr = np.zeros_like(gr)
+        return (factor * r * gr, factor * r * dgr)
 
     def GK_to_g(self, r, gr, dgr=None, **kwargs):
         r"""Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
@@ -315,7 +311,7 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`g(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         _gr, _dgr = self.GK_to_G(r, gr, dgr=dgr, **kwargs)
         return self.G_to_g(r, _gr, dgr=_dgr, **kwargs)
@@ -332,14 +328,12 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         factor = 4. * np.pi * r * kwargs['rho']
-        if dgr is not None:
-            err = factor * dgr
-        else:
-            err = np.zeros(gr.shape)
-        return factor * (gr - 1.), err
+        if dgr is None:
+            dgr = np.zeros_like(gr)
+        return (factor * (gr - 1.), factor * dgr)
 
     def g_to_GK(self, r, gr, dgr=None, **kwargs):
         r"""Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
@@ -352,7 +346,7 @@ class Converter:
         :type dgr: numpy.array or list
 
         :return: :math:`G_{Keen Version}(r)` vector, uncertainty vector
-        :rtype: numpy.array, numpy.array
+        :rtype: (numpy.array, numpy.array)
         """
         _gr, _dgr = self.g_to_G(r, gr, dgr=dgr, **kwargs)
         return self.G_to_GK(r, _gr, dgr=_dgr, **kwargs)
