@@ -164,7 +164,7 @@ class Transformer:
 
         xin, yin, err = self.apply_cropping(xin, yin, xmin, xmax, dyin)
 
-        factor = np.full_like(yin, 1.0)
+        factor = np.ones_like(yin)
         if 'lorch' in kwargs:
             if kwargs['lorch']:
                 PiOverXmax = np.pi / xmax
@@ -204,7 +204,7 @@ class Transformer:
         :return: :math:`r` and :math:`G_{PDFFIT}(r)` vector pair
         :rtype: numpy.array pair
         """
-        r, gr, dgr = self.fourier_transform(q, fq, r, dfq, **kwargs)
+        r, gr, dgr = self.fourier_transform(q, fq, r, dyin=dfq, **kwargs)
         gr *= 2. / np.pi
         dgr *= 2. / np.pi
         return r, gr, dgr
@@ -223,7 +223,7 @@ class Transformer:
         :return: :math:`r` and :math:`G_{Keen Version}(r)` vector pair
         :rtype: numpy.array pair
         """
-        r, gr, dgr = self.F_to_G(q, fq, r, dyin=dfq, **kwargs)
+        r, gr, dgr = self.F_to_G(q, fq, r, dfq, **kwargs)
         gr, dgr = self.converter.G_to_GK(r, gr, dgr, **kwargs)
         return r, gr, dgr
 
