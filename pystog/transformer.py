@@ -180,9 +180,9 @@ class Transformer:
         eout = np.zeros_like(xout)
         for i, x in enumerate(xout):
             kernel = factor * yin * np.sin(xin * x)
-            ekernel = factor * np.square(err * np.sin(xin * x))
+            ekernel = np.square(factor * err * np.sin(xin * x))
             yout[i] = np.trapz(kernel, x=xin)
-            eout[i] = np.sqrt(np.trapz(ekernel, x=xin))
+            eout[i] = np.sqrt((np.diff(xin)**2*(ekernel[1:]+ekernel[:-1])/2).sum())
 
         if 'OmittedXrangeCorrection' in kwargs:
             if kwargs["OmittedXrangeCorrection"]:
