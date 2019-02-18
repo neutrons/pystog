@@ -1,4 +1,4 @@
-matplotlib
-numpy
-pandas
+matplotlib==2.2.3
+numpy==1.15.4
+pandas==0.23.4
 six
