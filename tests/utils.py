@@ -7,11 +7,9 @@ from pystog.converter import Converter
 from pystog.transformer import Transformer
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-TEST_DATA_DIR = os.path.join(TEST_DIR, "../data/test_data")
+TEST_DATA_DIR = os.path.join(TEST_DIR, "test_data")
 if not os.path.exists(TEST_DATA_DIR):
-    TEST_DATA_DIR = os.path.join(TEST_DIR, "test_data")
-    if not os.path.exists(TEST_DATA_DIR):
-        raise RuntimeError('Failed to find "test_data" directory')
+    raise RuntimeError('Failed to find "test_data" directory')
 TUTORIAL_DATA_DIR = os.path.join(TEST_DIR, "../tutorials/data")
 
 # ------------------------------------------------
