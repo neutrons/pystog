@@ -9,15 +9,12 @@ ipython = "*"
 flake8 = "*"
 autopep8 = "*"
 tox = "*"
-tox-pipenv = "*"
 
 [packages]
 matplotlib = "*"
 numpy = "*"
 pandas = "== 0.24.2"
 six = "*"
-pystog = {editable = true,path = "."}
-tox-pipenv = "*"
 
 [requires]
 python_version = "3.6"
