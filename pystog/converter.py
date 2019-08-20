@@ -110,7 +110,7 @@ class Converter:
         """
         if dsq is None:
             dsq = np.zeros_like(sq)
-        return (q * (sq - 1.), q*dsq)
+        return (q * (sq - 1.), q * dsq)
 
     def S_to_FK(self, q, sq, dsq=None, **kwargs):
         """Convert :math:`S(Q)` to :math:`F(Q)`

@@ -81,7 +81,7 @@ class Transformer:
                 term2 = (vp * np.sin(vp) + np.cos(vp) - 1.) / \
                     (x + PiOverXmax)**2.
                 F1 = (term1 - term2) / (2. * PiOverXmax)
-                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) /
+                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) / # noqa
                       (x + PiOverXmax)) / (2. * PiOverXmax)
             else:
                 F1 = (2. * v * np.sin(v) - (v * v - 2.) * np.cos(v) - 2.)
