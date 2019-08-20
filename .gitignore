@@ -109,3 +109,6 @@ merged*
 # direnv
 .direnv/
 .envrc
+
+# pipenv
+Pipfile.lock
