@@ -7,7 +7,6 @@ This module defines the Transformer class
 that performs the Fourier transforms
 """
 
-
 from __future__ import (absolute_import, division, print_function)
 import numpy as np
 
@@ -55,7 +54,6 @@ class Transformer:
         :return: range vector for space transformed to with correction applied
         :rtype: numpy.array
         """
-
         """TODO: Refactor correction to just
         1) peform linear extrapolation in space before transform
         2) transform with extrapolated function
@@ -86,21 +84,16 @@ class Transformer:
                 F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) /
                       (x + PiOverXmax)) / (2. * PiOverXmax)
             else:
-                F1 = (2. * v * np.sin(v) - (v * v - 2.) *
-                      np.cos(v) - 2.)
+                F1 = (2. * v * np.sin(v) - (v * v - 2.) * np.cos(v) - 2.)
                 F1 = np.divide(
-                    F1,
-                    x * x * x,
-                    out=np.zeros_like(F1),
-                    where=x != 0)
+                    F1, x * x * x, out=np.zeros_like(F1), where=x != 0)
 
                 F2 = (np.sin(v) - v * np.cos(v))
                 F2 = np.divide(F2, x * x, out=np.zeros_like(F2), where=x != 0)
 
             num = F1 * yin_xmin
-            factor = np.divide(num, xmin,
-                               out=np.zeros_like(num),
-                               where=xmin != 0)
+            factor = np.divide(
+                num, xmin, out=np.zeros_like(num), where=xmin != 0)
             correction[i] = (2 / np.pi) * (factor - F2)
 
         yout += correction
@@ -132,8 +125,14 @@ class Transformer:
         indices = np.logical_and(x >= xmin, x <= xmax)
         return x[indices], y[indices], err[indices]
 
-    def fourier_transform(self, xin, yin, xout,
-                          xmin=None, xmax=None, dyin=None, **kwargs):
+    def fourier_transform(self,
+                          xin,
+                          yin,
+                          xout,
+                          xmin=None,
+                          xmax=None,
+                          dyin=None,
+                          **kwargs):
         """The Fourier transform function. The kwargs
         argument allows for different modifications:
         Lorch dampening, omitted low-x range correction,
@@ -166,8 +165,7 @@ class Transformer:
             PiOverXmax = np.pi / xmax
             num = np.sin(PiOverXmax * xin)
             denom = PiOverXmax * xin
-            factor = np.divide(num, denom,
-                               where=denom != 0)
+            factor = np.divide(num, denom, where=denom != 0)
 
         yout = np.zeros_like(xout)
         eout = np.zeros_like(xout)
@@ -175,7 +173,8 @@ class Transformer:
             kernel = factor * yin * np.sin(xin * x)
             ekernel = np.square(factor * err * np.sin(xin * x))
             yout[i] = np.trapz(kernel, x=xin)
-            eout[i] = np.sqrt((np.diff(xin)**2*(ekernel[1:]+ekernel[:-1])/2).sum())
+            eout[i] = np.sqrt(
+                (np.diff(xin)**2 * (ekernel[1:] + ekernel[:-1]) / 2).sum())
 
         if kwargs.get('OmittedXrangeCorrection', False):
             self._low_x_correction(xin, yin, xout, yout, **kwargs)
