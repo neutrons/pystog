@@ -7,11 +7,9 @@ python:
 install:
   - pip install -r requirements.txt
   - python setup.py install
-  - pip install codecov flake8 tox-travis
+  - pip install tox-travis
 script:
-  - flake8 .
   - tox
-  - coverage run setup.py test
 after_success:
   - codecov
 deploy:
