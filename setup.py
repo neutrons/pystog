@@ -30,5 +30,10 @@ setuptools.setup(
         "numpy",
         "pandas"
     ],
-    scripts=['bin/pystog_cli']
+    entry_points={
+        'console_scripts': [
+            "pystog_cli = pystog.cli:pystog_cli",
+            "transformer_cli = pystog.cli:transformer_cli"
+        ]
+    }
 )

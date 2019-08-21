@@ -16,7 +16,7 @@ def get_cli_args():
         action='append',
         default=list(),
         dest='filenames',
-        help="Filename, qmin, qmax, yoffset, yscale, Qoffset, function type." +
+        help="Filename, qmin, qmax, yoffset, yscale, Qoffset, function type."
         "Function Types are: %s" %
         json.dumps(ReciprocalSpaceChoices))
     parser.add_argument(

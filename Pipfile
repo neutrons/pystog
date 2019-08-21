@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "*"
+ipython = "*"
+flake8 = "*"
+autopep8 = "*"
+tox = "*"
+
+[packages]
+matplotlib = "*"
+numpy = "*"
+pandas = "== 0.24.2"
+six = "*"
+
+[requires]
+python_version = "3.6"
