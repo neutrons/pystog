@@ -285,7 +285,8 @@ class StoG(object):
         """The :math:`\\Delta r` for the :math:`r`-space vector
 
         :getter: Return :math:`\\Delta r` value
-        :setter: Set the :math:`\\Delta r` value and update :math:`r`-space vector
+        :setter: Set the :math:`\\Delta r` value
+                 and update :math:`r`-space vector
                  via the **dr** attribute
         :type: value
         """
@@ -365,7 +366,8 @@ class StoG(object):
         where the subscript :math:`i` implies for atom type :math:`i`,
         :math:`c_{i}` is the concentration of :math:`i`,
         :math:`b_{coh,i}` is the coherent scattering length of :math:`i`,
-        and :math:`b^*_{coh,i}` is the complex coherent scattering length of :math:`i`
+        and :math:`b^*_{coh,i}`
+        is the complex coherent scattering length of :math:`i`
 
 
         The real part of the :math:`b_{coh,i}` term can be found
@@ -461,7 +463,8 @@ class StoG(object):
         """This sets the option to perform the Lorch dampening correction
         for the :math:`Q` range. Generally, will help reduce Fourier "ripples",
         or AKA "Gibbs phenomenon", due to discontinuity at :math:`Q_{max}`
-        if the reciprocal space function is not at the :math:`Q -> \\infty` limit.
+        if the reciprocal space function is not at the
+        :math:`Q -> \\infty` limit.
         Yet, will also broaden real space function peaks, possibly dubiously.
 
         See :class:`pystog.transformer.Transformer` **fourier_transform** and
@@ -521,8 +524,8 @@ class StoG(object):
     @property
     def df_individuals(self):
         """The DataFrame for the input reciprocal space functions
-        loaded from **files** and with the loading processing from **add_dataset**
-        class method.
+        loaded from **files** and with the loading processing
+        from **add_dataset** class method.
 
         :getter: Returns the current individual, input
                  reciprocal space functions DataFrame
@@ -763,7 +766,8 @@ class StoG(object):
         Will append all datasets as DataFrames to the
         **df_inviduals** attribute DataFrame
         and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
-        attribute DataFrame in **add_dataset** method via **read_dataset** method.
+        attribute DataFrame in **add_dataset** method
+        via **read_dataset** method.
         """
         assert self.files is not None
         assert len(self.files) != 0
@@ -788,7 +792,8 @@ class StoG(object):
         and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
         attribute DataFrame in **add_dataset** method.
 
-        :param info: Dict with information for dataset (filename, manipulations, etc.)
+        :param info: Dict with information for dataset
+                     (filename, manipulations, etc.)
         :type info: dict
         :param xcol: The column in the data file that contains the X-axis
         :type xcol: int
@@ -828,13 +833,16 @@ class StoG(object):
         and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
         attribute DataFrame.
 
-        :param info: Dict with information for dataset (filename, manipulations, etc.)
+        :param info: Dict with information for dataset
+                     (filename, manipulations, etc.)
         :type info: dict
         :param index: Index of the added reciprocal space function dataset
         :type index: int
-        :param yscale: Scale factor for the Y data (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
+        :param yscale: Scale factor for the Y data
+                       (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
         :type yscale: float
-        :param yoffset: Offset factor for the Y data (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
+        :param yoffset: Offset factor for the Y data
+                        (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
         :type yoffset: float
         :param xoffset: Offset factor for the X data (i.e. :math:`Q`)
         :type yoffset: float
@@ -889,9 +897,11 @@ class StoG(object):
             info["ReciprocalFunction"] = "S(Q)"
 
         if info["ReciprocalFunction"] not in ReciprocalSpaceChoices:
-            error = "ReciprocalFunction was equal to %s.\n" % info["ReciprocalFunction"]
-            error += "ReciprocalFunction must be one of the folloing %s" % json.dumps(
-                ReciprocalSpaceChoices)
+            error = "ReciprocalFunction was equal to {given}.\n"
+            error += "ReciprocalFunction must be one of the folloing {options}"
+            error = error.format(
+                given=info["ReciprocalFunction"],
+                options=json.dumps(ReciprocalSpaceChoices))
             raise ValueError(error)
 
         # Save reciprocal space function to the "invididuals" DataFrame
@@ -905,7 +915,8 @@ class StoG(object):
         if info["ReciprocalFunction"] == "Q[S(Q)-1]":
             y, dy = self.converter.F_to_S(x, y)
         elif info["ReciprocalFunction"] == "FK(Q)":
-            y, dy = self.converter.FK_to_S(x, y, **{'<b_coh>^2': self.bcoh_sqrd})
+            y, dy = self.converter.FK_to_S(
+                x, y, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
             y, dy = self.converter.DCS_to_S(x, y,
                                             **{'<b_coh>^2': self.bcoh_sqrd,
@@ -1072,8 +1083,10 @@ class StoG(object):
         3. (optional) Plotted for diagnostics
         4. Returned from function
 
-        :return: Returns a tuple with :math:`r`, the selected real space function,
-                 :math:`Q`, and :math:`S(Q)` functions
+        :return: Returns a tuple with :math:`r`,
+                 the selected real space function,
+                 :math:`Q`,
+                 and :math:`S(Q)` functions
         :rtype: tuple of numpy.array
         """
         kwargs = {'lorch': False,
@@ -1085,7 +1098,10 @@ class StoG(object):
 
         # Get reciprocal and real space data
         if self.gr_title not in self.df_gr_master.columns:
-            print("WARNING: Fourier filtered before initial transform. Peforming now...")
+            msg = (
+                "WARNING: Fourier filtered before initial transform. "
+                "Peforming now...")
+            print(msg)
             self.transform_merged()
 
         r = self.df_gr_master[self.gr_title].index.values
@@ -1168,10 +1184,16 @@ class StoG(object):
             r, gr_lorch, _ = self.transformer.S_to_g(
                 q, sq, r, **{'lorch': True, 'rho': self.density})
         elif self.real_space_function == "G(r)":
-            r, gr_lorch, _ = self.transformer.S_to_G(q, sq, r, **{'lorch': True})
+            r, gr_lorch, _ = self.transformer.S_to_G(
+                q, sq, r, **{'lorch': True})
         elif self.real_space_function == "GK(r)":
             r, gr_lorch, _ = self.transformer.S_to_GK(
-                q, sq, r, **{'lorch': True, 'rho': self.density, '<b_coh>^2': self.bcoh_sqrd})
+                q, sq, r,
+                **{
+                    'lorch': True,
+                    'rho': self.density,
+                    '<b_coh>^2': self.bcoh_sqrd
+                })
 
         self.df_gr_master = self.add_to_dataframe(
             r, gr_lorch, self.df_gr_master, self.gr_lorch_title)
@@ -1389,7 +1411,8 @@ class StoG(object):
 
     def plot_summary_gr(self):
         """Helper function to multiplot the real space
-        functions during processing and the :math:`G_{Keen Version}(Q)` function.
+        functions during processing
+        and the :math:`G_{Keen Version}(Q)` function.
         """
         if self.GKofR_title not in self.df_gr_master.columns:
             r = self.df_gr_master[self.gr_title].index.values

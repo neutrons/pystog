@@ -53,7 +53,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
@@ -62,27 +62,36 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`g(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`Q[S(Q)-1]_{FF}`,
-                 :math:`Q`, :math:`Q[S(Q)-1]`, :math:`r_{FF}`, :math:`g(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`Q[S(Q)-1]_{FF}`,
+                    :math:`Q`,
+                    :math:`Q[S(Q)-1]`,
+                    :math:`r_{FF}`,
+                    :math:`g(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
         # setup qmin, qmax, and get low-r region to back transform
         qmin = min(q)
         qmax = max(q)
-        r_tmp, gr_tmp_initial, dgr_tmp_initial = self.transformer.apply_cropping(
+        r_tmp, gr_tmp_init, dgr_tmp_init = self.transformer.apply_cropping(
             r, gr, 0.0, cutoff, dy=dgr)
 
         # Shift low-r so it goes to 1 at "high-r" for this section. Reduces the
         # sinc function issue.
-        gr_tmp = gr_tmp_initial + 1
+        gr_tmp = gr_tmp_init + 1
 
         # Transform the shifted low-r region to F(Q) to get F(Q)_ft
-        q_ft, fq_ft, dfq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q, dgr=dgr_tmp_initial,
-                                                      **kwargs)
-        q_ft, fq_ft, dfq_ft = self.transformer.apply_cropping(q_ft, fq_ft, qmin, qmax, dy=dfq_ft)
+        q_ft, fq_ft, dfq_ft = self.transformer.g_to_F(
+            r_tmp, gr_tmp, q, dgr=dgr_tmp_init, **kwargs)
+
+        q_ft, fq_ft, dfq_ft = self.transformer.apply_cropping(
+            q_ft, fq_ft, qmin, qmax, dy=dfq_ft)
 
         # Subtract F(Q)_ft from original F(Q) = delta_F(Q)
-        q, fq, dfq = self.transformer.apply_cropping(q, fq, qmin, qmax, dy=dfq)
+        q, fq, dfq = self.transformer.apply_cropping(
+            q, fq, qmin, qmax, dy=dfq)
         fq = (fq - fq_ft)
         dfq = np.sqrt(dfq**2 + dfq_ft**2)
 
@@ -103,7 +112,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
@@ -135,7 +144,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`F(Q)` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
@@ -151,7 +160,8 @@ class FourierFilter:
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -168,7 +178,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and
@@ -187,7 +197,8 @@ class FourierFilter:
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q_ft, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr
 
@@ -204,7 +215,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
@@ -213,8 +224,14 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`Q[S(Q)-1]_{FF}`,
-                 :math:`Q`, :math:`Q[S(Q)-1]`, :math:`r_{FF}`, :math:`G_{PDFFIT}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`Q[S(Q)-1]_{FF}`,
+                    :math:`Q`,
+                    :math:`Q[S(Q)-1]`,
+                    :math:`r_{FF}`,
+                    :math:`G_{PDFFIT}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
         gr, dgr = self.converter.G_to_g(r, gr, dgr=dgr, **kwargs)
@@ -235,7 +252,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`S(Q)` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
@@ -244,8 +261,14 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`S(Q)_{FF}`,
-                 :math:`Q`, :math:`S(Q)`, :math:`r_{FF}`, :math:`G_{PDFFIT}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`S(Q)_{FF}`,
+                    :math:`Q`,
+                    :math:`S(Q)`,
+                    :math:`r_{FF}`,
+                    :math:`G_{PDFFIT}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
@@ -267,7 +290,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`F(Q)` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
@@ -276,14 +299,21 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`F(Q)_{FF}`,
-                 :math:`Q`, :math:`F(Q)`, :math:`r_{FF}`, :math:`G_{PDFFIT}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`F(Q)_{FF}`,
+                    :math:`Q`,
+                    :math:`F(Q)`,
+                    :math:`r_{FF}`,
+                    :math:`G_{PDFFIT}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -300,7 +330,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and
@@ -319,7 +349,8 @@ class FourierFilter:
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr
 
@@ -336,7 +367,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`Q[S(Q)-1]` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`Q[S(Q)-1]`
@@ -345,8 +376,14 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`Q[S(Q)-1]_{FF}`,
-                 :math:`Q`, :math:`Q[S(Q)-1]`, :math:`r_{FF}`, :math:`G_{Keen Version}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`Q[S(Q)-1]_{FF}`,
+                    :math:`Q`,
+                    :math:`Q[S(Q)-1]`,
+                    :math:`r_{FF}`,
+                    :math:`G_{Keen Version}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
 
@@ -368,7 +405,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`S(Q)` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`S(Q)`
@@ -377,8 +414,14 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`S(Q)_{FF}`,
-                 :math:`Q`, :math:`S(Q)`, :math:`r_{FF}`, :math:`G_{Keen Version}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`S(Q)_{FF}`,
+                    :math:`Q`,
+                    :math:`S(Q)`,
+                    :math:`r_{FF}`,
+                    :math:`G_{Keen Version}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
 
@@ -401,7 +444,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param fq: :math:`F(Q)` vector
         :type fq: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and :math:`F(Q)`
@@ -410,19 +453,27 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus,
-                 [:math:`Q_{FF}`, :math:`F(Q)_{FF}`,
-                 :math:`Q`, :math:`F(Q)`, :math:`r_{FF}`, :math:`G_{Keen Version}(r)_{FF}]`
+                 [
+                    :math:`Q_{FF}`,
+                    :math:`F(Q)_{FF}`,
+                    :math:`Q`,
+                    :math:`F(Q)`,
+                    :math:`r_{FF}`,
+                    :math:`G_{Keen Version}(r)_{FF}`
+                ]
         :rtype: tuple of numpy.array
         """
 
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
-    def GK_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None, **kwargs):
+    def GK_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None,
+                     **kwargs):
         """Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
@@ -435,7 +486,7 @@ class FourierFilter:
         :type q: numpy.array or list
         :param dcs: :math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector
         :type dcs: numpy.array or list
-        :param cutoff: The :math:`r_{max}` value to filter from 0. to this cutoff
+        :param cutoff: The :math:`r_{max}` value to filter from 0. to cutoff
         :type cutoff: float
 
         :return: A tuple of the :math:`Q` and
@@ -454,6 +505,7 @@ class FourierFilter:
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
         q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(
             r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
+            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr
