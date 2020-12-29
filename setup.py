@@ -47,7 +47,8 @@ setuptools.setup(
     author=",".join(authors),
     author_email="mcdonnellmt@ornl.gov",
     url="https://github.com/neutrons/pystog",
-    description="Transforms reciprocal and real space total scattering functions",
+    description=
+        "Transforms reciprocal and real space total scattering functions",
     long_description_content_type="text/markdown",
     license="GPL License (version 3)",
     packages=setuptools.find_packages(exclude=["fortran"]),
