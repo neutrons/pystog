@@ -1,0 +1,31 @@
+package:
+  name: pystog
+  version: 1.0.0
+
+build:
+  number: 1
+
+source:
+  path: ..
+
+requirements:
+  build:
+    - matplotlib
+    - numpy
+    - pandas
+  run:
+    - matplotlib
+    - numpy
+    - pandas
+
+about:
+  home: https://github.com/neutrons/pystog
+  license: GPL (version 3)
+  license_family: GPL3
+  license_file:
+  summary: Fourier transform engine for total scattering
+
+extra:
+  recipe-maintainers:
+    - Kvieta1990
+    - marshallmcdonnell
