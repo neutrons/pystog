@@ -142,7 +142,12 @@ class TestFourierFilterBase(unittest.TestCase):
 
     def GK_using_FK(self):
         q_ft, fq_ft, q, fq, r, gr, _, _, _ = self.ff.GK_using_FK(
-            self.r, self.GKofR, self.q, self.fq_keen, self.cutoff, **self.kwargs)
+            self.r,
+            self.GKofR,
+            self.q,
+            self.fq_keen,
+            self.cutoff,
+            **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
         assert_allclose(gr[first:last],
                         self.GKofR_ff_target,
