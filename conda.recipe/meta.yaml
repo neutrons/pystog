@@ -1,0 +1,42 @@
+{% set data = load_setup_py() %}
+
+package:
+  name: pystog
+  version: "{{ data['version'] }}"
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  string: py{{py}}
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - matplotlib
+    - numpy
+    - pandas
+  run:
+    - matplotlib
+    - numpy
+    - pandas
+
+test:
+  imports:
+    - pystog
+    - pystog.converter.Converter
+    - pystog.transformer.Transformer
+    - pystog.fourier_filter.FourierFilter
+
+about:
+  home: https://github.com/neutrons/pystog
+  license: GPL (version 3)
+  license_family: GPL3
+  license_file:
+  summary: "Transforms reciprocal and real space total scattering functions"
+
+extra:
+  recipe-maintainers:
+    - Kvieta1990
+    - marshallmcdonnell
