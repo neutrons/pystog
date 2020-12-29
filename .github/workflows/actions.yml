@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04]
+        os: [ubuntu-latest]
         python-version: ["3.6", "3.7", "3.8", "3.9"]
         
     steps:
@@ -30,7 +30,9 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install --file requirements.txt --file requirements-dev.txt
+          conda install pip
+          pip install tox-gh-actions
 
-      - name: Lint
+      - name: Lint and Test with Tox
         shell: bash -l {0}
-        run: flake8 . --count
+        run: tox
