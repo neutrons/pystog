@@ -16,8 +16,8 @@ TUTORIAL_DATA_DIR = os.path.join(TEST_DIR, "../tutorials/data")
 # General utility functions
 
 
-def multiplied_template(l):
-    return ('%f ' * len(l))[:-1] % tuple(l)
+def multiplied_template(num):
+    return ('%f ' * len(num))[:-1] % tuple(num)
 
 # Test data utility functions
 
