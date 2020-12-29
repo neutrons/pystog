@@ -1,12 +1,16 @@
+{% set data = load_setup_py() %}
+
 package:
   name: pystog
-  version: 1.0.0
-
-build:
-  number: 1
+  version: "{{ data['version'] }}"
 
 source:
   path: ..
+
+build:
+  noarch: python
+  string: py{{py}}
+  script: python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
   build:
@@ -18,12 +22,19 @@ requirements:
     - numpy
     - pandas
 
+test:
+  imports:
+    - pystog
+    - pystog.converter.Converter
+    - pystog.transformer.Transformer
+    - pystog.fourier_filter.FourierFilter
+
 about:
   home: https://github.com/neutrons/pystog
   license: GPL (version 3)
   license_family: GPL3
   license_file:
-  summary: Fourier transform engine for total scattering
+  summary: "Transforms reciprocal and real space total scattering functions"
 
 extra:
   recipe-maintainers:
