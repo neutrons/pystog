@@ -109,7 +109,7 @@ class TestStogBase(unittest.TestCase):
                         'Scale': 1.0},
                     'X': {
                         'Offset': 0.0}
-                 }
+                }
             ]
         }
 
@@ -807,13 +807,13 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-                stog.df_gr_master.iloc[self.real_space_first].name,
-                self.real_xtarget,
-                places=places)
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
         self.assertAlmostEqual(
-                stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
-                self.gofr_ff_target[0],
-                places=places)
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+            self.gofr_ff_target[0],
+            places=places)
 
     def test_stog_fourier_filter_before_transform_merged_call(self):
         # Number of decimal places for precision
