@@ -169,10 +169,10 @@ class TestStogInit(TestStogBase):
                 "Y": {
                     "Offset": 0.0, "Scale": 1.0}})
         self.assertEqual(stog.stem_name, "out")
-        self.assertTrue(stog.df_individuals.empty)
-        self.assertTrue(stog.df_sq_master.empty)
-        self.assertTrue(stog.df_sq_individuals.empty)
-        self.assertTrue(stog.df_gr_master.empty)
+        self.assertEqual(stog.df_individuals.size, 0)
+        self.assertEqual(stog.df_sq_master, {})
+        self.assertEqual(stog.df_sq_individuals.size, 0)
+        self.assertEqual(stog.df_gr_master, {})
 
     def test_stog_init_kwargs_files(self):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
@@ -421,80 +421,79 @@ class TestStogDatasetSpecificMethods(TestStogBase):
                        '<b_tot^2>': self.kwargs['<b_tot^2>']})
 
         # Add the S(Q) data set and check values against targets
-        index = 0
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'data': [self.q, self.sq],
             'ReciprocalFunction': 'S(Q)'}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertEqual(
-            stog.df_individuals.iloc[self.first].name, self.reciprocal_xtarget)
+            stog.df_individuals[0][self.first],
+            self.reciprocal_xtarget)
         self.assertAlmostEqual(
-            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_individuals[1][self.first],
             self.sq_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the Q[S(Q)-1] data set and check values for it and S(Q) against
         # targets
-        index = 1
+        stride = stog.df_individuals.shape[1]
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.fq}),
+            'data': [self.q, self.fq],
             'ReciprocalFunction': 'Q[S(Q)-1]'
         }
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals.iloc[self.first]['Q[S(Q)-1]_%d' % index],
+            stog.df_individuals[1][self.first + stride],
             self.fq_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the FK(Q) data set and check values for it and S(Q) against
         # targets
-        index = 2
+        stride = stog.df_individuals.shape[1]
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.fq_keen}),
+            'data': [self.q, self.fq_keen],
             'ReciprocalFunction': 'FK(Q)'}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals.iloc[self.first]['FK(Q)_%d' % index],
+            stog.df_individuals[1][self.first + stride],
             self.fq_keen_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the DCS(Q) data set and check values for it and S(Q) against
         # targets
-        index = 3
+        stride = stog.df_individuals.shape[1]
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.dcs}),
+            'data': [self.q, self.dcs],
             'ReciprocalFunction': 'DCS(Q)'}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals.iloc[self.first]['DCS(Q)_%d' % index],
+            stog.df_individuals[1][self.first + stride],
             self.dcs_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
     def test_stog_add_dataset_yscale(self):
         # Scale S(Q) and make sure it does not equal original target values
         stog = StoG()
-        index = 0
         info = {
             'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
             'ReciprocalFunction': 'S(Q)',
             'Y': {'Scale': 2.0}}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertNotEqual(
             stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
             self.sq_target[0])
@@ -505,12 +504,11 @@ class TestStogDatasetSpecificMethods(TestStogBase):
     def test_stog_add_dataset_yoffset(self):
         # Offset S(Q) and make sure it does not equal original target values
         stog = StoG()
-        index = 0
         info = {
             'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
             'ReciprocalFunction': 'S(Q)',
             'Y': {'Offset': 2.0}}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertNotEqual(
             stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
             self.sq_target[0])
@@ -521,23 +519,21 @@ class TestStogDatasetSpecificMethods(TestStogBase):
     def test_stog_add_dataset_xoffset(self):
         # Offset Q from 1.96 -> 2.14
         stog = StoG()
-        index = 0
         info = {
             'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
             'ReciprocalFunction': 'S(Q)',
             'X': {'Offset': 0.2}}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertEqual(stog.df_individuals.iloc[self.first].name, 2.14)
 
     def test_stog_add_dataset_qmin_qmax_crop(self):
         # Check qmin and qmax apply cropping
         stog = StoG()
-        index = 0
         info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
                 'ReciprocalFunction': 'S(Q)'}
         stog.qmin = 1.5
         stog.qmax = 12.0
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertEqual(stog.df_individuals.iloc[0].name, stog.qmin)
         self.assertEqual(stog.df_individuals.iloc[-1].name, stog.qmax)
 
@@ -545,9 +541,8 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         # Checks the default reciprocal space function is S(Q) and the index is
         # set
         stog = StoG()
-        index = 300
         info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq})}
-        stog.add_dataset(info, index=index)
+        stog.add_dataset(info)
         self.assertEqual(
             list(
                 stog.df_individuals.columns.values), [
@@ -557,11 +552,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
     def test_stog_add_dataset_wrong_reciprocal_space_function_exception(self):
         # Check qmin and qmax apply cropping
         stog = StoG()
-        index = 0
         info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
                 'ReciprocalFunction': 'ABCDEFG(Q)'}
         with self.assertRaises(ValueError):
-            stog.add_dataset(info, index=index)
+            stog.add_dataset(info)
 
     def test_stog_read_dataset(self):
         # Number of decimal places for precision
@@ -651,6 +645,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.merge_data()
 
         # Check S(Q) data against targets
+        self.assertEqual(0, 1)
         self.assertEqual(
             stog.df_q_master[stog.sq_title][self.first],
             self.reciprocal_xtarget)
