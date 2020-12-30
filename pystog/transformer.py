@@ -149,7 +149,8 @@ class Transformer:
         :type xmax: float
         :param dyin: uncertainty vector for yin
         :type dyin: numpy.array or list
-        :return: vector pair of transformed domain, range vectors, and uncertainties
+        :return: vector pair of transformed domain, range vectors,
+                 and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
 
@@ -496,7 +497,8 @@ class Transformer:
         :param dgr: :math:`G_{PDFFIT}(r)` uncertainties
         :type dgr: numpy.array or list
 
-        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`, and uncertainties
+        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
+                 and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
         q, fq, dfq = self.G_to_F(r, gr, q, dgr=dgr, **kwargs)
@@ -574,7 +576,8 @@ class Transformer:
         :param dgr: :math:`G_{Keen Version}(r)` uncertainties
         :type dgr: numpy.array or list
 
-        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`, and uncertainties
+        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
+                 and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
         _gr, _dgr = self.converter.GK_to_G(r, gr, dgr=dgr, **kwargs)
@@ -651,7 +654,8 @@ class Transformer:
         :param dgr: :math:`g(r)` uncertainties
         :type dgr: numpy.array or list
 
-        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`, and uncertainties
+        :return: :math:`Q`, :math:`\\frac{d \\sigma}{d \\Omega}(Q)`,
+                 and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
         _gr, _dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)

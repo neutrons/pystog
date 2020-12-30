@@ -85,22 +85,31 @@ class TestStogBase(unittest.TestCase):
         filename = self.material.reciprocal_space_filename
         self.kwargs_for_files = {
             'Files': [
-                {'Filename': get_data_path(filename),
-                 'ReciprocalFunction': 'S(Q)',
-                 'Qmin': 0.02,
-                 'Qmax': 15.0,
-                 'Y': {'Offset': 0.0,
-                       'Scale': 1.0},
-                 'X': {'Offset': 0.0}
-                 },
-                {'Filename': get_data_path(self.material.reciprocal_space_filename),
-                 'ReciprocalFunction': 'S(Q)',
-                 'Qmin': 1.90,
-                 'Qmax': 35.2,
-                 'Y': {'Offset': 0.0,
-                       'Scale': 1.0},
-                 'X': {'Offset': 0.0}
-                 }
+                {
+                    'Filename': get_data_path(filename),
+                    'ReciprocalFunction': 'S(Q)',
+                    'Qmin': 0.02,
+                    'Qmax': 15.0,
+                    'Y': {
+                        'Offset': 0.0,
+                        'Scale': 1.0
+                    },
+                    'X': {
+                        'Offset': 0.0
+                    }
+                },
+                {
+                    'Filename':
+                        get_data_path(self.material.reciprocal_space_filename),
+                    'ReciprocalFunction': 'S(Q)',
+                    'Qmin': 1.90,
+                    'Qmax': 35.2,
+                    'Y': {
+                        'Offset': 0.0,
+                        'Scale': 1.0},
+                    'X': {
+                        'Offset': 0.0}
+                }
             ]
         }
 
@@ -324,11 +333,12 @@ class TestStogAttributes(TestStogBase):
 
     def test_stog_plotting_kwargs_setter(self):
         stog = StoG()
-        new_kwargs = {'figsize': (4, 4),
-                      'style': 'o',
-                      'ms': 2,
-                      'lw': 2,
-                      }
+        new_kwargs = {
+            'figsize': (4, 4),
+            'style': 'o',
+            'ms': 2,
+            'lw': 2,
+        }
         stog.plotting_kwargs = new_kwargs
         self.assertEqual(stog.plotting_kwargs, new_kwargs)
 
@@ -412,90 +422,110 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
         # Add the S(Q) data set and check values against targets
         index = 0
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
-                'ReciprocalFunction': 'S(Q)'}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'ReciprocalFunction': 'S(Q)'}
         stog.add_dataset(info, index=index)
         self.assertEqual(
             stog.df_individuals.iloc[self.first].name, self.reciprocal_xtarget)
-        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
-                               self.sq_target[0],
-                               places=places)
-        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0],
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0],
+            places=places)
 
         # Add the Q[S(Q)-1] data set and check values for it and S(Q) against
         # targets
         index = 1
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.fq}),
-                'ReciprocalFunction': 'Q[S(Q)-1]'}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.fq}),
+            'ReciprocalFunction': 'Q[S(Q)-1]'
+        }
         stog.add_dataset(info, index=index)
-        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['Q[S(Q)-1]_%d' % index],
-                               self.fq_target[0],
-                               places=places)
-        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_individuals.iloc[self.first]['Q[S(Q)-1]_%d' % index],
+            self.fq_target[0],
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0],
+            places=places)
 
         # Add the FK(Q) data set and check values for it and S(Q) against
         # targets
         index = 2
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.fq_keen}),
-                'ReciprocalFunction': 'FK(Q)'}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.fq_keen}),
+            'ReciprocalFunction': 'FK(Q)'}
         stog.add_dataset(info, index=index)
-        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['FK(Q)_%d' % index],
-                               self.fq_keen_target[0],
-                               places=places)
-        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_individuals.iloc[self.first]['FK(Q)_%d' % index],
+            self.fq_keen_target[0],
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0],
+            places=places)
 
         # Add the DCS(Q) data set and check values for it and S(Q) against
         # targets
         index = 3
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.dcs}),
-                'ReciprocalFunction': 'DCS(Q)'}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.dcs}),
+            'ReciprocalFunction': 'DCS(Q)'}
         stog.add_dataset(info, index=index)
-        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['DCS(Q)_%d' % index],
-                               self.dcs_target[0],
-                               places=places)
-        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_individuals.iloc[self.first]['DCS(Q)_%d' % index],
+            self.dcs_target[0],
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0],
+            places=places)
 
     def test_stog_add_dataset_yscale(self):
         # Scale S(Q) and make sure it does not equal original target values
         stog = StoG()
         index = 0
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
-                'ReciprocalFunction': 'S(Q)',
-                'Y': {'Scale': 2.0}}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'ReciprocalFunction': 'S(Q)',
+            'Y': {'Scale': 2.0}}
         stog.add_dataset(info, index=index)
-        self.assertNotEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
-                            self.sq_target[0])
-        self.assertNotEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                            self.sq_target[0])
+        self.assertNotEqual(
+            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0])
+        self.assertNotEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0])
 
     def test_stog_add_dataset_yoffset(self):
         # Offset S(Q) and make sure it does not equal original target values
         stog = StoG()
         index = 0
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
-                'ReciprocalFunction': 'S(Q)',
-                'Y': {'Offset': 2.0}}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'ReciprocalFunction': 'S(Q)',
+            'Y': {'Offset': 2.0}}
         stog.add_dataset(info, index=index)
-        self.assertNotEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
-                            self.sq_target[0])
-        self.assertNotEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                            self.sq_target[0])
+        self.assertNotEqual(
+            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0])
+        self.assertNotEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            self.sq_target[0])
 
     def test_stog_add_dataset_xoffset(self):
         # Offset Q from 1.96 -> 2.14
         stog = StoG()
         index = 0
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
-                'ReciprocalFunction': 'S(Q)',
-                'X': {'Offset': 0.2}}
+        info = {
+            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'ReciprocalFunction': 'S(Q)',
+            'X': {'Offset': 0.2}}
         stog.add_dataset(info, index=index)
         self.assertEqual(stog.df_individuals.iloc[self.first].name, 2.14)
 
@@ -558,12 +588,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         # Check S(Q) data against targets
         self.assertEqual(
             stog.df_individuals.iloc[self.first].name, self.reciprocal_xtarget)
-        self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
-                               self.sq_target[0],
-                               places=places)
-        self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
+            self.sq_target[0],
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % info['index']],
+            self.sq_target[0],
+            places=places)
 
     def test_stog_read_all_data_assertion(self):
         stog = StoG()
@@ -581,7 +613,9 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.read_all_data()
 
         # Check S(Q) data against targets
-        self.assertEqual(len(stog.files), len(self.kwargs_for_files['Files']))
+        self.assertEqual(
+            len(stog.files),
+            len(self.kwargs_for_files['Files']))
 
     def test_stog_read_all_data(self):
         # Number of decimal places for precision
@@ -596,12 +630,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         self.assertEqual(
             stog.df_individuals.iloc[self.first].name, self.reciprocal_xtarget)
         for index in range(len(stog.files)):
-            self.assertAlmostEqual(stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
-                                   self.sq_target[0],
-                                   places=places)
-            self.assertAlmostEqual(stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
-                                   self.sq_target[0],
-                                   places=places)
+            self.assertAlmostEqual(
+                stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+                self.sq_target[0],
+                places=places)
+            self.assertAlmostEqual(
+                stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+                self.sq_target[0],
+                places=places)
 
     def test_stog_merge_data(self):
         # Number of decimal places for precision
@@ -616,9 +652,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         # Check S(Q) data against targets
         self.assertEqual(
             stog.df_sq_master.iloc[self.first].name, self.reciprocal_xtarget)
-        self.assertAlmostEqual(stog.df_sq_master.iloc[self.first][stog.sq_title],
-                               self.sq_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_sq_master.iloc[self.first][stog.sq_title],
+            self.sq_target[0],
+            places=places)
 
     def test_stog_merge_data_qsq_opts_scale(self):
         # Number of decimal places for precision
@@ -674,24 +711,28 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
-                               self.gofr_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+            self.gofr_target[0],
+            places=places)
 
         # Test if no dr defined
         stog.dr = None
         stog.transform_merged()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
-                               self.gofr_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+            self.gofr_target[0],
+            places=places)
 
     def test_stog_transform_merged_GofR(self):
         # Number of decimal places for precision
@@ -706,12 +747,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
 
         # Check G(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
-                               self.GofR_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+            self.GofR_target[0],
+            places=places)
 
     def test_stog_transform_merged_GKofR(self):
         # Number of decimal places for precision
@@ -726,12 +769,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
 
         # Check GK(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
-                               self.GKofR_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_title],
+            self.GKofR_target[0],
+            places=places)
 
     def test_stog_transform_merged_for_nan_after_filter(self):
         # Load S(Q) for Argon from test data
@@ -761,12 +806,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.fourier_filter()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
-                               self.gofr_ff_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+            self.gofr_ff_target[0],
+            places=places)
 
     def test_stog_fourier_filter_before_transform_merged_call(self):
         # Number of decimal places for precision
@@ -781,12 +828,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.fourier_filter()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
-                               self.gofr_ff_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+            self.gofr_ff_target[0],
+            places=places)
 
     def test_stog_fourier_filter_GofR(self):
         # Number of decimal places for precision
@@ -803,12 +852,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.fourier_filter()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
-                               self.GofR_ff_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+            self.GofR_ff_target[0],
+            places=places)
 
     def test_stog_fourier_filter_GKofR(self):
         # Number of decimal places for precision
@@ -825,12 +876,14 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.fourier_filter()
 
         # Check g(r) data against targets
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first].name,
-                               self.real_xtarget,
-                               places=places)
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
-                               self.GKofR_ff_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first].name,
+            self.real_xtarget,
+            places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_ft_title],
+            self.GKofR_ff_target[0],
+            places=places)
 
     @patch("matplotlib.pyplot.show")
     def test_stog_fourier_filter_with_plot_flag(self, mock_show):
@@ -877,9 +930,10 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         q, sq, r, gr = stog.fourier_filter()
         stog.apply_lorch(q, sq, r)
 
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
-                               self.gofr_lorch_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
+            self.gofr_lorch_target[0],
+            places=places)
 
     def test_stog_apply_lorch_GofR(self):
         # Number of decimal places for precision
@@ -896,9 +950,10 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         q, sq, r, gr = stog.fourier_filter()
         stog.apply_lorch(q, sq, r)
 
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
-                               self.GofR_lorch_target[0],
-                               places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
+            self.GofR_lorch_target[0],
+            places=places)
 
     def test_stog_apply_lorch_GKofR(self):
         # Number of decimal places for precision
@@ -915,8 +970,9 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         q, sq, r, gr = stog.fourier_filter()
         stog.apply_lorch(q, sq, r)
 
-        self.assertAlmostEqual(stog.df_gr_master.iloc[self.real_space_first][
-                               stog.gr_lorch_title], self.GKofR_lorch_target[0], places=places)
+        self.assertAlmostEqual(
+            stog.df_gr_master.iloc[self.real_space_first][stog.gr_lorch_title],
+            self.GKofR_lorch_target[0], places=places)
 
     @patch("matplotlib.pyplot.show")
     def test_stog_apply_lorch_with_plot_flag(self, mock_show):

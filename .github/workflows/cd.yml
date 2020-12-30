@@ -1,0 +1,40 @@
+name: pystog_cd
+
+env: {}
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+        
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: 3.7
+          channels: conda-forge
+
+      - name: Build Python package and Upload to PyPi
+        shell: bash -l {0}
+        env: 
+            PYPI_TOKEN_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip install wheel twine
+          python setup.py sdist bdist_wheel
+          twine upload --username "__token__" --password $PYPI_TOKEN_PASSWORD dist/*
+
+      - name: Build conda package and upload to Anaconda
+        shell: bash -l {0}
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        run: |
+          conda install -y anaconda-client conda-build conda-verify
+          cd conda.recipe
+          conda build --output-folder . .
+          anaconda upload --label main noarch/*.tar.bz2

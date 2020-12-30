@@ -1,4 +1,4 @@
-{% set data = load_setup_py() %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: pystog
@@ -25,9 +25,6 @@ requirements:
 test:
   imports:
     - pystog
-    - pystog.converter.Converter
-    - pystog.transformer.Transformer
-    - pystog.fourier_filter.FourierFilter
 
 about:
   home: https://github.com/neutrons/pystog

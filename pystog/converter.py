@@ -86,7 +86,8 @@ class Converter:
         :param dfq: uncertainty vector
         :type dfq: numpy.array or list
 
-        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector,
+                 uncertainty vector)
         :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.F_to_FK(q, fq, dfq, **kwargs)
@@ -138,7 +139,8 @@ class Converter:
         :param dsq: uncertainty vector
         :type dsq: numpy.array or list
 
-        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector,
+                 uncertainty vector)
         :rtype: (numpy.array, numpy.array)
         """
         fq, dfq = self.S_to_FK(q, sq, dsq, **kwargs)
@@ -189,7 +191,8 @@ class Converter:
         :param dfq: uncertainty vector
         :type dfq: numpy.array or list
 
-        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector, uncertainty vector)
+        :return: (:math:`\\frac{d \\sigma}{d \\Omega}(Q)` vector,
+                 uncertainty vector)
         :rtype: (numpy.array, numpy.array)
         """
         return fq + kwargs['<b_tot^2>'], dfq
