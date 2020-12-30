@@ -4,8 +4,6 @@ env: {}
 
 on:
   push:
-    branches:
-      - '*'
     tags:
       - 'v*'
 
@@ -21,9 +19,12 @@ jobs:
           python-version: 3.7 
           channels: conda-forge
 
-      - name: Deploy to Anaconda 
+      - name: Build conda package and deploy to Anaconda
         shell: bash -l {0}
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
         run: |
           conda install -y anaconda-client conda-build conda-verify
           cd conda.recipe
-          conda build --output-folder . . 
+          conda build --output-folder . .
+          anaconda upload --label main noarch/*.tar.bz2
