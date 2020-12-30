@@ -8,23 +8,13 @@ that tries to replicate the previous
 stog program behavior in an organized fashion
 with the ability to re-construct the workflow.
 """
-
 import json
 import numpy as np
-import pandas as pd
 
 from pystog.utils import create_domain, RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
 from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
-
-# Required for non-display environment (i.e. Travis-CI)
-import os
-import matplotlib as mpl
-if os.environ.get('DISPLAY', '') == '':
-    print('no display found. Using non-interactive Agg backend')
-    mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa: E402
 
 
 class StoG(object):
@@ -84,8 +74,8 @@ class StoG(object):
         self.__stem_name = "out"
 
         # DataFrames for total scattering functions
-        self.__df_individuals = np.empty([3,0])
-        self.__df_sq_individuals = np.empty([3,0])
+        self.__df_individuals = np.empty([3, 0])
+        self.__df_sq_individuals = np.empty([3, 0])
         self.__df_q_master = {}
         self.__df_sq_master = {}
         self.__df_r_master = {}
@@ -818,13 +808,14 @@ class StoG(object):
         :param skiprows: Number of rows to skip. Passed to pandas.read_csv
         :type skiprows: int
         """
-        _data = np.loadtxt(info['Filename'],
-                          skiprows=skiprows,
-                          comments='#',
-                          unpack=True)
+        _data = np.loadtxt(
+            info['Filename'],
+            skiprows=skiprows,
+            comments='#',
+            unpack=True)
         if _data.shape[0] <= xcol or _data.shape[0] <= ycol:
             raise RuntimeError("Data format incompatible with input parameters")
-        if _data.shape[0] <= dycol: 
+        if _data.shape[0] <= dycol:
             data = np.stack((_data[xcol], _data[ycol], np.zeros_like(_data[ycol])))
         else:
             data = np.stack((_data[xcol], _data[ycol], _data[dycol]))
@@ -931,8 +922,8 @@ class StoG(object):
             y, dy = self.converter.DCS_to_S(x, y, ddcs=dy,
                                             **{'<b_coh>^2': self.bcoh_sqrd,
                                                '<b_tot^2>': self.btot_sqrd})
-
-        self.df_sq_individuals = np.concatenate((self.df_sq_individuals, np.stack((x, y, dy))), axis=1)
+        array_seq = (self.df_sq_individuals, np.stack((x, y, dy)))
+        self.df_sq_individuals = np.concatenate(array_seq, axis=1)
 
     def _apply_scales_and_offset(
             self,
@@ -1026,12 +1017,12 @@ class StoG(object):
 
         # At this point we have a concatenated array of data
         # We need to sort according to Q first
-        #TODO: this is ugly but works for now.
+        # TODO: this is ugly but works for now.
         _x = self.df_sq_individuals[0]
         _y = self.df_sq_individuals[1]
         _dy = self.df_sq_individuals[2]
         zipped = zip(_x, _y, _dy)
-        ordered = sorted(zipped, key=lambda a:a[0])
+        ordered = sorted(zipped, key=lambda a: a[0])
         _x, _y, _dy = zip(*ordered)
         self.df_sq_individuals = np.stack((np.asarray(_x),
                                           np.asarray(_y),
@@ -1046,13 +1037,19 @@ class StoG(object):
                 _n_err += item[2]**2
             else:
                 if _n_total > 0:
-                    data_merged.append([_previous_x, _n_sum/_n_total, np.sqrt(_n_err)/_n_total])
+                    data_merged.append([
+                        _previous_x,
+                        _n_sum / _n_total,
+                        np.sqrt(_n_err) / _n_total])
                 _n_total = 1.
                 _n_sum = item[1]
                 _n_err = item[2]**2
             _previous_x = item[0]
         if _n_total > 0:
-            data_merged.append([_previous_x, _n_sum/_n_total, np.sqrt(_n_err)/_n_total])
+            data_merged.append([
+                _previous_x,
+                _n_sum / _n_total,
+                np.sqrt(_n_err) / _n_total])
 
         data_merged = np.asarray(data_merged).T
 
@@ -1188,21 +1185,6 @@ class StoG(object):
         self.df_gr_master[self.gr_ft_title] = gr
         self.write_out_ft_gr()
 
-        # Plot results
-        if self.plot_flag:
-            exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
-            self.plot_sq(
-                ylabel="FourierFilter(Q)",
-                title="Fourier Transform of the low-r region below cutoff",
-                exclude_list=exclude_list)
-            exclude_list = [self.qsq_minus_one_title]
-            self.plot_sq(
-                title="Fourier Filtered S(Q)",
-                exclude_list=exclude_list)
-            self.plot_gr(
-                title="Fourier Filtered %s" %
-                self.real_space_function)
-
         return q, sq, r, gr
 
     def apply_lorch(self, q, sq, r):
@@ -1242,14 +1224,9 @@ class StoG(object):
                     '<b_coh>^2': self.bcoh_sqrd
                 })
 
-        self.df_gr_master = self.add_to_dataframe(
-            r, gr_lorch, self.df_gr_master, self.gr_lorch_title)
+        self.df_gr_master[self.gr_lorch_title] = gr_lorch
+        self.df_r_master[self.gr_lorch_title] = r
         self.write_out_lorched_gr()
-
-        if self.plot_flag:
-            self.plot_gr(
-                title="Lorched %s" %
-                self.real_space_function)
 
         return r, gr_lorch
 
@@ -1265,7 +1242,7 @@ class StoG(object):
         """
         # TODO: Automate the :math:`Q_{max}` adjustment in an iterative loop
         # using a minimizer.
-        gr = self.df_gr_master[self.gr_title].values
+        gr = self.df_gr_master[self.gr_title]
         return self._lowR_mean_square(self.dr, gr)
 
     def _lowR_mean_square(self, r, gr, limit=1.01):
@@ -1303,8 +1280,8 @@ class StoG(object):
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         fq, dfq = self.converter.S_to_FK(q, sq, **kwargs)
-        self.df_sq_master = self.add_to_dataframe(
-            q, fq, self.df_sq_master, self.fq_title)
+        self.df_sq_master[self.fq_title] = fq
+        self.df_q_master[self.fq_title] = q
         self.write_out_rmc_fq()
 
     def _add_keen_gr(self, r, gr):
@@ -1325,101 +1302,30 @@ class StoG(object):
         elif self.real_space_function == "GK(r)":
             GKofR = gr
 
-        self.df_gr_master = self.add_to_dataframe(
-            r, GKofR, self.df_gr_master, self.GKofR_title)
+        self.df_gr_master[self.GKofR_title] = GKofR
+        self.df_r_master[self.GKofR_title] = r
         self.write_out_rmc_gr()
 
     # -------------------------------------#
-    # Plot Utilities
-
-    def _plot_df(self, df, xlabel, ylabel, title, exclude_list):
-        """Utility function to help plot a DataFrame
-
-        :param df: DataFrame to plot
-        :type df: pandas.DataFrame
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame **df** to exclude from plot
-        :type exclude_list: list of str
-        """
-        if exclude_list:
-            columns_diff = df.columns.difference(exclude_list)
-            columns_diff_ids = df.columns.get_indexer(columns_diff)
-            df = df.iloc[:, columns_diff_ids]
-        df.plot(**self.plotting_kwargs)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-        plt.show()
-
-    def plot_sq(self, xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
-        """Helper function to plot the :math:`S(Q)` functions
-        in the "master" DataFrame, **df_sq_master**.
-
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame to exclude from plot
-        :type exclude_list: list of str
-        """
-        df_sq = self.df_sq_master
-        self._plot_df(df_sq, xlabel, ylabel, title, exclude_list)
-
-    # -------------------------------------#
     # Output Utilities
+    def _write_out_to_file(self, x, y, filename, places=12):
+        """Helper function for writing out X Y data
+        to the filename in the RMCProfile format.
 
-    def add_to_dataframe(self, x, y, df, title):
-        """Takes X,Y dataset and adds it to the given Datframe **df**,
-        with the given **title**. Utility function for updating
-        the class DataFrames.
-
-        :param x: X-axis vector
-        :type x: numpy.array or list
-        :param y: Y-axis vector
-        :type y: numpy.array or list
-        :param df: DataFrame to append (**x**, **y**) pair to as a column
-        :type df: pandas.DataFrame
-        :param title: The title of the column in the DataFrame
-        :type title: str
-        :return: DataFrame with X,Y data appended with given title
-        :rtype: pandas.DataFrame
-        """
-        df_temp = pd.DataFrame(y, columns=[title], index=x)
-        if title in df.columns:
-            df[title] = df_temp[title]
-            return df
-        df = pd.concat([df, df_temp], axis=1)
-        return df
-
-    def _write_out_df(self, df, cols, filename):
-        """Helper function for writing out the DataFrame **df**
-        and the given columns, **cols**, to the filename in
-        the RMCProfile format.
-
-        :param df: DataFrame to write from to filename
-        :type df: pandas.DataFrame
-        :param cols: Column title list for columns to write out
-        :type cols: List of str
+        :param x: X data to write out
+        :type x: list
+        :param y: Y data to write out
+        :type y: list
         :param filename: Filename to write to
         :type filename: str
         """
-        if df.empty:
-            raise ValueError("Empty dataframe. Cannot write out.")
-
         with open(filename, 'w') as f:
-            f.write("%d \n" % df.shape[0])
+            f.write("%d \n" % len(x))
             f.write("# Comment line\n")
         with open(filename, 'a') as f:
-            df.to_csv(f, sep='\t', columns=cols, header=False)
+            for i, j in zip(x, y):
+                fmt = "{:.{places}f} {:.{places}f}\n"
+                f.write(fmt.format(i, j, places=places))
 
     def write_out_merged_sq(self, filename=None):
         """Helper function for writing out the merged :math:`S(Q)`
@@ -1429,7 +1335,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_title], filename)
+        x = self.df_q_master[self.sq_title]
+        y = self.df_sq_master[self.sq_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_merged_gr(self, filename=None):
         """Helper function for writing out the merged real space function
@@ -1439,7 +1347,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_title], filename)
+        x = self.df_r_master[self.gr_title]
+        y = self.df_gr_master[self.gr_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft(self, filename=None):
         """Helper function for writing out the Fourier filter correction.
@@ -1449,7 +1359,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "ft.dat"
-        self._write_out_df(self.df_sq_master, [self._ft_title], filename)
+        x = self.df_q_master[self._ft_title]
+        y = self.df_sq_master[self._ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft_sq(self, filename=None):
         """Helper function for writing out the Fourier filtered :math:`S(Q)`
@@ -1459,7 +1371,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
+        x = self.df_q_master[self.sq_ft_title]
+        y = self.df_sq_master[self.sq_ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft_gr(self, filename=None):
         """Helper function for writing out the Fourier filtered real space function
@@ -1469,7 +1383,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
+        x = self.df_r_master[self.gr_ft_title]
+        y = self.df_gr_master[self.gr_ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_lorched_gr(self, filename=None):
         """Helper function for writing out the Lorch dampened real space function
@@ -1479,7 +1395,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft_lorched.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
+        x = self.df_r_master[self.gr_lorch_title]
+        y = self.df_gr_master[self.gr_lorch_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_fq(self, filename=None):
         """Helper function for writing out the output :math:`F(Q)`
@@ -1489,7 +1407,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.fq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.fq_title], filename)
+        x = self.df_q_master[self.fq_title]
+        y = self.df_sq_master[self.fq_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_gr(self, filename=None):
         """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
@@ -1499,4 +1419,6 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.GKofR_title], filename)
+        x = self.df_r_master[self.GKofR_title]
+        y = self.df_gr_master[self.GKofR_title]
+        self._write_out_to_file(x, y, filename)
