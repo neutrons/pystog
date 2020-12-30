@@ -8,12 +8,10 @@ Requirements
 * Python (2.7, 3.5, 3.6 are tested)
 * matplotlib_
 * numpy_
-* pandas_
 
 
 .. _matplotlib: https://matplotlib.org/
 .. _numpy: http://www.numpy.org/
-.. _pandas: http://pandas.pydata.org/
 
 
 

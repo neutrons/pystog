@@ -16,11 +16,9 @@ requirements:
   build:
     - matplotlib
     - numpy
-    - pandas
   run:
     - matplotlib
     - numpy
-    - pandas
 
 test:
   imports:
