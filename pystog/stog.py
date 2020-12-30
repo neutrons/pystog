@@ -791,7 +791,6 @@ class StoG(object):
         assert len(self.files) != 0
 
         for i, file_info in enumerate(self.files):
-            file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
 
     def read_dataset(
@@ -830,12 +829,11 @@ class StoG(object):
         else:
             data = np.stack((_data[xcol], _data[ycol], _data[dycol]))
         info['data'] = data
-        self.add_dataset(info, index=info['index'], **kwargs)
+        self.add_dataset(info, **kwargs)
 
     def add_dataset(
             self,
             info,
-            index=0,
             yscale=1.,
             yoffset=0.,
             xoffset=0.,
@@ -848,8 +846,6 @@ class StoG(object):
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
         :type info: dict
-        :param index: Index of the added reciprocal space function dataset
-        :type index: int
         :param yscale: Scale factor for the Y data
                        (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
         :type yscale: float
