@@ -490,69 +490,71 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         # Scale S(Q) and make sure it does not equal original target values
         stog = StoG()
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'data': [self.q, self.sq],
             'ReciprocalFunction': 'S(Q)',
             'Y': {'Scale': 2.0}}
         stog.add_dataset(info)
         self.assertNotEqual(
-            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_individuals[1][self.first],
             self.sq_target[0])
         self.assertNotEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0])
 
     def test_stog_add_dataset_yoffset(self):
         # Offset S(Q) and make sure it does not equal original target values
         stog = StoG()
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'data': [self.q, self.sq],
             'ReciprocalFunction': 'S(Q)',
             'Y': {'Offset': 2.0}}
         stog.add_dataset(info)
         self.assertNotEqual(
-            stog.df_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_individuals[1][self.first],
             self.sq_target[0])
         self.assertNotEqual(
-            stog.df_sq_individuals.iloc[self.first]['S(Q)_%d' % index],
+            stog.df_sq_individuals[1][self.first],
             self.sq_target[0])
 
     def test_stog_add_dataset_xoffset(self):
         # Offset Q from 1.96 -> 2.14
         stog = StoG()
         info = {
-            'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+            'data': [self.q, self.sq],
             'ReciprocalFunction': 'S(Q)',
             'X': {'Offset': 0.2}}
         stog.add_dataset(info)
-        self.assertEqual(stog.df_individuals.iloc[self.first].name, 2.14)
+        self.assertEqual(stog.df_individuals[0][self.first], 2.14)
 
     def test_stog_add_dataset_qmin_qmax_crop(self):
         # Check qmin and qmax apply cropping
         stog = StoG()
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+        info = {'data': [self.q, self.sq],
                 'ReciprocalFunction': 'S(Q)'}
         stog.qmin = 1.5
         stog.qmax = 12.0
         stog.add_dataset(info)
-        self.assertEqual(stog.df_individuals.iloc[0].name, stog.qmin)
-        self.assertEqual(stog.df_individuals.iloc[-1].name, stog.qmax)
+        self.assertEqual(stog.df_individuals[0][0], stog.qmin)
+        self.assertEqual(stog.df_individuals[0][-1], stog.qmax)
 
     def test_stog_add_dataset_default_reciprocal_space_function(self):
-        # Checks the default reciprocal space function is S(Q) and the index is
-        # set
+        # Checks the default reciprocal space function is S(Q)
+        places = 5
         stog = StoG()
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq})}
+        info = {'data': [self.q, self.sq]}
         stog.add_dataset(info)
         self.assertEqual(
-            list(
-                stog.df_individuals.columns.values), [
-                'S(Q)_%d' %
-                index])
+            stog.df_individuals[0][self.first],
+            self.reciprocal_xtarget)
+        self.assertAlmostEqual(
+            stog.df_individuals[1][self.first],
+            self.sq_target[0],
+            places=places)
 
     def test_stog_add_dataset_wrong_reciprocal_space_function_exception(self):
         # Check qmin and qmax apply cropping
         stog = StoG()
-        info = {'data': pd.DataFrame({'x': self.q, 'y': self.sq}),
+        info = {'data': [self.q, self.sq],
                 'ReciprocalFunction': 'ABCDEFG(Q)'}
         with self.assertRaises(ValueError):
             stog.add_dataset(info)
@@ -645,7 +647,6 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.merge_data()
 
         # Check S(Q) data against targets
-        self.assertEqual(0, 1)
         self.assertEqual(
             stog.df_q_master[stog.sq_title][self.first],
             self.reciprocal_xtarget)
