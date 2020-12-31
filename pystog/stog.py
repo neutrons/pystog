@@ -816,7 +816,8 @@ class StoG(object):
         if _data.shape[0] <= xcol or _data.shape[0] <= ycol:
             raise RuntimeError("Data format incompatible with input parameters")
         if _data.shape[0] <= dycol:
-            data = np.stack((_data[xcol], _data[ycol], np.zeros_like(_data[ycol])))
+            array_seq = (_data[xcol], _data[ycol], np.zeros_like(_data[ycol]))
+            data = np.stack(array_seq)
         else:
             data = np.stack((_data[xcol], _data[ycol], _data[dycol]))
         info['data'] = data
@@ -910,7 +911,8 @@ class StoG(object):
             raise ValueError(error)
 
         # Save reciprocal space function to the "invididuals" DataFrame
-        self.df_individuals = np.concatenate((self.df_individuals, np.stack((x, y, dy))), axis=1)
+        array_seq = (self.df_individuals, np.stack((x, y, dy)))
+        self.df_individuals = np.concatenate(array_seq, axis=1)
 
         # Convert to S(Q) and save to the individual S(Q) DataFrame
         if info["ReciprocalFunction"] == "Q[S(Q)-1]":
@@ -1057,10 +1059,11 @@ class StoG(object):
         sq = data_merged[1]
         dsq = data_merged[2]
 
-        q, sq, dsq = self._apply_scales_and_offset(q, sq,
-                                                   yscale=self.merged_opts['Y']['Scale'],
-                                                   yoffset=self.merged_opts['Y']['Offset'],
-                                                   xoffset=0.0, dy=dsq)
+        q, sq, dsq = self._apply_scales_and_offset(
+            q, sq,
+            yscale=self.merged_opts['Y']['Scale'],
+            yoffset=self.merged_opts['Y']['Offset'],
+            xoffset=0.0, dy=dsq)
         self.df_q_master[self.sq_title] = q
         self.df_sq_master[self.sq_title] = sq
 

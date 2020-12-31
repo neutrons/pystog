@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from numpy.testing import assert_allclose
 
 import os
@@ -358,29 +357,27 @@ class TestStogAttributes(TestStogBase):
 class TestStogDataFrameAttributes(TestStogBase):
     def setUp(self):
         super(TestStogDataFrameAttributes, self).setUp()
-        self.df_target = pd.DataFrame(np.random.randn(10, 2),
-                                      index=np.arange(10),
-                                      columns=list('XY'))
+        self.df_target = np.random.randn(3, 10)
 
     def test_stog_df_individuals_setter(self):
         stog = StoG()
         stog.df_individuals = self.df_target
-        self.assertTrue(stog.df_individuals.equals(self.df_target))
+        assert_allclose(stog.df_individuals, self.df_target)
 
     def test_stog_df_sq_individuals_setter(self):
         stog = StoG()
         stog.df_sq_individuals = self.df_target
-        self.assertTrue(stog.df_sq_individuals.equals(self.df_target))
+        assert_allclose(stog.df_sq_individuals, self.df_target)
 
     def test_stog_df_sq_master_setter(self):
         stog = StoG()
         stog.df_sq_master = self.df_target
-        self.assertTrue(stog.df_sq_master.equals(self.df_target))
+        assert_allclose(stog.df_sq_master, self.df_target)
 
     def test_stog_df_gr_master_setter(self):
         stog = StoG()
         stog.df_gr_master = self.df_target
-        self.assertTrue(stog.df_gr_master.equals(self.df_target))
+        assert_allclose(stog.df_gr_master, self.df_target)
 
 
 class TestStogGeneralMethods(TestStogBase):
@@ -1047,12 +1044,11 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
                 # Using stem name
                 write_out_func()
 
-                data = pd.read_csv(filename,
-                                   sep=r"\s+",
-                                   usecols=[0, 1],
-                                   names=['x', 'y'],
-                                   skiprows=2,
-                                   engine='python')
+                data = {}
+                data['x'], data['y'] = np.genfromtxt(
+                    filename,
+                    skip_header=2,
+                    unpack=True)
 
                 assert_allclose(data['x'], x)
                 assert_allclose(
@@ -1070,12 +1066,10 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
 
                 write_out_func(filename=tmp_filename)
 
-                data = pd.read_csv(tmp_filename,
-                                   sep=r"\s+",
-                                   usecols=[0, 1],
-                                   names=['x', 'y'],
-                                   skiprows=2,
-                                   engine='python')
+                data['x'], data['y'] = np.genfromtxt(
+                    tmp_filename,
+                    skip_header=2,
+                    unpack=True)
 
                 assert_allclose(data['x'], x)
                 assert_allclose(data['y'], y)
@@ -1090,12 +1084,11 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         x = self.stog.df_q_master[self.stog.sq_title]
         y = self.stog.df_sq_master[self.stog.sq_title]
         self.stog._write_out_to_file(x, y, outfile_path)
-        data = pd.read_csv(outfile_path,
-                           sep=r"\s+",
-                           usecols=[0, 1],
-                           names=['x', 'y'],
-                           skiprows=2,
-                           engine='python')
+        data = {}
+        data['x'], data['y'] = np.genfromtxt(
+            outfile_path,
+            skip_header=2,
+            unpack=True)
 
         q = self.stog.df_q_master[self.stog.sq_title]
         sq = self.stog.df_sq_master[self.stog.sq_title]
