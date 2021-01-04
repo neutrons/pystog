@@ -14,10 +14,8 @@ build:
 
 requirements:
   build:
-    - matplotlib
     - numpy
   run:
-    - matplotlib
     - numpy
 
 test:

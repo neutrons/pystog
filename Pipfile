@@ -9,9 +9,9 @@ ipython = "*"
 flake8 = "*"
 autopep8 = "*"
 tox = "*"
+notebook = "*"
 
 [packages]
-matplotlib = "*"
 numpy = "*"
 six = "*"
 
