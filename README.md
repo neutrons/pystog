@@ -32,30 +32,11 @@ Yet, migration to the Mantid Framework is still a goal since it feeds into the [
 
 ## Installation
 
-Installation is available via `pip`. 
+Installation is available via [`pip`](https://pip.pypa.io/en/stable/):
+`pip install pystog`
 
-```bash 
-pip install pystog
-```
-
-or for a local install
-```bash
-pip install pystog --user #locally installed in $HOME/.local
-```
-For a development environment, you can use [`virtualenv`](https://virtualenv.pypa.io/en/latest/) to setup an isolated environemnt, namely `ENV`:
-
-```bash
-python -m virtualenv /path/to/ENV
-source /path/to/ENV/bin/activate
-pip install pystog
-```
-
-Also, [`direnv`](https://github.com/direnv/direnv) is a useful and recommended way to manage the virtual environment.
-You can simply use an `.envrc` file which contains:
-
-`layout python3`
-
-Then, once inside the development directory, just install via `pip` as described above.
+And [conda](https://docs.conda.io/en/latest/):
+`conda install -c neutrons pystog`
 
 ## Getting started
 
@@ -85,9 +66,70 @@ Also, a useful example reference is the [PDFFourierTransform](http://docs.mantid
 
 Finally, tutorials in the form of Jupyter Notebooks can be launched via Binder by clicking the badge here [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/neutrons/pystog/master?filepath=tutorials) or at the top of the page.
 
-## Running the tests
-From the parent directory of the module, run:
+## Development
+
+The following are ways to setup the virtual environment, lint and test the package.
+
+### Virtual environment setup
+
+#### Using pipenv (recommended)
+With [pipenv](https://pipenv.pypa.io/en/latest/) installed, run the following:
+```bash
+pipenv install --dev .
+```
+
+#### Using virtualenv
+You can use [`virtualenv`](https://virtualenv.pypa.io/en/latest/) to setup an environment, here named `ENV`:
 
 ```bash
-python setup.py test
+python -m virtualenv /path/to/ENV
+source /path/to/ENV/bin/activate
+pip install pystog
 ```
+
+#### Using direnv
+Also, [`direnv`](https://github.com/direnv/direnv) is a useful and recommended way to manage the virtual environment.
+You can simply use an `.envrc` file which contains:
+
+`layout python3`
+
+Then, once inside the development directory, just install via `pip` as described above.
+
+### Testing
+[pytest](https://docs.pytest.org/en/latest/) is used to write the test suite.
+[Tox](https://tox.readthedocs.io/en/latest/) is the general tool for running both linting and testing (single and multiple python version testing).
+[pyenv](https://github.com/pyenv/pyenv) is the recommended tool for python version management.
+From the parent directory of the module, run:
+
+`pytest`
+
+Using pipenv:
+`pipenv run pytest`
+
+Using tox for a single python version,
+where `py<XY>` is one of [py36, py37, py38, py39]:
+`tox -e py<XY>`
+
+or with pipenv:
+`pipenv run tox -e py<XY>`
+
+Using tox for all stages of testing (all python versions and linting), just run:
+`tox`
+NOTE: You must have the version of python installed to run a test suite against that verion via tox.
+Recommended way to install python versions is `pyenv`
+
+### Linting
+[Flake8](https://flake8.pycqa.org/en/latest/) is used for style guide enforcement (i.e. linting):
+
+From the parent directory of the module, run:
+
+`flake8 .`
+
+Using pipenv and flake8:
+`pipenv run flake8 .`
+
+Using tox
+`tox -e lint`
+
+Using pipenv and tox:
+`pipenv run tox -e lint`

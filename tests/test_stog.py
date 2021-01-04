@@ -73,11 +73,11 @@ class TestStogBase(unittest.TestCase):
         self.reciprocal_xtarget = 1.94
         self.fourier_filter_cutoff = 1.5
 
-        filename = self.material.reciprocal_space_filename
+        filename = get_data_path(self.material.reciprocal_space_filename)
         self.kwargs_for_files = {
             'Files': [
                 {
-                    'Filename': get_data_path(filename),
+                    'Filename': filename,
                     'ReciprocalFunction': 'S(Q)',
                     'Qmin': 0.02,
                     'Qmax': 15.0,
@@ -90,8 +90,7 @@ class TestStogBase(unittest.TestCase):
                     }
                 },
                 {
-                    'Filename':
-                        get_data_path(self.material.reciprocal_space_filename),
+                    'Filename': filename,
                     'ReciprocalFunction': 'S(Q)',
                     'Qmin': 1.90,
                     'Qmax': 35.2,
