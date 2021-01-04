@@ -5,12 +5,10 @@ Installation
 Requirements
 ============
 
-* Python (2.7, 3.5, 3.6 are tested)
-* matplotlib_
+* Python (3.6, 3.7, 3.8, and 3.9 are tested)
 * numpy_
 
 
-.. _matplotlib: https://matplotlib.org/
 .. _numpy: http://www.numpy.org/
 
 
