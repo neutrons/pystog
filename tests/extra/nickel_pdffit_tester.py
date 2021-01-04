@@ -104,7 +104,6 @@ class nickel(object):
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
     ni = nickel()
     print("Distances for r_ij: ", ni.get_distances())
     print("Sigmas for sig_ij:", ni.get_sigmas())
@@ -119,5 +118,3 @@ if __name__ == "__main__":
     rho = ni.get_density()
 
     G = GofR(r, rij, sig_ij, Np, cij, bij, bavg, rho=rho)
-    plt.plot(r, G)
-    plt.show()

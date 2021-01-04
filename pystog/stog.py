@@ -8,23 +8,13 @@ that tries to replicate the previous
 stog program behavior in an organized fashion
 with the ability to re-construct the workflow.
 """
-
 import json
 import numpy as np
-import pandas as pd
 
 from pystog.utils import create_domain, RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
 from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
-
-# Required for non-display environment (i.e. Travis-CI)
-import os
-import matplotlib as mpl
-if os.environ.get('DISPLAY', '') == '':
-    print('no display found. Using non-interactive Agg backend')
-    mpl.use('Agg')
-import matplotlib.pyplot as plt  # noqa: E402
 
 
 class StoG(object):
@@ -38,9 +28,8 @@ class StoG(object):
     functions into a final output real space function.
 
     This pythonized-version of the original Fortran **stog**
-    uses pandas and numpy for data storage, organization, and
-    manipulation and matplotlib for diagonostic visualization
-    "under the hood".
+    uses numpy for data storage, organization, and
+    manipulation "under the hood".
 
     :examples:
 
@@ -74,20 +63,16 @@ class StoG(object):
         self.__low_q_correction = False
         self.__lorch_flag = False
         self.__fourier_filter_cutoff = None
-        self.__plot_flag = True
-        self.__plotting_kwargs = {'figsize': (16, 8),
-                                  'style': '-',
-                                  'ms': 1,
-                                  'lw': 1,
-                                  }
         self.__merged_opts = {"Y": {"Offset": 0.0, "Scale": 1.0}}
         self.__stem_name = "out"
 
-        # DataFrames for total scattering functions
-        self.__df_individuals = pd.DataFrame()
-        self.__df_sq_individuals = pd.DataFrame()
-        self.__df_sq_master = pd.DataFrame()
-        self.__df_gr_master = pd.DataFrame()
+        # Storage arrays for total scattering functions
+        self.__reciprocal_individuals = np.empty([3, 0])
+        self.__sq_individuals = np.empty([3, 0])
+        self.__q_master = {}
+        self.__sq_master = {}
+        self.__r_master = {}
+        self.__gr_master = {}
 
         # Attributes that do not (currently) change
         self.__sq_title = "S(Q) Merged"
@@ -155,8 +140,6 @@ class StoG(object):
         if "FourierFilter" in kwargs:
             if "Cutoff" in kwargs["FourierFilter"]:
                 self.fourier_filter_cutoff = kwargs["FourierFilter"]["Cutoff"]
-        if "PlotFlag" in kwargs:
-            self.plot_flag = kwargs["PlotFlag"]
         if "<b_coh>^2" in kwargs:
             self.bcoh_sqrd = kwargs["<b_coh>^2"]
         if "<b_tot^2>" in kwargs:
@@ -519,100 +502,112 @@ class StoG(object):
     def merged_opts(self, options):
         self.__merged_opts = options
 
-    # DataFrame attributes
+    # Storage array attributes
 
     @property
-    def df_individuals(self):
-        """The DataFrame for the input reciprocal space functions
+    def reciprocal_individuals(self):
+        """The storage array for the input reciprocal space functions
         loaded from **files** and with the loading processing
         from **add_dataset** class method.
 
-        :getter: Returns the current individual, input
-                 reciprocal space functions DataFrame
-        :setter: Sets the DataFrame
-        :type: pandas.DataFrame
+        :getter: Returns the current individual, input reciprocal space
+                 functions numpy array.
+                 The dimenions is :math:`3 x N*M` where N is the number
+                 of patterns stored and M is the length of the patterns.
+        :setter: Sets the numpy array
+        :type: numpy.ndarray
         """
-        return self.__df_individuals
+        return self.__reciprocal_individuals
 
-    @df_individuals.setter
-    def df_individuals(self, df):
-        self.__df_individuals = df
+    @reciprocal_individuals.setter
+    def reciprocal_individuals(self, df):
+        self.__reciprocal_individuals = df
 
     @property
-    def df_sq_individuals(self):
-        """The DataFrame for the :math:`S(Q)` generated from each input
-        reciprocal space dataset in **df_individuals** class DataFrame.
+    def sq_individuals(self):
+        """The storage array for the :math:`S(Q)` generated from each input
+        reciprocal space dataset in **reciprocal_individuals** array.
 
-        :getter: Returns the current individual :math:`S(Q)`
-                 reciprocal space functions DataFrame
-        :setter: Sets the DataFrame
-        :type: pandas.DataFrame
+        :getter: Returns the current individual :math:`S(Q)` reciprocal space
+                 functions numpy array.
+                 The dimenions is :math:`3 x N*M` where N is the number
+                 of patterns stored and M is the length of the patterns.
+        :setter: Sets the numpy array
+        :type: numpy.ndarray
         """
-        return self.__df_sq_individuals
+        return self.__sq_individuals
 
-    @df_sq_individuals.setter
-    def df_sq_individuals(self, df):
-        self.__df_sq_individuals = df
+    @sq_individuals.setter
+    def sq_individuals(self, df):
+        self.__sq_individuals = df
 
     @property
-    def df_sq_master(self):
-        """The "master" DataFrame for the :math:`S(Q)` reciprocal
+    def sq_master(self):
+        """The "master" dictionary for the :math:`S(Q)` reciprocal
         space functions that are generated for each processing step.
-        """
-        return self.__df_sq_master
 
-    @df_sq_master.setter
-    def df_sq_master(self, df):
-        self.__df_sq_master = df
+        :getter: Returns the current "master" :math:`S(Q)` reciprocal space
+                 functions dictionary generated up to the current step in
+                 the workflow.
+        :setter: Sets the "master" :math:`S(Q)` function dictionary
+        :type: dict[str:numpy.ndarray]
+        """
+        return self.__sq_master
+
+    @sq_master.setter
+    def sq_master(self, df):
+        self.__sq_master = df
 
     @property
-    def df_gr_master(self):
-        """The "master" DataFrame for the real space functions
+    def gr_master(self):
+        """The "master" dictionary for the real space functions
         that are generated for each processing step.
 
-        :getter: Returns the current "master" real space function DataFrame
-        :setter: Sets the "master" real space function DataFrame
-        :type: pandas.DataFrame
+        :getter: Returns the current "master" real space
+                 functions dictionary generated up to the current step in
+                 the workflow.
+        :setter: Sets the "master" real space function dictionary
+        :type: dict[str:numpy.ndarray]
         """
-        return self.__df_gr_master
+        return self.__gr_master
 
-    @df_gr_master.setter
-    def df_gr_master(self, df):
-        self.__df_gr_master = df
-
-    # Visualization attributes
+    @gr_master.setter
+    def gr_master(self, df):
+        self.__gr_master = df
 
     @property
-    def plot_flag(self):
-        """This sets the option for matplotlib to display
-        diagnostic plots or not.
+    def q_master(self):
+        """The "master" dictionary for the domain :math:Q` of the reciprocal
+        space functions that are generated for each processing step.
 
-        :getter: Return bool of flag
-        :setter: Set whether the diagnostics are displayed or not
-        :type: bool
+        :getter: Returns the current "master" :math:`Q` reciprocal space
+                 functions dictionary generated up to the current step in
+                 the workflow.
+        :setter: Sets the "master" :math:`Q` dictionary
+        :type: dict[str:numpy.ndarray]
         """
-        return self.__plot_flag
+        return self.__q_master
 
-    @plot_flag.setter
-    def plot_flag(self, value):
-        if isinstance(value, bool):
-            self.__plot_flag = value
-        else:
-            raise TypeError("Expected a bool, True or False")
+    @q_master.setter
+    def q_master(self, df):
+        self.__q_master = df
 
     @property
-    def plotting_kwargs(self):
-        """The plot settings for visualization via matplotlib
+    def r_master(self):
+        """The "master" dictionary for the domain :math:r` of the real
+        space functions that are generated for each processing step.
 
-        :getter: Returns the current arguments
-        :setter: Sets the plotting kwargs
-        :type: dict
+        :getter: Returns the current "master" :math:`r` real space
+                 functions dictionary generated up to the current step in
+                 the workflow.
+        :setter: Sets the "master" :math:`r` dictionary
+        :type: dict[str:numpy.ndarray]
         """
-        return self.__plotting_kwargs
+        return self.__r_master
 
-    @plotting_kwargs.setter
-    def plotting_kwargs(self, kwargs):
-        self.__plotting_kwargs = kwargs
+    @r_master.setter
+    def r_master(self, df):
+        self.__r_master = df
 
     @property
     def real_space_function(self):
@@ -763,17 +758,15 @@ class StoG(object):
         """Reads all the data from the **files** attribute
         Uses the **read_dataset** method on each file.
 
-        Will append all datasets as DataFrames to the
-        **df_inviduals** attribute DataFrame
-        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
-        attribute DataFrame in **add_dataset** method
+        Will append all datasets to the numpy storage array,
+        **reciprocal_individuals**, and also convert to :math:`S(Q)` and add to
+        the **sq_individuals** numpy storage array in **add_dataset** method
         via **read_dataset** method.
         """
         assert self.files is not None
         assert len(self.files) != 0
 
         for i, file_info in enumerate(self.files):
-            file_info['index'] = i
             self.read_dataset(file_info, **kwargs)
 
     def read_dataset(
@@ -781,16 +774,13 @@ class StoG(object):
             info,
             xcol=0,
             ycol=1,
+            dycol=2,
             sep=r"\s+",
             skiprows=2,
             **kwargs):
         """Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
-
-        Will append the DataFrame to the **df_inviduals** attribute DataFrame
-        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
-        attribute DataFrame in **add_dataset** method.
 
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
@@ -799,27 +789,29 @@ class StoG(object):
         :type xcol: int
         :param ycol: The column in the data file that contains the Y-axis
         :type ycol: int
-        :param sep: Separator for the file used by pandas.read_csv
+        :param sep: Separator for the file used by numpy.loadtxt
         :type sep: raw string
-        :param skiprows: Number of rows to skip. Passed to pandas.read_csv
+        :param skiprows: Number of rows to skip. Passed to numpy.loadtxt
         :type skiprows: int
         """
-        # TODO: Create a proper parser class so we can be
-        # more accepting of file formats.
-        data = pd.read_csv(info['Filename'],
-                           sep=sep,
-                           usecols=[xcol, ycol],
-                           names=['x', 'y'],
-                           skiprows=skiprows,
-                           engine='python',
-                           **kwargs)
+        _data = np.loadtxt(
+            info['Filename'],
+            skiprows=skiprows,
+            comments='#',
+            unpack=True)
+        if _data.shape[0] <= xcol or _data.shape[0] <= ycol:
+            raise RuntimeError("Data format incompatible with input parameters")
+        if _data.shape[0] <= dycol:
+            array_seq = (_data[xcol], _data[ycol], np.zeros_like(_data[ycol]))
+            data = np.stack(array_seq)
+        else:
+            data = np.stack((_data[xcol], _data[ycol], _data[dycol]))
         info['data'] = data
-        self.add_dataset(info, index=info['index'], **kwargs)
+        self.add_dataset(info, **kwargs)
 
     def add_dataset(
             self,
             info,
-            index=0,
             yscale=1.,
             yoffset=0.,
             xoffset=0.,
@@ -827,17 +819,11 @@ class StoG(object):
             **kwargs):
         """Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
-        an invidual DataFrame.
-
-        Will append the DataFrame to the **df_inviduals** attribute DataFrame
-        and also convert to :math:`S(Q)` and add to the **df_sq_individuals**
-        attribute DataFrame.
+        an invidual numpy array for the pattern.
 
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
         :type info: dict
-        :param index: Index of the added reciprocal space function dataset
-        :type index: int
         :param yscale: Scale factor for the Y data
                        (i.e. :math:`S(Q)`, :math:`F(Q)`, etc.)
         :type yscale: float
@@ -848,8 +834,12 @@ class StoG(object):
         :type yoffset: float
         """
         # Extract data
-        x = np.around(np.array(info['data']['x']), decimals=self.__xdecimals)
-        y = np.around(np.array(info['data']['y']), decimals=self.__ydecimals)
+        x = np.around(np.array(info['data'][0]), decimals=self.__xdecimals)
+        y = np.around(np.array(info['data'][1]), decimals=self.__ydecimals)
+        if len(info['data']) == 3:
+            dy = np.around(np.array(info['data'][2]), decimals=self.__ydecimals)
+        else:
+            dy = np.zeros_like(y)
 
         # Cropping
         xmin = min(x)
@@ -858,7 +848,7 @@ class StoG(object):
             xmin = info['Qmin']
         if 'Qmax' in info:
             xmax = info['Qmax']
-        x, y, _ = self.transformer.apply_cropping(x, y, xmin, xmax)
+        x, y, dy = self.transformer.apply_cropping(x, y, xmin, xmax, dy=dy)
 
         # Offset and scale
         adjusting = False
@@ -875,8 +865,10 @@ class StoG(object):
                 xoffset = info['X']['Offset']
 
         if adjusting:
-            x, y = self._apply_scales_and_offset(
-                x, y, yscale, yoffset, xoffset)
+            x, y, dy = self._apply_scales_and_offset(x, y, dy=dy,
+                                                     yscale=yscale,
+                                                     yoffset=yoffset,
+                                                     xoffset=xoffset)
 
         # Save overal x-axis min and max
         self.xmin = min(self.xmin, xmin)
@@ -885,12 +877,12 @@ class StoG(object):
         # Use Qmin and Qmax to crop datasets
         if self.qmin is not None:
             if self.xmin < self.qmin:
-                x, y, _ = self.transformer.apply_cropping(
-                    x, y, self.qmin, self.xmax)
+                x, y, dy = self.transformer.apply_cropping(
+                    x, y, self.qmin, self.xmax, dy=dy)
         if self.qmax is not None:
             if self.xmax > self.qmax:
-                x, y, _ = self.transformer.apply_cropping(
-                    x, y, self.xmin, self.qmax)
+                x, y, dy = self.transformer.apply_cropping(
+                    x, y, self.xmin, self.qmax, dy=dy)
 
         # Default to S(Q) if function type not defined
         if "ReciprocalFunction" not in info:
@@ -904,32 +896,28 @@ class StoG(object):
                 options=json.dumps(ReciprocalSpaceChoices))
             raise ValueError(error)
 
-        # Save reciprocal space function to the "invididuals" DataFrame
-        df = pd.DataFrame(
-            y, columns=[
-                '%s_%d' %
-                (info['ReciprocalFunction'], index)], index=x)
-        self.df_individuals = pd.concat([self.df_individuals, df], axis=1)
+        # Save reciprocal space function to the "invididuals" array
+        array_seq = (self.reciprocal_individuals, np.stack((x, y, dy)))
+        self.reciprocal_individuals = np.concatenate(array_seq, axis=1)
 
-        # Convert to S(Q) and save to the individual S(Q) DataFrame
+        # Convert to S(Q) and save to the individual S(Q) array
         if info["ReciprocalFunction"] == "Q[S(Q)-1]":
-            y, dy = self.converter.F_to_S(x, y)
+            y, dy = self.converter.F_to_S(x, y, dfq=dy)
         elif info["ReciprocalFunction"] == "FK(Q)":
             y, dy = self.converter.FK_to_S(
-                x, y, **{'<b_coh>^2': self.bcoh_sqrd})
+                x, y, dfq_keen=dy, **{'<b_coh>^2': self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
-            y, dy = self.converter.DCS_to_S(x, y,
+            y, dy = self.converter.DCS_to_S(x, y, ddcs=dy,
                                             **{'<b_coh>^2': self.bcoh_sqrd,
                                                '<b_tot^2>': self.btot_sqrd})
-
-        df = pd.DataFrame(y, columns=['S(Q)_%d' % index], index=x)
-        self.df_sq_individuals = pd.concat(
-            [self.df_sq_individuals, df], axis=1)
+        array_seq = (self.sq_individuals, np.stack((x, y, dy)))
+        self.sq_individuals = np.concatenate(array_seq, axis=1)
 
     def _apply_scales_and_offset(
             self,
             x,
             y,
+            dy=None,
             yscale=1.0,
             yoffset=0.0,
             xoffset=0.0):
@@ -951,7 +939,10 @@ class StoG(object):
         y = self._scale(y, yscale)
         y = self._offset(y, yoffset)
         x = self._offset(x, xoffset)
-        return x, y
+        if dy is None:
+            dy = np.zeros_like(y)
+        dy = self._scale(dy, yscale)
+        return x, y, dy
 
     def _offset(self, data, offset):
         """Applies offset to data
@@ -981,9 +972,9 @@ class StoG(object):
 
     def merge_data(self):
         """Merges the reciprocal space data stored in the
-        **df_individuals** class DataFrame into a single, merged
+        **reciprocal_individuals** numpy array into a single, merged
         recirocal space function. Stores the S(Q) result in
-        **df_sq_master** class DataFrame.
+        **sq_master** dictionary using **sq_title** (default: "S(Q) Merged").
 
         Also, converts this
         merged :math:`S(Q)` into :math:`Q[S(Q)-1]` via the
@@ -999,30 +990,77 @@ class StoG(object):
         .. highlight:: python
         .. code-block:: python
 
-                {"Merging": { "Y": { "Offset": 0.0,
-                                 "Scale": 2.0 },
-                          "Q[S(Q)-1]": { "Y": "Offset": 5.0,
-                                    "Scale": 1.0 }
+                {
+                    "Merging": {
+                        "Y": {
+                            "Offset": 0.0,
+                            "Scale": 2.0
+                        },
+                        "Q[S(Q)-1]": {
+                            "Y": "Offset": 5.0,
+                            "Scale": 1.0
                         }
+                    }
+                }
         ...
         """
-        # TODO: Refator to have "S(Q)" as key for S(Q) modifications
+        data_merged = []
+        _n_total = 0
+        _n_sum = 0
+        _n_err = 0
+        _previous_x = None
 
-        # Sum over single S(Q) columns into a merged S(Q)
-        single_sofqs = self.df_sq_individuals.iloc[:, :]
-        self.df_sq_master[self.sq_title] = single_sofqs.mean(axis=1)
+        # At this point we have a concatenated array of data
+        # We need to sort according to Q first
+        # TODO: this is ugly but works for now.
+        _x = self.sq_individuals[0]
+        _y = self.sq_individuals[1]
+        _dy = self.sq_individuals[2]
+        zipped = zip(_x, _y, _dy)
+        ordered = sorted(zipped, key=lambda a: a[0])
+        _x, _y, _dy = zip(*ordered)
+        self.sq_individuals = np.stack(
+            (np.asarray(_x), np.asarray(_y), np.asarray(_dy)))
 
-        q = self.df_sq_master[self.sq_title].index.values
-        sq = self.df_sq_master[self.sq_title].values
+        # Go through the data and compute the average of points
+        # with the same Q.
+        for item in self.sq_individuals.T:
+            if item[0] == _previous_x:
+                _n_total += 1.
+                _n_sum += item[1]
+                _n_err += item[2]**2
+            else:
+                if _n_total > 0:
+                    data_merged.append([
+                        _previous_x,
+                        _n_sum / _n_total,
+                        np.sqrt(_n_err) / _n_total])
+                _n_total = 1.
+                _n_sum = item[1]
+                _n_err = item[2]**2
+            _previous_x = item[0]
+        if _n_total > 0:
+            data_merged.append([
+                _previous_x,
+                _n_sum / _n_total,
+                np.sqrt(_n_err) / _n_total])
 
-        q, sq = self._apply_scales_and_offset(q, sq,
-                                              self.merged_opts['Y']['Scale'],
-                                              self.merged_opts['Y']['Offset'],
-                                              0.0)
-        self.df_sq_master[self.sq_title] = sq
+        data_merged = np.asarray(data_merged).T
+
+        q = data_merged[0]
+        sq = data_merged[1]
+        dsq = data_merged[2]
+
+        q, sq, dsq = self._apply_scales_and_offset(
+            q, sq,
+            yscale=self.merged_opts['Y']['Scale'],
+            yoffset=self.merged_opts['Y']['Offset'],
+            xoffset=0.0, dy=dsq)
+        self.q_master[self.sq_title] = q
+        self.sq_master[self.sq_title] = sq
 
         # Also, create merged Q[S(Q)-1] with modifications, if specified
-        fofq, dfofq = self.converter.S_to_F(q, sq)
+        fofq, dfofq = self.converter.S_to_F(q, sq, dsq=dsq)
         if "Q[S(Q)-1]" in self.merged_opts:
             fofq_opts = self.merged_opts["Q[S(Q)-1]"]
             if "Y" in fofq_opts:
@@ -1030,29 +1068,32 @@ class StoG(object):
                     fofq *= fofq_opts["Y"]["Scale"]
                 if "Offset" in fofq_opts["Y"]:
                     fofq += fofq_opts["Y"]["Offset"]
-        self.df_sq_master[self.qsq_minus_one_title] = fofq
+        self.q_master[self.qsq_minus_one_title] = q
+        self.sq_master[self.qsq_minus_one_title] = fofq
 
         # Convert this Q[S(Q)-1] back to S(Q) and overwrite the 1st one
-        sq, dsq = self.converter.F_to_S(q, fofq)
+        sq, dsq = self.converter.F_to_S(q, fofq, dfq=dfofq)
         sq[np.isnan(sq)] = 0
-        self.df_sq_master[self.sq_title] = sq
+        self.sq_master[self.sq_title] = sq
 
     # -------------------------------------#
     # Transform Utilities
 
     def transform_merged(self):
-        """Performs the Fourier transform on the merged **df_sq_master**
-        DataFrame to generate the desired real space function
+        """Performs the Fourier transform on the merged **sq_master**
+        pattern to generate the desired real space function
         with this correction. The results for real space are:
-        saved back to the **gr_master** DataFrame
+        the domain is saved to the **r_master** dictionary and
+        the range is saved to the **gr_master** dictionary,
+        with both using the **gr_title** for the key of the dictionaries.
         """
         # Create r-space vector if needed
         if self.dr is None or len(self.dr) == 0:
             self.__update_dr()
 
         # Get Q and S(Q)
-        q = self.df_sq_master[self.sq_title].index.values
-        sq = self.df_sq_master[self.sq_title].values
+        q = self.q_master[self.sq_title]
+        sq = self.sq_master[self.sq_title]
 
         # Perform the Fourier transform to selected real space function
         transform_kwargs = {'lorch': False,
@@ -1069,19 +1110,18 @@ class StoG(object):
             r, gofr, dgofr = self.transformer.S_to_GK(
                 q, sq, self.dr, **transform_kwargs)
 
-        self.df_gr_master[self.gr_title] = gofr
-        self.df_gr_master = self.df_gr_master.set_index(r)
+        self.gr_master[self.gr_title] = gofr
+        self.r_master[self.gr_title] = r
 
     def fourier_filter(self):
-        """Performs the Fourier filter on the **df_sq_master**
-        DataFrame to generate the desired real space function
+        """Performs the Fourier filter on the **sq_master**
+        pattern to generate the desired real space function
         with this correction. The results from both reciprocal space and
         real space are:
 
-        1. Saved back to the respective "master" DataFrames
+        1. Saved back to the respective "master" dictionaries
         2. Saved to files via the **stem_name**
-        3. (optional) Plotted for diagnostics
-        4. Returned from function
+        3. Returned from function
 
         :return: Returns a tuple with :math:`r`,
                  the selected real space function,
@@ -1097,17 +1137,17 @@ class StoG(object):
         cutoff = self.fourier_filter_cutoff
 
         # Get reciprocal and real space data
-        if self.gr_title not in self.df_gr_master.columns:
+        if self.gr_title not in self.gr_master:
             msg = (
                 "WARNING: Fourier filtered before initial transform. "
                 "Peforming now...")
             print(msg)
             self.transform_merged()
 
-        r = self.df_gr_master[self.gr_title].index.values
-        gr = self.df_gr_master[self.gr_title].values
-        q = self.df_sq_master[self.sq_title].index.values
-        sq = self.df_sq_master[self.sq_title].values
+        r = self.r_master[self.gr_title]
+        gr = self.gr_master[self.gr_title]
+        q = self.q_master[self.sq_title]
+        sq = self.sq_master[self.sq_title]
 
         # Fourier filter g(r)
         # NOTE: Real space function setter will catch ValueError so
@@ -1122,54 +1162,38 @@ class StoG(object):
             q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.GK_using_S(
                 r, gr, q, sq, cutoff, **kwargs)
 
-        # Round to avoid mismatch index in DataFrame and NaN for column values
+        # Round to avoid mismatch index in domain and NaN
         q = np.around(q, decimals=self.__xdecimals)
         sq = np.around(sq, decimals=self.__ydecimals)
         q_ft = np.around(q_ft, decimals=self.__xdecimals)
         sq_ft = np.around(sq_ft, decimals=self.__ydecimals)
 
         # Add output to master dataframes and write files
-        self.df_sq_master = self.add_to_dataframe(
-            q_ft, sq_ft, self.df_sq_master, self._ft_title)
+        self.q_master[self._ft_title] = q_ft
+        self.sq_master[self._ft_title] = sq_ft
         self.write_out_ft()
 
-        self.df_sq_master = self.add_to_dataframe(
-            q, sq, self.df_sq_master, self.sq_ft_title)
+        self.q_master[self.sq_ft_title] = q
+        self.sq_master[self.sq_ft_title] = sq
         self.write_out_ft_sq()
 
-        self.df_gr_master = self.add_to_dataframe(
-            r, gr, self.df_gr_master, self.gr_ft_title)
+        self.r_master[self.gr_ft_title] = r
+        self.gr_master[self.gr_ft_title] = gr
         self.write_out_ft_gr()
-
-        # Plot results
-        if self.plot_flag:
-            exclude_list = [self.qsq_minus_one_title, self.sq_ft_title]
-            self.plot_sq(
-                ylabel="FourierFilter(Q)",
-                title="Fourier Transform of the low-r region below cutoff",
-                exclude_list=exclude_list)
-            exclude_list = [self.qsq_minus_one_title]
-            self.plot_sq(
-                title="Fourier Filtered S(Q)",
-                exclude_list=exclude_list)
-            self.plot_gr(
-                title="Fourier Filtered %s" %
-                self.real_space_function)
 
         return q, sq, r, gr
 
     def apply_lorch(self, q, sq, r):
         """Performs the Fourier transform using the Lorch
         dampening correction on the merged :math:`S(Q)` from
-        the **df_sq_master** DataFrame to generate the
+        the **sq_master** dictionary to generate the
         desired real space function with
         this correction. The results from both reciprocal space and
         real space are:
 
-        1. Saved back to the respective "master" DataFrames
+        1. Saved back to the respective "master" dictionaries
         2. Saved to files via the **stem_name**
-        3. (optional) Plotted for diagnostics
-        4. Returned from function
+        3. Returned from function
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
@@ -1195,20 +1219,15 @@ class StoG(object):
                     '<b_coh>^2': self.bcoh_sqrd
                 })
 
-        self.df_gr_master = self.add_to_dataframe(
-            r, gr_lorch, self.df_gr_master, self.gr_lorch_title)
+        self.gr_master[self.gr_lorch_title] = gr_lorch
+        self.r_master[self.gr_lorch_title] = r
         self.write_out_lorched_gr()
-
-        if self.plot_flag:
-            self.plot_gr(
-                title="Lorched %s" %
-                self.real_space_function)
 
         return r, gr_lorch
 
     def _get_lowR_mean_square(self):
         """Retuns the low-R mean square value for the real space function stored
-        in the "master" real space function class DataFrame, **df_gr_master**.
+        in the "master" real space function, **gr_master**.
         Used as a cost function for optimiziation of the :math:`Q_{max}` value
         by an iterative adjustment. Calls **_lowR_mean_square* method.
         **Currently not used in PyStoG workflow since was done manually.**
@@ -1218,7 +1237,7 @@ class StoG(object):
         """
         # TODO: Automate the :math:`Q_{max}` adjustment in an iterative loop
         # using a minimizer.
-        gr = self.df_gr_master[self.gr_title].values
+        gr = self.gr_master[self.gr_title]
         return self._lowR_mean_square(self.dr, gr)
 
     def _lowR_mean_square(self, r, gr, limit=1.01):
@@ -1246,7 +1265,7 @@ class StoG(object):
 
     def _add_keen_fq(self, q, sq):
         """Adds the Keen version of :math:`F(Q)` to the
-        "master" recprical space DataFrame, **df_sq_master**, and
+        "master" recprical space storage array, **sq_master**, and
         writes it out to file using the **stem_name**.
 
         :param q: :math:`Q`-space vector
@@ -1256,13 +1275,13 @@ class StoG(object):
         """
         kwargs = {'rho': self.density, "<b_coh>^2": self.bcoh_sqrd}
         fq, dfq = self.converter.S_to_FK(q, sq, **kwargs)
-        self.df_sq_master = self.add_to_dataframe(
-            q, fq, self.df_sq_master, self.fq_title)
+        self.sq_master[self.fq_title] = fq
+        self.q_master[self.fq_title] = q
         self.write_out_rmc_fq()
 
     def _add_keen_gr(self, r, gr):
         """Adds the Keen version of :math:`G(r)` to the
-        "master" real space DataFrame, **df_gr_master**, and
+        "master" real space storage array, **gr_master**, and
         writes it out to file using the **stem_name**.
 
         :param r: :math:`r`-space vector
@@ -1278,207 +1297,30 @@ class StoG(object):
         elif self.real_space_function == "GK(r)":
             GKofR = gr
 
-        self.df_gr_master = self.add_to_dataframe(
-            r, GKofR, self.df_gr_master, self.GKofR_title)
+        self.gr_master[self.GKofR_title] = GKofR
+        self.r_master[self.GKofR_title] = r
         self.write_out_rmc_gr()
 
     # -------------------------------------#
-    # Plot Utilities
-
-    def _plot_df(self, df, xlabel, ylabel, title, exclude_list):
-        """Utility function to help plot a DataFrame
-
-        :param df: DataFrame to plot
-        :type df: pandas.DataFrame
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame **df** to exclude from plot
-        :type exclude_list: list of str
-        """
-        if exclude_list:
-            columns_diff = df.columns.difference(exclude_list)
-            columns_diff_ids = df.columns.get_indexer(columns_diff)
-            df = df.iloc[:, columns_diff_ids]
-        df.plot(**self.plotting_kwargs)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
-        plt.show()
-
-    def plot_sq(self, xlabel='Q', ylabel='S(Q)', title='', exclude_list=None):
-        """Helper function to plot the :math:`S(Q)` functions
-        in the "master" DataFrame, **df_sq_master**.
-
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame to exclude from plot
-        :type exclude_list: list of str
-        """
-        df_sq = self.df_sq_master
-        self._plot_df(df_sq, xlabel, ylabel, title, exclude_list)
-
-    def plot_merged_sq(self):
-        """Helper function to multiplot the individual
-        real space functions in the **df_individuals** DataFrame,
-        these functions as individual :math:`S(Q)`, the merged
-        :math:`S(Q)` from the individual functions, and
-        :math:`Q[S(Q)-1]`.
-        """
-
-        plot_kwargs = self.plotting_kwargs.copy()
-        plot_kwargs['style'] = 'o-'
-        plot_kwargs['lw'] = 0.5
-
-        fig, axes = plt.subplots(2, 2, sharex=True)
-        plt.xlabel("Q")
-
-        # Plot the inividual reciprocal functions
-        if self.df_individuals.empty:
-            self.df_sq_individuals.plot(ax=axes[0, 0], **plot_kwargs)
-        else:
-            self.df_individuals.plot(ax=axes[0, 0], **plot_kwargs)
-
-        # Plot the inividual S(Q) functions
-        self.df_sq_individuals.plot(ax=axes[0, 1], **plot_kwargs)
-        axes[0, 1].set_ylabel("S(Q)")
-        axes[0, 1].set_title("Individual S(Q)")
-
-        # Plot the merged S(Q)
-        df_sq = self.df_sq_master.loc[:, [self.sq_title]]
-        df_sq.plot(ax=axes[1, 0], **plot_kwargs)
-        axes[1, 0].set_title("Merged S(Q)")
-        axes[1, 0].set_ylabel("S(Q)")
-
-        # Plot the merged Q[S(Q)-1]
-        df_fq = self.df_sq_master.loc[:, [self.qsq_minus_one_title]]
-        df_fq.plot(ax=axes[1, 1], **plot_kwargs)
-        axes[1, 1].set_title("Merged Q[S(Q)-1]")
-        axes[1, 1].set_ylabel("Q[S(Q)-1]")
-
-        plt.show()
-
-    def plot_gr(self, xlabel='r', ylabel='G(r)', title='', exclude_list=None):
-        """Helper function to plot the real space functions
-        in the "master" DataFrame, **df_gr_master**.
-
-        :param xlabel: X-axis label
-        :type xlabel: str
-        :param ylabel: Y-axis label
-        :type ylabel: str
-        :param title: Title of plot
-        :type title: str
-        :param exclude_list: List of titles of columns in
-                        DataFrame to exclude from plot
-        :type exclude_list: list of str
-        """
-        df_gr = self.df_gr_master
-        self._plot_df(df_gr, xlabel, ylabel, title, exclude_list)
-
-    def plot_summary_sq(self):
-        """Helper function to multiplot the reciprocal space
-        functions during processing and the :math:`F(Q)` function.
-        """
-        if self.fq_title not in self.df_sq_master.columns:
-            q = self.df_sq_master[self.sq_title].index.values
-            sq = self.df_sq_master[self.sq_title].values
-            self._add_keen_fq(q, sq)
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        exclude_list = [self.fq_title]
-        df = self.df_sq_master
-        columns_diff = df.columns.difference(exclude_list)
-        columns_diff_ids = df.columns.get_indexer(columns_diff)
-        df_sq = self.df_sq_master.iloc[:, columns_diff_ids]
-        df_sq.plot(ax=ax1, **self.plotting_kwargs)
-        df_fq = self.df_sq_master.loc[:, [self.fq_title]]
-        df_fq.plot(ax=ax2, **self.plotting_kwargs)
-        plt.xlabel("Q")
-        ax1.set_ylabel("S(Q)")
-        ax1.set_title("StoG S(Q) functions")
-        ax2.set_ylabel("FK(Q)")
-        ax2.set_title("Keen's F(Q)")
-        plt.show()
-
-    def plot_summary_gr(self):
-        """Helper function to multiplot the real space
-        functions during processing
-        and the :math:`G_{Keen Version}(Q)` function.
-        """
-        if self.GKofR_title not in self.df_gr_master.columns:
-            r = self.df_gr_master[self.gr_title].index.values
-            gr = self.df_gr_master[self.gr_title].values
-            self._add_keen_gr(r, gr)
-        fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
-        df = self.df_gr_master
-        columns_diff = df.columns.difference([self.GKofR_title])
-        columns_diff_ids = df.columns.get_indexer(columns_diff)
-        df_gr = df.iloc[:, columns_diff_ids]
-        df_gr.plot(ax=ax1, **self.plotting_kwargs)
-        df_gk = df.loc[:, [self.GKofR_title]]
-        df_gk.plot(ax=ax2, **self.plotting_kwargs)
-        plt.xlabel("r")
-        ax1.set_ylabel(self.real_space_function)
-        ax1.set_title("StoG %s functions" % self.real_space_function)
-        ax2.set_ylabel("GK(r)")
-        ax2.set_title("Keen's G(r)")
-        plt.show()
-
-    # -------------------------------------#
     # Output Utilities
+    def _write_out_to_file(self, x, y, filename, places=12):
+        """Helper function for writing out X Y data
+        to the filename in the RMCProfile format.
 
-    def add_to_dataframe(self, x, y, df, title):
-        """Takes X,Y dataset and adds it to the given Datframe **df**,
-        with the given **title**. Utility function for updating
-        the class DataFrames.
-
-        :param x: X-axis vector
-        :type x: numpy.array or list
-        :param y: Y-axis vector
-        :type y: numpy.array or list
-        :param df: DataFrame to append (**x**, **y**) pair to as a column
-        :type df: pandas.DataFrame
-        :param title: The title of the column in the DataFrame
-        :type title: str
-        :return: DataFrame with X,Y data appended with given title
-        :rtype: pandas.DataFrame
-        """
-        df_temp = pd.DataFrame(y, columns=[title], index=x)
-        if title in df.columns:
-            df[title] = df_temp[title]
-            return df
-        df = pd.concat([df, df_temp], axis=1)
-        return df
-
-    def _write_out_df(self, df, cols, filename):
-        """Helper function for writing out the DataFrame **df**
-        and the given columns, **cols**, to the filename in
-        the RMCProfile format.
-
-        :param df: DataFrame to write from to filename
-        :type df: pandas.DataFrame
-        :param cols: Column title list for columns to write out
-        :type cols: List of str
+        :param x: X data to write out
+        :type x: list
+        :param y: Y data to write out
+        :type y: list
         :param filename: Filename to write to
         :type filename: str
         """
-        if df.empty:
-            raise ValueError("Empty dataframe. Cannot write out.")
-
         with open(filename, 'w') as f:
-            f.write("%d \n" % df.shape[0])
+            f.write("%d \n" % len(x))
             f.write("# Comment line\n")
         with open(filename, 'a') as f:
-            df.to_csv(f, sep='\t', columns=cols, header=False)
+            for i, j in zip(x, y):
+                fmt = "{:.{places}f} {:.{places}f}\n"
+                f.write(fmt.format(i, j, places=places))
 
     def write_out_merged_sq(self, filename=None):
         """Helper function for writing out the merged :math:`S(Q)`
@@ -1488,7 +1330,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_title], filename)
+        x = self.q_master[self.sq_title]
+        y = self.sq_master[self.sq_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_merged_gr(self, filename=None):
         """Helper function for writing out the merged real space function
@@ -1498,7 +1342,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_title], filename)
+        x = self.r_master[self.gr_title]
+        y = self.gr_master[self.gr_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft(self, filename=None):
         """Helper function for writing out the Fourier filter correction.
@@ -1508,7 +1354,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "ft.dat"
-        self._write_out_df(self.df_sq_master, [self._ft_title], filename)
+        x = self.q_master[self._ft_title]
+        y = self.sq_master[self._ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft_sq(self, filename=None):
         """Helper function for writing out the Fourier filtered :math:`S(Q)`
@@ -1518,7 +1366,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft.sq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.sq_ft_title], filename)
+        x = self.q_master[self.sq_ft_title]
+        y = self.sq_master[self.sq_ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_ft_gr(self, filename=None):
         """Helper function for writing out the Fourier filtered real space function
@@ -1528,7 +1378,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_ft_title], filename)
+        x = self.r_master[self.gr_ft_title]
+        y = self.gr_master[self.gr_ft_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_lorched_gr(self, filename=None):
         """Helper function for writing out the Lorch dampened real space function
@@ -1538,7 +1390,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_ft_lorched.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.gr_lorch_title], filename)
+        x = self.r_master[self.gr_lorch_title]
+        y = self.gr_master[self.gr_lorch_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_fq(self, filename=None):
         """Helper function for writing out the output :math:`F(Q)`
@@ -1548,7 +1402,9 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.fq" % self.stem_name
-        self._write_out_df(self.df_sq_master, [self.fq_title], filename)
+        x = self.q_master[self.fq_title]
+        y = self.sq_master[self.fq_title]
+        self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_gr(self, filename=None):
         """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
@@ -1558,4 +1414,6 @@ class StoG(object):
         """
         if filename is None:
             filename = "%s_rmc.gr" % self.stem_name
-        self._write_out_df(self.df_gr_master, [self.GKofR_title], filename)
+        x = self.r_master[self.GKofR_title]
+        y = self.gr_master[self.GKofR_title]
+        self._write_out_to_file(x, y, filename)

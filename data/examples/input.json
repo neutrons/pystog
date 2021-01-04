@@ -25,7 +25,6 @@
     "FourierFilter" : { "Cutoff" : 1.5 },
     "<b_coh>^2" : 5.0,
     "LorchFlag" : "True",
-    "PlotFlag" : "True",
     "Outputs" : { "StemName" : "merged" }
 }
     

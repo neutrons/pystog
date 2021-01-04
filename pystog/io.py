@@ -59,8 +59,6 @@ def get_cli_args():
         default=1.0,
         dest="btot_sqrd",
         help="The (sum c*b^2) term needed for DCS(Q) input")
-    parser.add_argument("--plot", action="store_true", default=False,
-                        help="Plots using matplotlib along the way")
     parser.add_argument("--merging", nargs=2, type=float, default=[0.0, 1.0],
                         help="Offset and Scale to apply to the merged S(Q)")
     parser.add_argument("--low-q-correction", action='store_true',
@@ -90,7 +88,6 @@ def parse_cli_args(args):
         "FourierFilter": {
             "Cutoff": args.fourier_filter_cutoff},
         "LorchFlag": args.lorch_flag,
-        "PlotFlag": args.plot,
         "Outputs": {
             "StemName": args.stem_name},
         "Merging": {
