@@ -1,4 +1,13 @@
-from __future__ import (absolute_import, division, print_function)
+"""
+==============
+PyStoG CLI
+==============
+
+This module defines the PyStoG CLI function that performs the workflow of the
+original FORTRAN-based StoG CLI
+"""
+
+
 import json
 
 from pystog import StoG

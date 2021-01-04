@@ -7,7 +7,6 @@ This module defines the Converter class
 that converts functions in the same space
 """
 
-from __future__ import (absolute_import, division, print_function)
 import numpy as np
 
 

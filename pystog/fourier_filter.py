@@ -8,9 +8,6 @@ that performs the Fourier filter for a
 given range to exclude.
 """
 
-
-from __future__ import (absolute_import, division, print_function)
-
 import numpy as np
 
 from pystog.converter import Converter
