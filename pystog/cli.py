@@ -43,10 +43,10 @@ def pystog_cli(kwargs=None):
     # print stog.get_lowR_mean_square()
 
     # Set the S(Q) and g(r) if no Fourier Filter
-    r = stog.df_gr_master[stog.gr_title].values
-    q = stog.df_sq_master[stog.sq_title].values
-    sq = stog.df_sq_master[stog.sq_title].values
-    gr_out = stog.df_gr_master[stog.gr_title].values
+    r = stog.gr_master[stog.gr_title].values
+    q = stog.sq_master[stog.sq_title].values
+    sq = stog.sq_master[stog.sq_title].values
+    gr_out = stog.gr_master[stog.gr_title].values
 
     # Apply Fourier Filter
     if "FourierFilter" in kwargs:

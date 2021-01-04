@@ -148,22 +148,15 @@ class TestStogInit(TestStogBase):
         self.assertEqual(stog.low_q_correction, False)
         self.assertEqual(stog.lorch_flag, False)
         self.assertEqual(stog.fourier_filter_cutoff, None)
-        self.assertEqual(stog.plot_flag, True)
-        self.assertEqual(stog.plotting_kwargs, {'figsize': (16, 8),
-                                                'style': '-',
-                                                'ms': 1,
-                                                'lw': 1,
-                                                }
-                         )
         self.assertEqual(
             stog.merged_opts, {
                 "Y": {
                     "Offset": 0.0, "Scale": 1.0}})
         self.assertEqual(stog.stem_name, "out")
-        self.assertEqual(stog.df_individuals.size, 0)
-        self.assertEqual(stog.df_sq_master, {})
-        self.assertEqual(stog.df_sq_individuals.size, 0)
-        self.assertEqual(stog.df_gr_master, {})
+        self.assertEqual(stog.reciprocal_individuals.size, 0)
+        self.assertEqual(stog.sq_master, {})
+        self.assertEqual(stog.sq_individuals.size, 0)
+        self.assertEqual(stog.gr_master, {})
 
     def test_stog_init_kwargs_files(self):
         stog = StoG(**{'Files': ['file1.txt', 'file2.txt']})
@@ -204,10 +197,6 @@ class TestStogInit(TestStogBase):
     def test_stog_init_kwargs_fourier_filter_cutoff(self):
         stog = StoG(**{'FourierFilter': {'Cutoff': 1.0}})
         self.assertEqual(stog.fourier_filter_cutoff, 1.0)
-
-    def test_stog_init_kwargs_plot_flag(self):
-        stog = StoG(**{'PlotFlag': False})
-        self.assertEqual(stog.plot_flag, False)
 
     def test_stog_init_kwargs_bcoh_sqrd(self):
         stog = StoG(**{'<b_coh>^2': 0.5})
@@ -322,17 +311,6 @@ class TestStogAttributes(TestStogBase):
         self.assertEqual(stog.gr_ft_title, "GK(r) FT")
         self.assertEqual(stog.gr_lorch_title, "GK(r) FT Lorched")
 
-    def test_stog_plotting_kwargs_setter(self):
-        stog = StoG()
-        new_kwargs = {
-            'figsize': (4, 4),
-            'style': 'o',
-            'ms': 2,
-            'lw': 2,
-        }
-        stog.plotting_kwargs = new_kwargs
-        self.assertEqual(stog.plotting_kwargs, new_kwargs)
-
     def test_stog_low_q_correction_exception(self):
         stog = StoG()
         with self.assertRaises(TypeError):
@@ -343,41 +321,36 @@ class TestStogAttributes(TestStogBase):
         with self.assertRaises(TypeError):
             stog.lorch_flag = 1.0
 
-    def test_stog_plot_flag_exception(self):
-        stog = StoG()
-        with self.assertRaises(TypeError):
-            stog.plot_flag = 1.0
-
     def test_stog_real_space_function_exception(self):
         stog = StoG()
         with self.assertRaises(ValueError):
             stog.real_space_function = "Dog"
 
 
-class TestStogDataFrameAttributes(TestStogBase):
+class TestStogStorageArrays(TestStogBase):
     def setUp(self):
-        super(TestStogDataFrameAttributes, self).setUp()
-        self.df_target = np.random.randn(3, 10)
+        super(TestStogStorageArrays, self).setUp()
+        self.target = np.random.randn(3, 10)
 
-    def test_stog_df_individuals_setter(self):
+    def test_stog_reciprocal_individuals_setter(self):
         stog = StoG()
-        stog.df_individuals = self.df_target
-        assert_allclose(stog.df_individuals, self.df_target)
+        stog.reciprocal_individuals = self.target
+        assert_allclose(stog.reciprocal_individuals, self.target)
 
-    def test_stog_df_sq_individuals_setter(self):
+    def test_stog_sq_individuals_setter(self):
         stog = StoG()
-        stog.df_sq_individuals = self.df_target
-        assert_allclose(stog.df_sq_individuals, self.df_target)
+        stog.sq_individuals = self.target
+        assert_allclose(stog.sq_individuals, self.target)
 
-    def test_stog_df_sq_master_setter(self):
+    def test_stog_sq_master_setter(self):
         stog = StoG()
-        stog.df_sq_master = self.df_target
-        assert_allclose(stog.df_sq_master, self.df_target)
+        stog.sq_master = self.target
+        assert_allclose(stog.sq_master, self.target)
 
-    def test_stog_df_gr_master_setter(self):
+    def test_stog_gr_master_setter(self):
         stog = StoG()
-        stog.df_gr_master = self.df_target
-        assert_allclose(stog.df_gr_master, self.df_target)
+        stog.gr_master = self.target
+        assert_allclose(stog.gr_master, self.target)
 
 
 class TestStogGeneralMethods(TestStogBase):
@@ -415,63 +388,63 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             'ReciprocalFunction': 'S(Q)'}
         stog.add_dataset(info)
         self.assertEqual(
-            stog.df_individuals[0][self.first],
+            stog.reciprocal_individuals[0][self.first],
             self.reciprocal_xtarget)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first],
+            stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the Q[S(Q)-1] data set and check values for it and S(Q) against
         # targets
-        stride = stog.df_individuals.shape[1]
+        stride = stog.reciprocal_individuals.shape[1]
         info = {
             'data': [self.q, self.fq],
             'ReciprocalFunction': 'Q[S(Q)-1]'
         }
         stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first + stride],
+            stog.reciprocal_individuals[1][self.first + stride],
             self.fq_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the FK(Q) data set and check values for it and S(Q) against
         # targets
-        stride = stog.df_individuals.shape[1]
+        stride = stog.reciprocal_individuals.shape[1]
         info = {
             'data': [self.q, self.fq_keen],
             'ReciprocalFunction': 'FK(Q)'}
         stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first + stride],
+            stog.reciprocal_individuals[1][self.first + stride],
             self.fq_keen_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
         # Add the DCS(Q) data set and check values for it and S(Q) against
         # targets
-        stride = stog.df_individuals.shape[1]
+        stride = stog.reciprocal_individuals.shape[1]
         info = {
             'data': [self.q, self.dcs],
             'ReciprocalFunction': 'DCS(Q)'}
         stog.add_dataset(info)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first + stride],
+            stog.reciprocal_individuals[1][self.first + stride],
             self.dcs_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
@@ -484,10 +457,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             'Y': {'Scale': 2.0}}
         stog.add_dataset(info)
         self.assertNotEqual(
-            stog.df_individuals[1][self.first],
+            stog.reciprocal_individuals[1][self.first],
             self.sq_target[0])
         self.assertNotEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0])
 
     def test_stog_add_dataset_yoffset(self):
@@ -499,10 +472,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             'Y': {'Offset': 2.0}}
         stog.add_dataset(info)
         self.assertNotEqual(
-            stog.df_individuals[1][self.first],
+            stog.reciprocal_individuals[1][self.first],
             self.sq_target[0])
         self.assertNotEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0])
 
     def test_stog_add_dataset_xoffset(self):
@@ -513,7 +486,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             'ReciprocalFunction': 'S(Q)',
             'X': {'Offset': 0.2}}
         stog.add_dataset(info)
-        self.assertEqual(stog.df_individuals[0][self.first], 2.14)
+        self.assertEqual(stog.reciprocal_individuals[0][self.first], 2.14)
 
     def test_stog_add_dataset_qmin_qmax_crop(self):
         # Check qmin and qmax apply cropping
@@ -523,8 +496,8 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.qmin = 1.5
         stog.qmax = 12.0
         stog.add_dataset(info)
-        self.assertEqual(stog.df_individuals[0][0], stog.qmin)
-        self.assertEqual(stog.df_individuals[0][-1], stog.qmax)
+        self.assertEqual(stog.reciprocal_individuals[0][0], stog.qmin)
+        self.assertEqual(stog.reciprocal_individuals[0][-1], stog.qmax)
 
     def test_stog_add_dataset_default_reciprocal_space_function(self):
         # Checks the default reciprocal space function is S(Q)
@@ -533,10 +506,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         info = {'data': [self.q, self.sq]}
         stog.add_dataset(info)
         self.assertEqual(
-            stog.df_individuals[0][self.first],
+            stog.reciprocal_individuals[0][self.first],
             self.reciprocal_xtarget)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first],
+            stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
@@ -572,14 +545,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
         # Check S(Q) data against targets
         self.assertEqual(
-            stog.df_individuals[0][self.first],
+            stog.reciprocal_individuals[0][self.first],
             self.reciprocal_xtarget)
         self.assertAlmostEqual(
-            stog.df_individuals[1][self.first],
+            stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
         self.assertAlmostEqual(
-            stog.df_sq_individuals[1][self.first],
+            stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
 
@@ -614,14 +587,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
         # Check S(Q) data against targets
         self.assertEqual(
-            stog.df_individuals[0][self.first], self.reciprocal_xtarget)
+            stog.reciprocal_individuals[0][self.first], self.reciprocal_xtarget)
         for index in range(len(stog.files)):
             self.assertAlmostEqual(
-                stog.df_individuals[1][self.first],
+                stog.reciprocal_individuals[1][self.first],
                 self.sq_target[0],
                 places=places)
             self.assertAlmostEqual(
-                stog.df_sq_individuals[1][self.first],
+                stog.sq_individuals[1][self.first],
                 self.sq_target[0],
                 places=places)
 
@@ -637,10 +610,10 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
         # Check S(Q) data against targets
         self.assertEqual(
-            stog.df_q_master[stog.sq_title][self.first],
+            stog.q_master[stog.sq_title][self.first],
             self.reciprocal_xtarget)
         self.assertAlmostEqual(
-            stog.df_sq_master[stog.sq_title][self.first],
+            stog.sq_master[stog.sq_title][self.first],
             self.sq_target[0],
             places=places)
 
@@ -658,7 +631,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.merged_opts['Q[S(Q)-1]'] = qsq_opts
         stog.merge_data()
         self.assertAlmostEqual(
-            stog.df_sq_master[stog.qsq_minus_one_title][self.first],
+            stog.sq_master[stog.qsq_minus_one_title][self.first],
             qsq_opts['Y']['Scale'] * self.fq_target[0],
             places=places)
 
@@ -676,7 +649,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         stog.merged_opts['Q[S(Q)-1]'] = qsq_opts
         stog.merge_data()
         self.assertAlmostEqual(
-            stog.df_sq_master[stog.qsq_minus_one_title][self.first],
+            stog.sq_master[stog.qsq_minus_one_title][self.first],
             qsq_opts['Y']['Offset'] + self.fq_target[0],
             places=places)
 
@@ -699,11 +672,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_title][self.real_space_first],
+            stog.r_master[stog.gr_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_title][self.real_space_first],
+            stog.gr_master[stog.gr_title][self.real_space_first],
             self.gofr_target[0],
             places=places)
 
@@ -713,11 +686,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_title][self.real_space_first],
+            stog.r_master[stog.gr_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_title][self.real_space_first],
+            stog.gr_master[stog.gr_title][self.real_space_first],
             self.gofr_target[0],
             places=places)
 
@@ -735,11 +708,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check G(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_title][self.real_space_first],
+            stog.r_master[stog.gr_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_title][self.real_space_first],
+            stog.gr_master[stog.gr_title][self.real_space_first],
             self.GofR_target[0],
             places=places)
 
@@ -757,11 +730,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check GK(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_title][self.real_space_first],
+            stog.r_master[stog.gr_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_title][self.real_space_first],
+            stog.gr_master[stog.gr_title][self.real_space_first],
             self.GKofR_target[0],
             places=places)
 
@@ -775,9 +748,9 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.transform_merged()
 
         self.assertFalse(
-            np.isnan(stog.df_sq_master[stog.sq_title]).any())
+            np.isnan(stog.sq_master[stog.sq_title]).any())
         self.assertFalse(
-            np.isnan(stog.df_gr_master[stog.gr_title]).any())
+            np.isnan(stog.gr_master[stog.gr_title]).any())
 
     def test_stog_fourier_filter(self):
         # Number of decimal places for precision
@@ -786,7 +759,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
@@ -794,11 +766,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_ft_title][self.real_space_first],
+            stog.r_master[stog.gr_ft_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_ft_title][self.real_space_first],
+            stog.gr_master[stog.gr_ft_title][self.real_space_first],
             self.gofr_ff_target[0],
             places=places)
 
@@ -809,18 +781,17 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.fourier_filter()
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_ft_title][self.real_space_first],
+            stog.r_master[stog.gr_ft_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_ft_title][self.real_space_first],
+            stog.gr_master[stog.gr_ft_title][self.real_space_first],
             self.gofr_ff_target[0],
             places=places)
 
@@ -831,7 +802,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.real_space_function = "G(r)"
         stog.read_all_data()
         stog.merge_data()
@@ -840,11 +810,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_ft_title][self.real_space_first],
+            stog.r_master[stog.gr_ft_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_ft_title][self.real_space_first],
+            stog.gr_master[stog.gr_ft_title][self.real_space_first],
             self.GofR_ff_target[0],
             places=places)
 
@@ -855,7 +825,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.real_space_function = "GK(r)"
         stog.read_all_data()
         stog.merge_data()
@@ -864,11 +833,11 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
 
         # Check g(r) data against targets
         self.assertAlmostEqual(
-            stog.df_r_master[stog.gr_ft_title][self.real_space_first],
+            stog.r_master[stog.gr_ft_title][self.real_space_first],
             self.real_xtarget,
             places=places)
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_ft_title][self.real_space_first],
+            stog.gr_master[stog.gr_ft_title][self.real_space_first],
             self.GKofR_ff_target[0],
             places=places)
 
@@ -876,20 +845,19 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
         stog.fourier_filter()
 
         self.assertFalse(
-            np.isnan(stog.df_gr_master[stog.gr_title]).any())
+            np.isnan(stog.gr_master[stog.gr_title]).any())
         self.assertFalse(
-            np.isnan(stog.df_sq_master[stog.sq_title]).any())
+            np.isnan(stog.sq_master[stog.sq_title]).any())
         self.assertFalse(
-            np.isnan(stog.df_sq_master[stog._ft_title]).any())
+            np.isnan(stog.sq_master[stog._ft_title]).any())
         self.assertFalse(
-            np.isnan(stog.df_sq_master[stog.sq_ft_title]).any())
+            np.isnan(stog.sq_master[stog.sq_ft_title]).any())
 
     def test_stog_apply_lorch_default(self):
         # Number of decimal places for precision
@@ -898,7 +866,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
@@ -906,7 +873,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.apply_lorch(q, sq, r)
 
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_lorch_title][self.real_space_first],
+            stog.gr_master[stog.gr_lorch_title][self.real_space_first],
             self.gofr_lorch_target[0],
             places=places)
 
@@ -917,7 +884,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.real_space_function = "G(r)"
         stog.read_all_data()
         stog.merge_data()
@@ -926,7 +892,7 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.apply_lorch(q, sq, r)
 
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_lorch_title][self.real_space_first],
+            stog.gr_master[stog.gr_lorch_title][self.real_space_first],
             self.GofR_lorch_target[0],
             places=places)
 
@@ -937,7 +903,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.real_space_function = "GK(r)"
         stog.read_all_data()
         stog.merge_data()
@@ -946,18 +911,17 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         stog.apply_lorch(q, sq, r)
 
         self.assertAlmostEqual(
-            stog.df_gr_master[stog.gr_lorch_title][self.real_space_first],
+            stog.gr_master[stog.gr_lorch_title][self.real_space_first],
             self.GKofR_lorch_target[0], places=places)
 
     def test_stog_lowR_mean_square(self):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
-        gr = stog.df_gr_master[stog.gr_title]
+        gr = stog.gr_master[stog.gr_title]
         cost = stog._lowR_mean_square(stog.dr, gr)
         self.assertAlmostEqual(cost, self.lowR_target, places=7)
 
@@ -965,7 +929,6 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         # Load S(Q) for Argon from test data
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
-        stog.plot_flag = False
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
@@ -974,9 +937,9 @@ class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
         self.assertAlmostEqual(cost, self.lowR_target, places=7)
 
 
-class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
+class TestStogBookkeepingMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
-        super(TestStogPlottingDataFrameMethods, self).setUp()
+        super(TestStogBookkeepingMethods, self).setUp()
         stog = StoG(**self.kwargs_for_stog_input)
         stog.files = self.kwargs_for_files['Files']
         stog.read_all_data()
@@ -987,17 +950,17 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
 
     def test_stog_add_keen_fq(self):
         stog = self.stog
-        q = stog.df_sq_master[stog.sq_title]
-        sq = stog.df_sq_master[stog.sq_title]
+        q = stog.sq_master[stog.sq_title]
+        sq = stog.sq_master[stog.sq_title]
         stog._add_keen_fq(q, sq)
-        self.assertTrue(stog.fq_title in stog.df_sq_master)
+        self.assertTrue(stog.fq_title in stog.sq_master)
 
     def test_stog_add_keen_gr_default(self):
         stog = self.stog
-        r = stog.df_gr_master[stog.gr_title]
-        gr = stog.df_gr_master[stog.gr_title]
+        r = stog.gr_master[stog.gr_title]
+        gr = stog.gr_master[stog.gr_title]
         stog._add_keen_gr(r, gr)
-        self.assertTrue(stog.GKofR_title in stog.df_gr_master)
+        self.assertTrue(stog.GKofR_title in stog.gr_master)
 
     def test_stog_add_keen_gr_GofR(self):
         stog = StoG(**self.kwargs_for_stog_input)
@@ -1006,10 +969,10 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
-        r = stog.df_gr_master[stog.gr_title]
-        gr = stog.df_gr_master[stog.gr_title]
+        r = stog.gr_master[stog.gr_title]
+        gr = stog.gr_master[stog.gr_title]
         stog._add_keen_gr(r, gr)
-        self.assertTrue(stog.GKofR_title in stog.df_gr_master)
+        self.assertTrue(stog.GKofR_title in stog.gr_master)
 
     def test_stog_add_keen_gr_GKofR(self):
         stog = StoG(**self.kwargs_for_stog_input)
@@ -1018,17 +981,16 @@ class TestStogPlottingDataFrameMethods(TestStogDatasetSpecificMethods):
         stog.read_all_data()
         stog.merge_data()
         stog.transform_merged()
-        r = stog.df_gr_master[stog.gr_title]
-        gr = stog.df_gr_master[stog.gr_title]
+        r = stog.gr_master[stog.gr_title]
+        gr = stog.gr_master[stog.gr_title]
         stog._add_keen_gr(r, gr)
-        self.assertTrue(stog.GKofR_title in stog.df_gr_master)
+        self.assertTrue(stog.GKofR_title in stog.gr_master)
 
 
-class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
+class TestStogOutputMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
-        super(TestStogOutputDataFrameMethods, self).setUp()
+        super(TestStogOutputMethods, self).setUp()
         stog = StoG(**self.kwargs_for_stog_input)
-        stog.plot_flag = False
         stog.stem_name = "dog"
         stog.files = self.kwargs_for_files['Files']
         stog.read_all_data()
@@ -1081,8 +1043,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
     # Tests
     def test_stog_write_df(self):
         outfile_path = tempfile.mkstemp()[1]
-        x = self.stog.df_q_master[self.stog.sq_title]
-        y = self.stog.df_sq_master[self.stog.sq_title]
+        x = self.stog.q_master[self.stog.sq_title]
+        y = self.stog.sq_master[self.stog.sq_title]
         self.stog._write_out_to_file(x, y, outfile_path)
         data = {}
         data['x'], data['y'] = np.genfromtxt(
@@ -1090,8 +1052,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
             skip_header=2,
             unpack=True)
 
-        q = self.stog.df_q_master[self.stog.sq_title]
-        sq = self.stog.df_sq_master[self.stog.sq_title]
+        q = self.stog.q_master[self.stog.sq_title]
+        sq = self.stog.sq_master[self.stog.sq_title]
 
         assert_allclose(data['x'], q)
         assert_allclose(data['y'], sq)
@@ -1101,8 +1063,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         # Have to decorate after the setUp() is called for the self.* args to
         # work
         @self.data_provider(
-            self.stog.df_q_master[self.stog.sq_title],
-            self.stog.df_sq_master[self.stog.sq_title],
+            self.stog.q_master[self.stog.sq_title],
+            self.stog.sq_master[self.stog.sq_title],
             "dog.sq")
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_merged_sq(*args, **kwargs)
@@ -1112,8 +1074,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         # Have to decorate after the setUp() is called for the self.* args to
         # work
         @self.data_provider(
-            self.stog.df_r_master[self.stog.gr_title],
-            self.stog.df_gr_master[self.stog.gr_title],
+            self.stog.r_master[self.stog.gr_title],
+            self.stog.gr_master[self.stog.gr_title],
             "dog.gr")
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_merged_gr(*args, **kwargs)
@@ -1125,8 +1087,8 @@ class TestStogOutputDataFrameMethods(TestStogDatasetSpecificMethods):
         # work
 
         @self.data_provider(
-            self.stog.df_q_master[self.stog.sq_ft_title],
-            self.stog.df_sq_master[self.stog.sq_ft_title],
+            self.stog.q_master[self.stog.sq_ft_title],
+            self.stog.sq_master[self.stog.sq_ft_title],
             'dog_ft.sq')
         def decorated_write_out_merged(*args, **kwargs):
             self.stog.write_out_ft_sq(*args, **kwargs)
