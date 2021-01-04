@@ -32,11 +32,11 @@ Yet, migration to the Mantid Framework is still a goal since it feeds into the [
 
 ## Installation
 
-Installation is available via [`pip`](https://pip.pypa.io/en/stable/).
+Installation is available via [`pip`](https://pip.pypa.io/en/stable/):
+`pip install pystog`
 
-```bash 
-pip install pystog
-```
+And [conda](https://docs.conda.io/en/latest/):
+`conda install -c neutrons pystog`
 
 ## Getting started
 
