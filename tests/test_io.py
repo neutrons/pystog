@@ -1,4 +1,5 @@
-from pystog.io import get_cli_parser
+import pytest
+from pystog.io import get_cli_parser, parse_cli_args
 
 
 def test_get_cli_parser():
@@ -18,3 +19,8 @@ def test_get_cli_parser():
     assert args.btot_sqrd == 1.0
     assert args.merging == [0.0, 1.0]
     assert args.low_q_correction is False
+
+
+def test_parse_cli_args_exception():
+    with pytest.raises(TypeError):
+        parse_cli_args([])
