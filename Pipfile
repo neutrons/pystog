@@ -10,9 +10,11 @@ flake8 = "*"
 autopep8 = "*"
 tox = "*"
 notebook = "*"
+sphinx-rtd-theme = "*"
 
 [packages]
 numpy = "*"
+pystog = {editable = true,path = "."}
 
 [requires]
 python_version = "3.6"
