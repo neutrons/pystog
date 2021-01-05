@@ -80,7 +80,8 @@ class Converter:
 
     def F_to_DCS(self, q, fq, dfq=None, **kwargs):
         """
-        Converts from :math:`Q[S(Q)-1]` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
+        Converts from :math:`Q[S(Q)-1]` to
+        :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param q: :math:`Q`-space vector
         :type q: numpy.array or list
