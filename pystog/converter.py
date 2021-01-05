@@ -261,7 +261,7 @@ class Converter:
 
     # G(r) = PDF
     def G_to_GK(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`G_{PDFFIT}(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
@@ -281,7 +281,7 @@ class Converter:
                 factor * self._safe_divide(dgr, r))
 
     def G_to_g(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`G_{PDFFIT}(r)` to :math:`g(r)`
 
         :param r: r-space vector
@@ -302,7 +302,7 @@ class Converter:
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`G_{Keen Version}(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
@@ -321,7 +321,7 @@ class Converter:
         return (factor * r * gr, factor * r * dgr)
 
     def GK_to_g(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`G_{Keen Version}(r)` to :math:`g(r)`
 
         :param r: r-space vector
@@ -339,7 +339,7 @@ class Converter:
 
     # g(r)
     def g_to_G(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`g(r)` to :math:`G_{PDFFIT}(r)`
 
         :param r: r-space vector
@@ -358,7 +358,7 @@ class Converter:
         return (factor * (gr - 1.), factor * dgr)
 
     def g_to_GK(self, r, gr, dgr=None, **kwargs):
-        """
+        r"""
         Convert :math:`g(r)` to :math:`G_{Keen Version}(r)`
 
         :param r: r-space vector
