@@ -1,4 +1,4 @@
-name: pystog_ci
+name: pystog_ci_cd
 
 env:
   PYTHON_MAIN_VERSION: 3.7
@@ -50,3 +50,24 @@ jobs:
           tox -e coverage
           pip install coverage
           bash <(curl -s https://codecov.io/bash)
+        
+      - name: Build Python package and Upload to PyPi
+        shell: bash -l {0}
+        if: startsWith( github.ref, 'refs/tags/v') &&  ${{ matrix.python-version == env.PYTHON_MAIN_VERSION }}
+        env: 
+            PYPI_TOKEN_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip install wheel twine
+          python setup.py sdist bdist_wheel
+          twine upload --username "__token__" --password $PYPI_TOKEN_PASSWORD dist/*
+
+      - name: Build conda package and upload to Anaconda
+        shell: bash -l {0}
+        if: startsWith( github.ref, 'refs/tags/v')
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        run: |
+          conda install -y anaconda-client conda-build conda-verify
+          cd conda.recipe
+          conda build --output-folder . .
+          anaconda upload --label main noarch/*.tar.bz2
