@@ -64,6 +64,7 @@ def test_parse_cli_args():
     assert kwargs["<b_tot^2>"] == args.btot_sqrd
     assert kwargs["RealSpaceFunction"] == args.real_space_function
     assert kwargs["OmittedXrangeCorrection"] == args.low_q_correction
+    assert kwargs["Rdelta"] == args.Rdelta
 
 
 def test_parse_cli_args_exception():
