@@ -1,16 +1,14 @@
 import numpy as np
-from numpy.testing import assert_allclose
-
 import os
+import tempfile
+import unittest
+
 from tests.utils import \
     get_data_path, load_data, get_index_of_function
 from tests.materials import Argon
 from pystog.utils import \
     RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.stog import StoG
-
-import tempfile
-import unittest
 
 
 class TestStogBase(unittest.TestCase):
@@ -334,22 +332,22 @@ class TestStogStorageArrays(TestStogBase):
     def test_stog_reciprocal_individuals_setter(self):
         stog = StoG()
         stog.reciprocal_individuals = self.target
-        assert_allclose(stog.reciprocal_individuals, self.target)
+        np.testing.assert_allclose(stog.reciprocal_individuals, self.target)
 
     def test_stog_sq_individuals_setter(self):
         stog = StoG()
         stog.sq_individuals = self.target
-        assert_allclose(stog.sq_individuals, self.target)
+        np.testing.assert_allclose(stog.sq_individuals, self.target)
 
     def test_stog_sq_master_setter(self):
         stog = StoG()
         stog.sq_master = self.target
-        assert_allclose(stog.sq_master, self.target)
+        np.testing.assert_allclose(stog.sq_master, self.target)
 
     def test_stog_gr_master_setter(self):
         stog = StoG()
         stog.gr_master = self.target
-        assert_allclose(stog.gr_master, self.target)
+        np.testing.assert_allclose(stog.gr_master, self.target)
 
 
 class TestStogGeneralMethods(TestStogBase):
@@ -1011,8 +1009,8 @@ class TestStogOutputMethods(TestStogDatasetSpecificMethods):
                     skip_header=2,
                     unpack=True)
 
-                assert_allclose(data['x'], x)
-                assert_allclose(
+                np.testing.assert_allclose(data['x'], x)
+                np.testing.assert_allclose(
                     data['y'] - y,
                     np.zeros(
                         len(y)),
@@ -1032,8 +1030,8 @@ class TestStogOutputMethods(TestStogDatasetSpecificMethods):
                     skip_header=2,
                     unpack=True)
 
-                assert_allclose(data['x'], x)
-                assert_allclose(data['y'], y)
+                np.testing.assert_allclose(data['x'], x)
+                np.testing.assert_allclose(data['y'], y)
                 os.remove(tmp_filename)
 
             return wrap_function
@@ -1054,8 +1052,8 @@ class TestStogOutputMethods(TestStogDatasetSpecificMethods):
         q = self.stog.q_master[self.stog.sq_title]
         sq = self.stog.sq_master[self.stog.sq_title]
 
-        assert_allclose(data['x'], q)
-        assert_allclose(data['y'], sq)
+        np.testing.assert_allclose(data['x'], q)
+        np.testing.assert_allclose(data['y'], sq)
         os.remove(outfile_path)
 
     def test_write_out_merged_sq(self):

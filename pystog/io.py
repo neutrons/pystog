@@ -3,12 +3,26 @@ import argparse
 from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
 
 
-def get_cli_args():
+def get_cli_parser():
+    """
+    Create the argument parser for the CLI
+
+    :return: Argument parser for PyStoG CLI
+    :rtype: argparse.ArgumentParser
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--json", type=str, default=None,
-                        help="Read JSON input file for arguments")
-    parser.add_argument("--density", type=float,
-                        help="Number density (atoms/angstroms^3")
+
+    parser.add_argument(
+        "--json",
+        type=str,
+        default=None,
+        help="Read JSON input file for arguments")
+
+    parser.add_argument(
+        "--density",
+        type=float,
+        help="Number density (atoms/angstroms^3")
+
     parser.add_argument(
         "-f",
         "--filename",
@@ -19,17 +33,14 @@ def get_cli_args():
         help="Filename, qmin, qmax, yoffset, yscale, Qoffset, function type."
         "Function Types are: %s" %
         json.dumps(ReciprocalSpaceChoices))
+
     parser.add_argument(
         "--stem-name",
         type=str,
         dest="stem_name",
         default="merged",
         help="Stem name for output files")
-    parser.add_argument(
-        "--Rmax",
-        type=float,
-        default=50.0,
-        help="Maximum value in angstroms for real-space functions")
+
     parser.add_argument(
         "--real-space-function",
         type=str,
@@ -37,36 +48,83 @@ def get_cli_args():
         dest="real_space_function",
         help="Real-space function typej. Choices are: %s" %
         json.dumps(RealSpaceChoices))
-    parser.add_argument("--Rpoints", type=int, default=5000,
-                        help="Number of points in R for real-space functions")
-    parser.add_argument("--Rdelta", type=float, default=None,
-                        help="Bin width to use in R for real-space functions")
-    parser.add_argument("--fourier-filter-cutoff", type=float,
-                        default=None, dest="fourier_filter_cutoff",
-                        help="Bin width to use in R for real-space functions")
-    parser.add_argument("--lorch-flag", action="store_true",
-                        default=False, dest="lorch_flag",
-                        help="Apply Lorch function")
+
+    parser.add_argument(
+        "--Rmax",
+        type=float,
+        default=50.0,
+        help="Maximum value in angstroms for real-space functions")
+
+    parser.add_argument(
+        "--Rpoints",
+        type=int,
+        default=5000,
+        help="Number of points in R for real-space functions")
+
+    parser.add_argument(
+        "--Rdelta",
+        type=float,
+        default=None,
+        help="Bin width to use in R for real-space functions")
+
+    parser.add_argument(
+        "--fourier-filter-cutoff",
+        type=float,
+        default=None,
+        dest="fourier_filter_cutoff",
+        help="Bin width to use in R for real-space functions")
+
+    parser.add_argument(
+        "--lorch-flag",
+        action="store_true",
+        default=False,
+        dest="lorch_flag",
+        help="Apply Lorch function")
+
     parser.add_argument(
         "--bcoh_sqrd",
         type=float,
         default=1.0,
         dest="bcoh_sqrd",
         help="The (sum c*bbar)^2 term needed for F(Q) and G(r) for RMC output")
+
     parser.add_argument(
         "--btot_sqrd",
         type=float,
         default=1.0,
         dest="btot_sqrd",
         help="The (sum c*b^2) term needed for DCS(Q) input")
-    parser.add_argument("--merging", nargs=2, type=float, default=[0.0, 1.0],
-                        help="Offset and Scale to apply to the merged S(Q)")
-    parser.add_argument("--low-q-correction", action='store_true',
-                        help="Apply low-Q correction during FT")
-    return parser.parse_args()
+
+    parser.add_argument(
+        "--merging",
+        nargs=2,
+        type=float,
+        default=[0.0, 1.0],
+        help="Offset and Scale to apply to the merged S(Q)")
+
+    parser.add_argument(
+        "--low-q-correction",
+        action='store_true',
+        help="Apply low-Q correction during FT")
+
+    return parser
 
 
 def parse_cli_args(args):
+    """
+    Parse the CLI arguments and return a key-word dictionary with options to
+    pass to StoG class
+
+    :param args: Namespace returned from parsing the CLI arguments
+    :type args: argparse.Namespace
+    :return: Dictionary with options to pass to StoG class
+    :rtype: dict
+    """
+    if not isinstance(args, argparse.Namespace):
+        msg = "parse_cli_args takes a argparse.Namespace, "
+        msg += "yet was given argument of type: {}"
+        raise TypeError(msg.format(type(args)))
+
     # Get each file's info and story in dictionary
     files_info = list()
     for f in args.filenames:

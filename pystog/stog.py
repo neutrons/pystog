@@ -18,7 +18,8 @@ from pystog.fourier_filter import FourierFilter
 
 
 class StoG(object):
-    """The StoG class is used to put together
+    """
+    The StoG class is used to put together
     the Converter, Transformer, and FourierFilter
     class functionalities to reproduce the original
     **stog** Fortran program behavior. This class is meant to
@@ -114,7 +115,8 @@ class StoG(object):
         self.__kwargs2attr(kwargs)
 
     def __kwargs2attr(self, kwargs):
-        """Takes the key-word arguments supplied to the
+        """
+        Takes the key-word arguments supplied to the
         initialization of the class and maps them to
         attirbutes in the class. Commonly get the **kwargs**
         from the JSON input file.
@@ -159,7 +161,8 @@ class StoG(object):
     # General attributes
     @property
     def xmin(self):
-        """The minimum X value of all datasets to
+        """
+        The minimum X value of all datasets to
         use for Fourier transforms (from recirocal space -> real space)
 
         :getter: Returns the current set value
@@ -174,7 +177,8 @@ class StoG(object):
 
     @property
     def xmax(self):
-        """The maximum X value of all datasets to
+        """
+        The maximum X value of all datasets to
         use for Fourier transforms (from recirocal space -> real space)
 
         :getter: Returns the current set value
@@ -189,7 +193,8 @@ class StoG(object):
 
     @property
     def qmin(self):
-        """The :math:`Q_{min}` value to use for the Fourier
+        """
+        The :math:`Q_{min}` value to use for the Fourier
         transforms (from recirocal space -> real space). This
         overrides **xmin** attribute if **xmin** < **qmin**.
 
@@ -205,7 +210,8 @@ class StoG(object):
 
     @property
     def qmax(self):
-        """The :math:`Q_{max}` value to use for the Fourier
+        """
+        The :math:`Q_{max}` value to use for the Fourier
         transforms (from recirocal space -> real space). This
         overrides **xmax** attribute if **qmax** < **xmax**.
 
@@ -221,7 +227,8 @@ class StoG(object):
 
     @property
     def files(self):
-        """The files that contain the reciprocal space data
+        """
+        The files that contain the reciprocal space data
         to merge together.
 
         :getter: Current list of files to merge
@@ -235,7 +242,8 @@ class StoG(object):
         self.__files = file_list
 
     def append_file(self, new_file):
-        """Appends a file to the file list
+        """
+        Appends a file to the file list
 
         :param new_file: New file name to append
         :type new_file: str
@@ -246,7 +254,8 @@ class StoG(object):
         return self.files
 
     def extend_file_list(self, new_files):
-        """Extend the file list with a list of new files
+        """
+        Extend the file list with a list of new files
 
         :param new_files: List of new files
         :type new_file: list
@@ -257,7 +266,8 @@ class StoG(object):
         return self.files
 
     def __update_dr(self):
-        """Uses **rdelta** and **rmax** attributes (:math:`\\Delta r` and
+        """
+        Uses **rdelta** and **rmax** attributes (:math:`\\Delta r` and
         :math:`R_{max}`, respectively) to construct **dr** attribute
         (:math:`r`-space vector) via its setter
         """
@@ -265,7 +275,8 @@ class StoG(object):
 
     @property
     def rdelta(self):
-        """The :math:`\\Delta r` for the :math:`r`-space vector
+        """
+        The :math:`\\Delta r` for the :math:`r`-space vector
 
         :getter: Return :math:`\\Delta r` value
         :setter: Set the :math:`\\Delta r` value
@@ -282,7 +293,8 @@ class StoG(object):
 
     @property
     def rmin(self):
-        """The :math:`R_{min}` valuefor the :math:`r`-space vector
+        """
+        The :math:`R_{min}` valuefor the :math:`r`-space vector
 
         :getter: Return :math:`R_{min}` value
         :setter: Set the :math:`R_{min}` value and update :math:`r`-space vector
@@ -298,7 +310,8 @@ class StoG(object):
 
     @property
     def rmax(self):
-        """The :math:`R_{max}` valuefor the :math:`r`-space vector
+        """
+        The :math:`R_{max}` valuefor the :math:`r`-space vector
 
         :getter: Return :math:`R_{max}` value
         :setter: Set the :math:`R_{max}` value and update :math:`r`-space vector
@@ -314,7 +327,8 @@ class StoG(object):
 
     @property
     def dr(self):
-        """The real space function X axis data, :math:`r`-space vector
+        """
+        The real space function X axis data, :math:`r`-space vector
 
         :getter: Return the :math:`r` vector
         :setter: Set the :math:`r` vector
@@ -328,7 +342,8 @@ class StoG(object):
 
     @property
     def density(self):
-        """The number density used (atoms/:math:`\\AA^{3}`) used for the
+        """
+        The number density used (atoms/:math:`\\AA^{3}`) used for the
         :math:`\\rho_{0}` term in the equations
 
         :getter: Return the density value
@@ -343,7 +358,8 @@ class StoG(object):
 
     @property
     def bcoh_sqrd(self):
-        """The average coherent scattering length, squared:
+        """
+        The average coherent scattering length, squared:
         :math:`\\langle b_{coh} \\rangle^2` =
         :math:`( \\sum_{i} c_{i} b_{coh,i} ) ( \\sum_{i} c_{i} b^*_{coh,i} )`
         where the subscript :math:`i` implies for atom type :math:`i`,
@@ -375,7 +391,8 @@ class StoG(object):
 
     @property
     def btot_sqrd(self):
-        """The average coherent scattering length, squared:
+        """
+        The average coherent scattering length, squared:
         :math:`\\langle b_{tot}^2 \\rangle`
         = :math:`\\sum_{i} c_{i} b_{tot,i}^2`
         = :math:`\\frac{1}{4 \\pi} \\sum_i c_{i} \\sigma_{tot,i}`
@@ -407,7 +424,8 @@ class StoG(object):
 
     @property
     def stem_name(self):
-        """A stem name to prefix for all output files. Replicates
+        """
+        A stem name to prefix for all output files. Replicates
         the **stog** Fortran program behavior.
 
         :getter: Return the currently set stem name
@@ -422,7 +440,8 @@ class StoG(object):
 
     @property
     def low_q_correction(self):
-        """This sets the option to perform a low-:math:`Q` correction
+        """
+        This sets the option to perform a low-:math:`Q` correction
         for the omitted :math:`Q` range.
 
         See :class:`pystog.transformer.Transformer` **_low_x_correction**
@@ -443,7 +462,8 @@ class StoG(object):
 
     @property
     def lorch_flag(self):
-        """This sets the option to perform the Lorch dampening correction
+        """
+        This sets the option to perform the Lorch dampening correction
         for the :math:`Q` range. Generally, will help reduce Fourier "ripples",
         or AKA "Gibbs phenomenon", due to discontinuity at :math:`Q_{max}`
         if the reciprocal space function is not at the
@@ -468,7 +488,8 @@ class StoG(object):
 
     @property
     def fourier_filter_cutoff(self):
-        """This sets the cutoff in :math:`r`-space for the Fourier
+        """
+        This sets the cutoff in :math:`r`-space for the Fourier
         filter. The minimum is automatically 0.0. Thus, from
         0.0 to **fourier_filter_cutoff** is reverse transfomed,
         subtracted in reciprocal space, and then the difference
@@ -488,7 +509,8 @@ class StoG(object):
 
     @property
     def merged_opts(self):
-        """This sets the options to perform after merging the
+        """
+        This sets the options to perform after merging the
         reciprocal space functions together, such as an
         overall offset and scale.
 
@@ -506,7 +528,8 @@ class StoG(object):
 
     @property
     def reciprocal_individuals(self):
-        """The storage array for the input reciprocal space functions
+        """
+        The storage array for the input reciprocal space functions
         loaded from **files** and with the loading processing
         from **add_dataset** class method.
 
@@ -525,7 +548,8 @@ class StoG(object):
 
     @property
     def sq_individuals(self):
-        """The storage array for the :math:`S(Q)` generated from each input
+        """
+        The storage array for the :math:`S(Q)` generated from each input
         reciprocal space dataset in **reciprocal_individuals** array.
 
         :getter: Returns the current individual :math:`S(Q)` reciprocal space
@@ -543,7 +567,8 @@ class StoG(object):
 
     @property
     def sq_master(self):
-        """The "master" dictionary for the :math:`S(Q)` reciprocal
+        """
+        The "master" dictionary for the :math:`S(Q)` reciprocal
         space functions that are generated for each processing step.
 
         :getter: Returns the current "master" :math:`S(Q)` reciprocal space
@@ -560,7 +585,8 @@ class StoG(object):
 
     @property
     def gr_master(self):
-        """The "master" dictionary for the real space functions
+        """
+        The "master" dictionary for the real space functions
         that are generated for each processing step.
 
         :getter: Returns the current "master" real space
@@ -577,7 +603,8 @@ class StoG(object):
 
     @property
     def q_master(self):
-        """The "master" dictionary for the domain :math:Q` of the reciprocal
+        """
+        The "master" dictionary for the domain :math:Q` of the reciprocal
         space functions that are generated for each processing step.
 
         :getter: Returns the current "master" :math:`Q` reciprocal space
@@ -594,7 +621,8 @@ class StoG(object):
 
     @property
     def r_master(self):
-        """The "master" dictionary for the domain :math:r` of the real
+        """
+        The "master" dictionary for the domain :math:r` of the real
         space functions that are generated for each processing step.
 
         :getter: Returns the current "master" :math:`r` real space
@@ -611,7 +639,8 @@ class StoG(object):
 
     @property
     def real_space_function(self):
-        """The real space function to use throughoutt the processing
+        """
+        The real space function to use throughoutt the processing
 
         :getter: Returns the currently select real space function
         :setter: Set the selected real space function and
@@ -633,7 +662,8 @@ class StoG(object):
 
     @property
     def sq_title(self):
-        """The title of the :math:`S(Q)` function directly after merging
+        """
+        The title of the :math:`S(Q)` function directly after merging
         the reciprocal space functions without any further corrections.
 
         :getter: Returns the current title for this function
@@ -648,7 +678,8 @@ class StoG(object):
 
     @property
     def qsq_minus_one_title(self):
-        """The title of the :math:`Q[S(Q)-1]` function
+        """
+        The title of the :math:`Q[S(Q)-1]` function
         directly after merging the reciprocal space
         functions without any further corrections.
 
@@ -664,7 +695,8 @@ class StoG(object):
 
     @property
     def sq_ft_title(self):
-        """The title of the :math:`S(Q)` function after
+        """
+        The title of the :math:`S(Q)` function after
         merging and a fourier filter correction.
 
         :getter: Returns the current title for this function
@@ -679,7 +711,8 @@ class StoG(object):
 
     @property
     def fq_title(self):
-        """The title of the :math:`F(Q)` function after
+        """
+        The title of the :math:`F(Q)` function after
         merging and a fourier filter correction.
 
         :getter: Returns the current title for this function
@@ -694,7 +727,8 @@ class StoG(object):
 
     @property
     def gr_title(self):
-        """The title of the real space function directly after merging
+        """
+        The title of the real space function directly after merging
         the reciprocal space functions without any further corrections.
 
         :getter: Returns the current title for this function
@@ -709,7 +743,8 @@ class StoG(object):
 
     @property
     def gr_ft_title(self):
-        """The title for the real space function after both
+        """
+        The title for the real space function after both
         merging and a fourier filter correction
 
         :getter: Returns the current title for this function
@@ -724,7 +759,8 @@ class StoG(object):
 
     @property
     def gr_lorch_title(self):
-        """The title for the real space function with the lorch correction
+        """
+        The title for the real space function with the lorch correction
 
         :getter: Returns the current title for this function
         :setter: Sets the title for this function
@@ -738,7 +774,8 @@ class StoG(object):
 
     @property
     def GKofR_title(self):
-        """The title of the :math:`G_{Keen Version}(r)` with
+        """
+        The title of the :math:`G_{Keen Version}(r)` with
         all corrections applied.
 
         :getter: Returns the current title for this function
@@ -755,7 +792,8 @@ class StoG(object):
 # Reading and Merging Spectrum
 
     def read_all_data(self, **kwargs):
-        """Reads all the data from the **files** attribute
+        """
+        Reads all the data from the **files** attribute
         Uses the **read_dataset** method on each file.
 
         Will append all datasets to the numpy storage array,
@@ -778,7 +816,8 @@ class StoG(object):
             sep=r"\s+",
             skiprows=2,
             **kwargs):
-        """Reads an individual file and uses the **add_dataset**
+        """
+        Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
         scales, offsets, cropping, etc.
 
@@ -817,7 +856,8 @@ class StoG(object):
             xoffset=0.,
             ydecimals=16,
             **kwargs):
-        """Takes the info with the dataset and manipulations,
+        """
+        Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
         an invidual numpy array for the pattern.
 
@@ -921,7 +961,8 @@ class StoG(object):
             yscale=1.0,
             yoffset=0.0,
             xoffset=0.0):
-        """Applies scales to the Y-axis and offsets to both X and Y axes.
+        """
+        Applies scales to the Y-axis and offsets to both X and Y axes.
 
         :param x: X-axis data
         :type x: numpy.array or list
@@ -945,7 +986,8 @@ class StoG(object):
         return x, y, dy
 
     def _offset(self, data, offset):
-        """Applies offset to data
+        """
+        Applies offset to data
 
         :param data: Input data
         :type data: numpy.array or list
@@ -958,7 +1000,8 @@ class StoG(object):
         return data
 
     def _scale(self, data, scale):
-        """Applies scale to data
+        """
+        Applies scale to data
 
         :param data: Input data
         :type data: numpy.array or list
@@ -971,7 +1014,8 @@ class StoG(object):
         return data
 
     def merge_data(self):
-        """Merges the reciprocal space data stored in the
+        """
+        Merges the reciprocal space data stored in the
         **reciprocal_individuals** numpy array into a single, merged
         recirocal space function. Stores the S(Q) result in
         **sq_master** dictionary using **sq_title** (default: "S(Q) Merged").
@@ -1080,7 +1124,8 @@ class StoG(object):
     # Transform Utilities
 
     def transform_merged(self):
-        """Performs the Fourier transform on the merged **sq_master**
+        """
+        Performs the Fourier transform on the merged **sq_master**
         pattern to generate the desired real space function
         with this correction. The results for real space are:
         the domain is saved to the **r_master** dictionary and
@@ -1114,7 +1159,8 @@ class StoG(object):
         self.r_master[self.gr_title] = r
 
     def fourier_filter(self):
-        """Performs the Fourier filter on the **sq_master**
+        """
+        Performs the Fourier filter on the **sq_master**
         pattern to generate the desired real space function
         with this correction. The results from both reciprocal space and
         real space are:
@@ -1184,7 +1230,8 @@ class StoG(object):
         return q, sq, r, gr
 
     def apply_lorch(self, q, sq, r):
-        """Performs the Fourier transform using the Lorch
+        """
+        Performs the Fourier transform using the Lorch
         dampening correction on the merged :math:`S(Q)` from
         the **sq_master** dictionary to generate the
         desired real space function with
@@ -1226,7 +1273,8 @@ class StoG(object):
         return r, gr_lorch
 
     def _get_lowR_mean_square(self):
-        """Retuns the low-R mean square value for the real space function stored
+        """
+        Retuns the low-R mean square value for the real space function stored
         in the "master" real space function, **gr_master**.
         Used as a cost function for optimiziation of the :math:`Q_{max}` value
         by an iterative adjustment. Calls **_lowR_mean_square* method.
@@ -1241,7 +1289,8 @@ class StoG(object):
         return self._lowR_mean_square(self.dr, gr)
 
     def _lowR_mean_square(self, r, gr, limit=1.01):
-        """Calculates the low-R mean square value from a given real space function.
+        """
+        Calculates the low-R mean square value from a given real space function.
         Used as a cost function for optimiziation of the :math:`Q_{max}` value
         by an iterative adjustment.
         **Currently not used in PyStoG workflow since was done manually.**
@@ -1264,7 +1313,8 @@ class StoG(object):
         return np.sqrt(average)
 
     def _add_keen_fq(self, q, sq):
-        """Adds the Keen version of :math:`F(Q)` to the
+        """
+        Adds the Keen version of :math:`F(Q)` to the
         "master" recprical space storage array, **sq_master**, and
         writes it out to file using the **stem_name**.
 
@@ -1280,7 +1330,8 @@ class StoG(object):
         self.write_out_rmc_fq()
 
     def _add_keen_gr(self, r, gr):
-        """Adds the Keen version of :math:`G(r)` to the
+        """
+        Adds the Keen version of :math:`G(r)` to the
         "master" real space storage array, **gr_master**, and
         writes it out to file using the **stem_name**.
 
@@ -1304,7 +1355,8 @@ class StoG(object):
     # -------------------------------------#
     # Output Utilities
     def _write_out_to_file(self, x, y, filename, places=12):
-        """Helper function for writing out X Y data
+        """
+        Helper function for writing out X Y data
         to the filename in the RMCProfile format.
 
         :param x: X data to write out
@@ -1323,7 +1375,8 @@ class StoG(object):
                 f.write(fmt.format(i, j, places=places))
 
     def write_out_merged_sq(self, filename=None):
-        """Helper function for writing out the merged :math:`S(Q)`
+        """
+        Helper function for writing out the merged :math:`S(Q)`
 
         :param filename: Filename to write to
         :type filename: str
@@ -1335,7 +1388,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_merged_gr(self, filename=None):
-        """Helper function for writing out the merged real space function
+        """
+        Helper function for writing out the merged real space function
 
         :param filename: Filename to write to
         :type filename: str
@@ -1347,7 +1401,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_ft(self, filename=None):
-        """Helper function for writing out the Fourier filter correction.
+        """
+        Helper function for writing out the Fourier filter correction.
 
         :param filename: Filename to write to
         :type filename: str
@@ -1359,7 +1414,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_ft_sq(self, filename=None):
-        """Helper function for writing out the Fourier filtered :math:`S(Q)`
+        """
+        Helper function for writing out the Fourier filtered :math:`S(Q)`
 
         :param filename: Filename to write to
         :type filename: str
@@ -1371,7 +1427,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_ft_gr(self, filename=None):
-        """Helper function for writing out the Fourier filtered real space function
+        """
+        Helper function for writing out the Fourier filtered real space function
 
         :param filename: Filename to write to
         :type filename: str
@@ -1383,7 +1440,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_lorched_gr(self, filename=None):
-        """Helper function for writing out the Lorch dampened real space function
+        """
+        Helper function for writing out the Lorch dampened real space function
 
         :param filename: Filename to write to
         :type filename: str
@@ -1395,7 +1453,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_fq(self, filename=None):
-        """Helper function for writing out the output :math:`F(Q)`
+        """
+        Helper function for writing out the output :math:`F(Q)`
 
         :param filename: Filename to write to
         :type filename: str
@@ -1407,7 +1466,8 @@ class StoG(object):
         self._write_out_to_file(x, y, filename)
 
     def write_out_rmc_gr(self, filename=None):
-        """Helper function for writing out the output :math:`G_{Keen Version}(Q)`
+        """
+        Helper function for writing out the output :math:`G_{Keen Version}(Q)`
 
         :param filename: Filename to write to
         :type filename: str
