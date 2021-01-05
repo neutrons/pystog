@@ -120,6 +120,10 @@ def parse_cli_args(args):
     :return: Dictionary with options to pass to StoG class
     :rtype: dict
     """
+    if not isinstance(args, argparse.Namespace):
+        msg = "parse_cli_args takes a argparse.Namespace, "
+        msg += "yet was given argument of type: {}"
+        raise TypeError(msg.format(type(args)))
 
     # Get each file's info and story in dictionary
     files_info = list()
