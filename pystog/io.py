@@ -3,7 +3,7 @@ import argparse
 from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
 
 
-def get_cli_args():
+def get_cli_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", type=str, default=None,
                         help="Read JSON input file for arguments")
@@ -63,7 +63,7 @@ def get_cli_args():
                         help="Offset and Scale to apply to the merged S(Q)")
     parser.add_argument("--low-q-correction", action='store_true',
                         help="Apply low-Q correction during FT")
-    return parser.parse_args()
+    return parser
 
 
 def parse_cli_args(args):
