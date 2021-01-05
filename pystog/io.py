@@ -4,6 +4,12 @@ from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices
 
 
 def get_cli_parser():
+    """
+    Create the argument parser for the CLI
+
+    :return: Argument parser for PyStoG CLI
+    :rtype: argparse.ArgumentParser
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -105,6 +111,16 @@ def get_cli_parser():
 
 
 def parse_cli_args(args):
+    """
+    Parse the CLI arguments and return a key-word dictionary with options to
+    pass to StoG class
+
+    :param args: Namespace returned from parsing the CLI arguments
+    :type args: argparse.Namespace
+    :return: Dictionary with options to pass to StoG class
+    :rtype: dict
+    """
+
     # Get each file's info and story in dictionary
     files_info = list()
     for f in args.filenames:
