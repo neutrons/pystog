@@ -3,7 +3,7 @@ from pystog.io import get_cli_parser
 
 def test_get_cli_parser():
     parser = get_cli_parser()
-    args = parser.parse_args()
+    args = parser.parse_args([])
     assert not args.json
     assert not args.density
     assert not args.filenames
