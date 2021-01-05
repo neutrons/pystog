@@ -1,6 +1,7 @@
 name: pystog_ci
 
-env: {}
+env:
+  PYTHON_MAIN_VERSION: 3.7
 
 on:
   push:
@@ -33,6 +34,19 @@ jobs:
           conda install pip
           pip install tox-gh-actions
 
-      - name: Lint and Test with Tox
+      - name: Lint with Tox
+        if: ${{ matrix.python-version == env.PYTHON_MAIN_VERSION }}
+        shell: bash -l {0}
+        run: tox -e lint
+
+      - name: Test with Tox
         shell: bash -l {0}
         run: tox
+
+      - name: Coverage  - create and upload report
+        shell: bash -l {0}
+        if: ${{ matrix.python-version == env.PYTHON_MAIN_VERSION }}
+        run: |
+          tox -e coverage
+          pip install coverage
+          bash <(curl -s https://codecov.io/bash)
