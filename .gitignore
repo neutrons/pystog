@@ -105,6 +105,7 @@ stog
 out*
 merged*
 *.dat
+dog*
 
 # direnv
 .direnv/
