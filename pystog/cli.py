@@ -19,6 +19,13 @@ class NoInputFilesException(Exception):
 
 
 def pystog_cli(kwargs=None):
+    """
+    Main entry point for PyStoG CLI tool
+
+    :param kwargs: Dict with CLI arguments.
+                   If None, parsed from command line via get_cli_parser
+    :type kwargs: dict
+    """
     if not kwargs:
         parser = get_cli_parser()
         args = parser.parse_args()

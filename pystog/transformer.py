@@ -16,7 +16,8 @@ from pystog.converter import Converter
 
 
 class Transformer:
-    """The Transformer class is used to Fourier transform
+    """
+    The Transformer class is used to Fourier transform
     between the difference spaces. Either:
     a reciprocal space function -> real space function
     or a real space function -> reciprocal space function
@@ -37,7 +38,8 @@ class Transformer:
         self.converter = Converter()
 
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
-        """Omitted low-x range correction performed in the
+        """
+        Omitted low-x range correction performed in the
         space you have transformed to. Does so by assumming a
         linear extrapolation to zero.
         Original author: Jack Carpenter
@@ -53,7 +55,8 @@ class Transformer:
         :return: range vector for space transformed to with correction applied
         :rtype: numpy.array
         """
-        """TODO: Refactor correction to just
+        """
+        TODO: Refactor correction to just
         1) peform linear extrapolation in space before transform
         2) transform with extrapolated function
         Compare that implementation to this one.
@@ -100,7 +103,8 @@ class Transformer:
         return yout
 
     def apply_cropping(self, x, y, xmin, xmax, dy=None):
-        """Utility to crop x and y based on xmin and xmax along x.
+        """
+        Utility to crop x and y based on xmin and xmax along x.
         Provides the capability to specify the (Qmin,Qmax)
         or (Rmin,Rmax) in the Fourier transform
 
@@ -132,7 +136,8 @@ class Transformer:
                           xmax=None,
                           dyin=None,
                           **kwargs):
-        """The Fourier transform function. The kwargs
+        """
+        The Fourier transform function. The kwargs
         argument allows for different modifications:
         Lorch dampening, omitted low-x range correction,
 
@@ -184,7 +189,8 @@ class Transformer:
     # Reciprocal -> Real Space Transforms  #
 
     def F_to_G(self, q, fq, r, dfq=None, **kwargs):
-        """Transforms from reciprocal space :math:`Q[S(Q)-1]`
+        """
+        Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`G_{PDFFIT}(r)`
 
         :param q: :math:`Q`-space vector
@@ -205,7 +211,8 @@ class Transformer:
         return r, gr, dgr
 
     def F_to_GK(self, q, fq, r, dfq=None, **kwargs):
-        """Transforms from reciprocal space :math:`Q[S(Q)-1]`
+        """
+        Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`G_{Keen Version}(r)`
 
         :param q: :math:`Q`-space vector
@@ -225,7 +232,8 @@ class Transformer:
         return r, gr, dgr
 
     def F_to_g(self, q, fq, r, dfq=None, **kwargs):
-        """Transforms from reciprocal space :math:`Q[S(Q)-1]`
+        """
+        Transforms from reciprocal space :math:`Q[S(Q)-1]`
         to real space :math:`g(r)`
 
         :param q: :math:`Q`-space vector
@@ -246,7 +254,8 @@ class Transformer:
 
     # S(Q)
     def S_to_G(self, q, sq, r, dsq=None, **kwargs):
-        """Transforms from reciprocal space :math:`S(Q)`
+        """
+        Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`G_{PDFFIT}(r)`
 
         :param q: :math:`Q`-space vector
@@ -265,7 +274,8 @@ class Transformer:
         return self.F_to_G(q, fq, r, dfq, **kwargs)
 
     def S_to_GK(self, q, sq, r, dsq=None, **kwargs):
-        """Transforms from reciprocal space :math:`S(Q)`
+        """
+        Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`G_{Keen Version}(r)`
 
         :param q: :math:`Q`-space vector
@@ -284,7 +294,8 @@ class Transformer:
         return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
     def S_to_g(self, q, sq, r, dsq=None, **kwargs):
-        """Transforms from reciprocal space :math:`S(Q)`
+        """
+        Transforms from reciprocal space :math:`S(Q)`
         to real space :math:`g(r)`
 
         :param q: :math:`Q`-space vector
@@ -304,7 +315,8 @@ class Transformer:
 
     # Keen's F(Q)
     def FK_to_G(self, q, fq_keen, r, dfq_keen=None, **kwargs):
-        """Transforms from reciprocal space :math:`F(Q)`
+        """
+        Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`G_{PDFFIT}(r)`
 
         :param q: :math:`Q`-space vector
@@ -323,7 +335,8 @@ class Transformer:
         return self.F_to_G(q, fq, r, dfq, **kwargs)
 
     def FK_to_GK(self, q, fq_keen, r, dfq_keen=None, **kwargs):
-        """Transforms from reciprocal space :math:`F(Q)`
+        """
+        Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`G_{Keen Version}(r)`
 
         :param q: :math:`Q`-space vector
@@ -342,7 +355,8 @@ class Transformer:
         return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
     def FK_to_g(self, q, fq_keen, r, dfq_keen=None, **kwargs):
-        """Transforms from reciprocal space :math:`F(Q)`
+        """
+        Transforms from reciprocal space :math:`F(Q)`
         to real space :math:`g(r)`
 
         :param q: :math:`Q`-space vector
@@ -362,7 +376,8 @@ class Transformer:
 
     # Differential cross-section = d_simga / d_Omega
     def DCS_to_G(self, q, dcs, r, ddcs=None, **kwargs):
-        """Transforms from reciprocal space
+        """
+        Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`G_{PDFFIT}(r)`
 
@@ -382,7 +397,8 @@ class Transformer:
         return self.F_to_G(q, fq, r, dfq, **kwargs)
 
     def DCS_to_GK(self, q, dcs, r, ddcs=None, **kwargs):
-        """Transforms from reciprocal space
+        """
+        Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`G_{Keen Version}(r)`
 
@@ -402,7 +418,8 @@ class Transformer:
         return self.F_to_GK(q, fq, r, dfq, **kwargs)
 
     def DCS_to_g(self, q, dcs, r, ddcs=None, **kwargs):
-        """Transforms from reciprocal space
+        """
+        Transforms from reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
         to real space :math:`g(r)`
 
@@ -425,7 +442,8 @@ class Transformer:
 
     # G(R) = PDF
     def G_to_F(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{PDFFIT}(r)`
+        """
+        Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -443,7 +461,8 @@ class Transformer:
         return self.fourier_transform(r, gr, q, dyin=dgr, **kwargs)
 
     def G_to_S(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{PDFFIT}(r)`
+        """
+        Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -463,7 +482,8 @@ class Transformer:
         return q, sq, dsq
 
     def G_to_FK(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{PDFFIT}(r)`
+        """
+        Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -483,7 +503,8 @@ class Transformer:
         return q, fq, dfq
 
     def G_to_DCS(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{PDFFIT}(r)`
+        """
+        Transforms from real space :math:`G_{PDFFIT}(r)`
         to reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -506,7 +527,8 @@ class Transformer:
 
     # Keen's G(r)
     def GK_to_F(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{Keen Version}(r)`
+        """
+        Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -525,7 +547,8 @@ class Transformer:
         return self.G_to_F(r, _gr, q, dgr=_dgr, **kwargs)
 
     def GK_to_S(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{Keen Version}(r)`
+        """
+        Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -544,7 +567,8 @@ class Transformer:
         return self.G_to_S(r, _gr, q, dgr=_dgr, **kwargs)
 
     def GK_to_FK(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{Keen Version}(r)`
+        """
+        Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -563,7 +587,8 @@ class Transformer:
         return self.G_to_FK(r, _gr, q, dgr=_dgr, **kwargs)
 
     def GK_to_DCS(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`G_{Keen Version}(r)`
+        """
+        Transforms from real space :math:`G_{Keen Version}(r)`
         to reciprocal space :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param r: :math:`r`-space vector
@@ -584,7 +609,8 @@ class Transformer:
 
     # g(r)
     def g_to_F(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`g(r)`
+        """
+        Transforms from real space :math:`g(r)`
         to reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -603,7 +629,8 @@ class Transformer:
         return self.G_to_F(r, _gr, q, dgr=_dgr, **kwargs)
 
     def g_to_S(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`g(r)`
+        """
+        Transforms from real space :math:`g(r)`
         to reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -622,7 +649,8 @@ class Transformer:
         return self.G_to_S(r, _gr, q, dgr=_dgr, **kwargs)
 
     def g_to_FK(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`g(r)`
+        """
+        Transforms from real space :math:`g(r)`
         to reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -641,7 +669,8 @@ class Transformer:
         return self.G_to_FK(r, _gr, q, dgr=_dgr, **kwargs)
 
     def g_to_DCS(self, r, gr, q, dgr=None, **kwargs):
-        """Transforms from real space :math:`g(r)`
+        """
+        Transforms from real space :math:`g(r)`
         to reciprocal space :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
         :param r: :math:`r`-space vector

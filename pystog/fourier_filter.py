@@ -15,7 +15,8 @@ from pystog.transformer import Transformer
 
 
 class FourierFilter:
-    """The FourierFilter class is used to exlude a given
+    """
+    The FourierFilter class is used to exlude a given
     range in the current function by a back Fourier Transform
     of that section, followed by a difference from the non-excluded
     function, and then a forward transform of the difference function
@@ -39,7 +40,8 @@ class FourierFilter:
 
     # g(r)
     def g_using_F(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`g(r)`
+        """
+        Fourier filters real space :math:`g(r)`
         using the reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -98,7 +100,8 @@ class FourierFilter:
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
     def g_using_S(self, r, gr, q, sq, cutoff, dgr=None, dsq=None, **kwargs):
-        """Fourier filters real space :math:`g(r)`
+        """
+        Fourier filters real space :math:`g(r)`
         using the reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -130,7 +133,8 @@ class FourierFilter:
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
 
     def g_using_FK(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`g(r)`
+        """
+        Fourier filters real space :math:`g(r)`
         using the reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -163,7 +167,8 @@ class FourierFilter:
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
     def g_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None, **kwargs):
-        """Fourier filters real space :math:`g(r)`
+        """
+        Fourier filters real space :math:`g(r)`
         using the reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -201,7 +206,8 @@ class FourierFilter:
 
     # G(R) = PDF
     def G_using_F(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`G_{PDFFIT}(r)`
+        """
+        Fourier filters real space :math:`G_{PDFFIT}(r)`
         using the reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -238,7 +244,8 @@ class FourierFilter:
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
     def G_using_S(self, r, gr, q, sq, cutoff, dgr=None, dsq=None, **kwargs):
-        """Fourier filters real space :math:`G_{PDFFIT}(r)`
+        """
+        Fourier filters real space :math:`G_{PDFFIT}(r)`
         using the reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -276,7 +283,8 @@ class FourierFilter:
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
 
     def G_using_FK(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`G_{PDFFIT}(r)`
+        """
+        Fourier filters real space :math:`G_{PDFFIT}(r)`
         using the reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -315,7 +323,8 @@ class FourierFilter:
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
     def G_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None, **kwargs):
-        """Fourier filters real space :math:`G_{PDFFIT}(r)`
+        """
+        Fourier filters real space :math:`G_{PDFFIT}(r)`
         using the reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -353,7 +362,8 @@ class FourierFilter:
 
     # Keen's G(r)
     def GK_using_F(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`G_{Keen Version}(r)`
+        """
+        Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space :math:`Q[S(Q)-1]`
 
         :param r: :math:`r`-space vector
@@ -391,7 +401,8 @@ class FourierFilter:
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
     def GK_using_S(self, r, gr, q, sq, cutoff, dgr=None, dsq=None, **kwargs):
-        """Fourier filters real space :math:`G_{Keen Version}(r)`
+        """
+        Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space :math:`S(Q)`
 
         :param r: :math:`r`-space vector
@@ -430,7 +441,8 @@ class FourierFilter:
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
 
     def GK_using_FK(self, r, gr, q, fq, cutoff, dgr=None, dfq=None, **kwargs):
-        """Fourier filters real space :math:`G_{Keen Version}(r)`
+        """
+        Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space :math:`F(Q)`
 
         :param r: :math:`r`-space vector
@@ -471,7 +483,8 @@ class FourierFilter:
 
     def GK_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None,
                      **kwargs):
-        """Fourier filters real space :math:`G_{Keen Version}(r)`
+        """
+        Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space
         :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
