@@ -14,6 +14,10 @@ from pystog import StoG
 from pystog.io import get_cli_parser, parse_cli_args
 
 
+class NoInputFilesException(Exception):
+    """Exception when no files are given to process"""
+
+
 def pystog_cli(kwargs=None):
     if not kwargs:
         parser = get_cli_parser()
@@ -28,7 +32,7 @@ def pystog_cli(kwargs=None):
 
     if not kwargs.get("Files"):
         parser.print_help()
-        exit()
+        raise NoInputFilesException("No input files given in arguments")
 
     # Merge S(Q) files
     stog = StoG(**kwargs)
