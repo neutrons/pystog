@@ -17,6 +17,10 @@ from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
 
 
+class NoInputFilesException(Exception):
+    """Exception when no files are given to process"""
+
+
 class StoG(object):
     """
     The StoG class is used to put together
@@ -801,9 +805,14 @@ class StoG(object):
         the **sq_individuals** numpy storage array in **add_dataset** method
         via **read_dataset** method.
         """
-        assert self.files is not None
-        assert len(self.files) != 0
+        # Check that we have files to operate on
+        if not self.files:
+            raise NoInputFilesException("No input files given in arguments")
 
+        if len(self.files) == 0:
+            raise NoInputFilesException("No input files given in arguments")
+
+        # Read in all the data files
         for i, file_info in enumerate(self.files):
             self.read_dataset(file_info, **kwargs)
 

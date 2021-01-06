@@ -11,11 +11,8 @@ original FORTRAN-based StoG CLI
 import json
 
 from pystog import StoG
+from pystog.stog import NoInputFilesException
 from pystog.io import get_cli_parser, parse_cli_args
-
-
-class NoInputFilesException(Exception):
-    """Exception when no files are given to process"""
 
 
 def pystog_cli(kwargs=None):
