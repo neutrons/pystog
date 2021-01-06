@@ -547,8 +547,8 @@ class StoG(object):
         return self.__reciprocal_individuals
 
     @reciprocal_individuals.setter
-    def reciprocal_individuals(self, df):
-        self.__reciprocal_individuals = df
+    def reciprocal_individuals(self, individuals):
+        self.__reciprocal_individuals = individuals
 
     @property
     def sq_individuals(self):
@@ -566,8 +566,8 @@ class StoG(object):
         return self.__sq_individuals
 
     @sq_individuals.setter
-    def sq_individuals(self, df):
-        self.__sq_individuals = df
+    def sq_individuals(self, individuals):
+        self.__sq_individuals = individuals
 
     @property
     def sq_master(self):
@@ -584,8 +584,8 @@ class StoG(object):
         return self.__sq_master
 
     @sq_master.setter
-    def sq_master(self, df):
-        self.__sq_master = df
+    def sq_master(self, sq):
+        self.__sq_master = sq
 
     @property
     def gr_master(self):
@@ -602,8 +602,8 @@ class StoG(object):
         return self.__gr_master
 
     @gr_master.setter
-    def gr_master(self, df):
-        self.__gr_master = df
+    def gr_master(self, gr):
+        self.__gr_master = gr
 
     @property
     def q_master(self):
@@ -620,8 +620,8 @@ class StoG(object):
         return self.__q_master
 
     @q_master.setter
-    def q_master(self, df):
-        self.__q_master = df
+    def q_master(self, q):
+        self.__q_master = q
 
     @property
     def r_master(self):
@@ -638,8 +638,8 @@ class StoG(object):
         return self.__r_master
 
     @r_master.setter
-    def r_master(self, df):
-        self.__r_master = df
+    def r_master(self, r):
+        self.__r_master = r
 
     @property
     def real_space_function(self):
