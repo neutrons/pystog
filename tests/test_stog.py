@@ -568,6 +568,18 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             self.sq_target[0],
             places=places)
 
+    def test_stog_read_dataset_xcol_data_format_exception(self):
+        stog = StoG()
+        filename = get_data_path(self.material.reciprocal_space_filename)
+        with self.assertRaises(RuntimeError):
+            stog.read_dataset({'Filename': filename}, xcol=99)
+
+    def test_stog_read_dataset_ycol_data_format_exception(self):
+        stog = StoG()
+        filename = get_data_path(self.material.reciprocal_space_filename)
+        with self.assertRaises(RuntimeError):
+            stog.read_dataset({'Filename': filename}, ycol=99)
+
     def test_stog_read_all_data_assertion(self):
         stog = StoG()
         with self.assertRaises(NoInputFilesException):
