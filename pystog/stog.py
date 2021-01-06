@@ -809,9 +809,6 @@ class StoG(object):
         if not self.files:
             raise NoInputFilesException("No input files given in arguments")
 
-        if len(self.files) == 0:
-            raise NoInputFilesException("No input files given in arguments")
-
         # Read in all the data files
         for i, file_info in enumerate(self.files):
             self.read_dataset(file_info, **kwargs)
