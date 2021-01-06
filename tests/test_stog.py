@@ -4,11 +4,14 @@ import tempfile
 import unittest
 
 from tests.utils import \
-    get_data_path, load_data, get_index_of_function
+    get_data_path, \
+    get_index_of_function, \
+    load_data
 from tests.materials import Argon
 from pystog.utils import \
-    RealSpaceHeaders, ReciprocalSpaceHeaders
-from pystog.stog import StoG
+    RealSpaceHeaders, \
+    ReciprocalSpaceHeaders
+from pystog.stog import NoInputFilesException, StoG
 
 
 class TestStogBase(unittest.TestCase):
@@ -555,11 +558,11 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
     def test_stog_read_all_data_assertion(self):
         stog = StoG()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(NoInputFilesException):
             stog.read_all_data()
 
         stog.files = list()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(NoInputFilesException):
             stog.read_all_data()
 
     def test_stog_read_all_data_for_files_length(self):
