@@ -37,7 +37,9 @@ jobs:
       - name: Lint with Tox
         if: ${{ matrix.python-version == env.PYTHON_MAIN_VERSION }}
         shell: bash -l {0}
-        run: tox -e lint
+        run: |
+          tox -e lint
+          tox -e lint-security
 
       - name: Test with Tox
         shell: bash -l {0}

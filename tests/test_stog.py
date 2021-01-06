@@ -4,11 +4,14 @@ import tempfile
 import unittest
 
 from tests.utils import \
-    get_data_path, load_data, get_index_of_function
+    get_data_path, \
+    get_index_of_function, \
+    load_data
 from tests.materials import Argon
 from pystog.utils import \
-    RealSpaceHeaders, ReciprocalSpaceHeaders
-from pystog.stog import StoG
+    RealSpaceHeaders, \
+    ReciprocalSpaceHeaders
+from pystog.stog import NoInputFilesException, StoG
 
 
 class TestStogBase(unittest.TestCase):
@@ -36,6 +39,7 @@ class TestStogBase(unittest.TestCase):
 
         # targets for 1st peaks
         self.sq_target = self.material.sq_target
+        self.dsq_target = 3.087955
         self.fq_target = self.material.fq_target
         self.fq_keen_target = self.material.fq_keen_target
         self.dcs_target = self.material.dcs_target
@@ -151,8 +155,10 @@ class TestStogInit(TestStogBase):
                     "Offset": 0.0, "Scale": 1.0}})
         self.assertEqual(stog.stem_name, "out")
         self.assertEqual(stog.reciprocal_individuals.size, 0)
+        self.assertEqual(stog.q_master, {})
         self.assertEqual(stog.sq_master, {})
         self.assertEqual(stog.sq_individuals.size, 0)
+        self.assertEqual(stog.r_master, {})
         self.assertEqual(stog.gr_master, {})
 
     def test_stog_init_kwargs_files(self):
@@ -339,10 +345,20 @@ class TestStogStorageArrays(TestStogBase):
         stog.sq_individuals = self.target
         np.testing.assert_allclose(stog.sq_individuals, self.target)
 
+    def test_stog_q_master_setter(self):
+        stog = StoG()
+        stog.q_master = self.target
+        np.testing.assert_allclose(stog.q_master, self.target)
+
     def test_stog_sq_master_setter(self):
         stog = StoG()
         stog.sq_master = self.target
         np.testing.assert_allclose(stog.sq_master, self.target)
+
+    def test_stog_r_master_setter(self):
+        stog = StoG()
+        stog.r_master = self.target
+        np.testing.assert_allclose(stog.r_master, self.target)
 
     def test_stog_gr_master_setter(self):
         stog = StoG()
@@ -371,6 +387,39 @@ class TestStogDatasetSpecificMethods(TestStogBase):
     def setUp(self):
         super(TestStogDatasetSpecificMethods, self).setUp()
 
+    def test_stog_apply_scales_and_offset(self):
+        q, sq, dq = StoG.apply_scales_and_offset(self.q, self.sq)
+        np.testing.assert_allclose(q, self.q)
+        np.testing.assert_allclose(sq, self.sq)
+        np.testing.assert_allclose(dq, np.zeros_like(sq))
+
+    def test_stog_apply_scales_and_offset_with_dy(self):
+        q, sq, dq = StoG.apply_scales_and_offset(self.q, self.sq, dy=self.sq)
+        np.testing.assert_allclose(q, self.q)
+        np.testing.assert_allclose(sq, self.sq)
+        np.testing.assert_allclose(dq, self.sq)
+
+    def test_stog_apply_scales_and_offset_with_yscale(self):
+        q, sq, dq = StoG.apply_scales_and_offset(
+            self.q, self.sq, dy=self.sq, yscale=2.0)
+        np.testing.assert_allclose(q, self.q)
+        np.testing.assert_allclose(sq, self.sq * 2.0)
+        np.testing.assert_allclose(dq, self.sq * 2.0)
+
+    def test_stog_apply_scales_and_offset_with_yoffset(self):
+        q, sq, dq = StoG.apply_scales_and_offset(
+            self.q, self.sq, dy=self.sq, yoffset=2.0)
+        np.testing.assert_allclose(q, self.q)
+        np.testing.assert_allclose(sq, self.sq + 2.0)
+        np.testing.assert_allclose(dq, self.sq)
+
+    def test_stog_apply_scales_and_offset_with_xoffset(self):
+        q, sq, dq = StoG.apply_scales_and_offset(
+            self.q, self.sq, dy=self.sq, xoffset=2.0)
+        np.testing.assert_allclose(q, self.q + 2.0)
+        np.testing.assert_allclose(sq, self.sq)
+        np.testing.assert_allclose(dq, self.sq)
+
     def test_stog_add_dataset(self):
         # Number of decimal places for precision
         places = 5
@@ -391,10 +440,12 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.reciprocal_individuals[2][self.first], 0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
         # Add the Q[S(Q)-1] data set and check values for it and S(Q) against
         # targets
@@ -404,14 +455,19 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             'ReciprocalFunction': 'Q[S(Q)-1]'
         }
         stog.add_dataset(info)
+
         self.assertAlmostEqual(
             stog.reciprocal_individuals[1][self.first + stride],
             self.fq_target[0],
             places=places)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
         # Add the FK(Q) data set and check values for it and S(Q) against
         # targets
@@ -424,10 +480,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first + stride],
             self.fq_keen_target[0],
             places=places)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
         # Add the DCS(Q) data set and check values for it and S(Q) against
         # targets
@@ -440,10 +500,14 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first + stride],
             self.dcs_target[0],
             places=places)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
     def test_stog_add_dataset_yscale(self):
         # Scale S(Q) and make sure it does not equal original target values
@@ -456,9 +520,11 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         self.assertNotEqual(
             stog.reciprocal_individuals[1][self.first],
             self.sq_target[0])
+        self.assertEqual(stog.reciprocal_individuals[2][self.first], 0.0)
         self.assertNotEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0])
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
     def test_stog_add_dataset_yoffset(self):
         # Offset S(Q) and make sure it does not equal original target values
@@ -471,9 +537,59 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         self.assertNotEqual(
             stog.reciprocal_individuals[1][self.first],
             self.sq_target[0])
+        self.assertEqual(stog.reciprocal_individuals[2][self.first], 0.0)
         self.assertNotEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0])
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
+
+    def test_stog_add_dataset_yscale_with_dy(self):
+        # Scale S(Q) and make sure it does not equal original target values
+        stog = StoG()
+        info = {
+            'data': [self.q, self.sq, self.sq],
+            'ReciprocalFunction': 'S(Q)',
+            'Y': {'Scale': 2.0}}
+        stog.add_dataset(info)
+
+        self.assertNotEqual(
+            stog.reciprocal_individuals[1][self.first],
+            self.sq_target[0])
+
+        dsq_target = info['Y']['Scale'] * 2.59173
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first],
+            dsq_target)
+
+        self.assertNotEqual(
+            stog.sq_individuals[1][self.first],
+            self.sq_target[0])
+
+        self.assertEqual(stog.sq_individuals[2][self.first], dsq_target)
+
+    def test_stog_add_dataset_yoffset_with_dy(self):
+        # Offset S(Q) and make sure it does not equal original target values
+        stog = StoG()
+        info = {
+            'data': [self.q, self.sq, self.sq],
+            'ReciprocalFunction': 'S(Q)',
+            'Y': {'Offset': 2.0}}
+        stog.add_dataset(info)
+
+        self.assertNotEqual(
+            stog.reciprocal_individuals[1][self.first],
+            self.sq_target[0])
+
+        dsq_target = 2.59173
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first],
+            dsq_target)
+
+        self.assertNotEqual(
+            stog.sq_individuals[1][self.first],
+            self.sq_target[0])
+
+        self.assertEqual(stog.sq_individuals[2][self.first], dsq_target)
 
     def test_stog_add_dataset_xoffset(self):
         # Offset Q from 1.96 -> 2.14
@@ -505,10 +621,12 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         self.assertEqual(
             stog.reciprocal_individuals[0][self.first],
             self.reciprocal_xtarget)
+        self.assertEqual(stog.reciprocal_individuals[2][self.first], 0.0)
         self.assertAlmostEqual(
             stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(stog.sq_individuals[2][self.first], 0.0)
 
     def test_stog_add_dataset_wrong_reciprocal_space_function_exception(self):
         # Check qmin and qmax apply cropping
@@ -548,6 +666,62 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first],
             self.sq_target[0],
             places=places)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first],
+            self.dsq_target)
+        self.assertAlmostEqual(
+            stog.sq_individuals[1][self.first],
+            self.sq_target[0],
+            places=places)
+        self.assertEqual(
+            stog.sq_individuals[2][self.first],
+            self.dsq_target)
+
+    def test_stog_read_dataset_xcol_data_format_exception(self):
+        stog = StoG()
+        filename = get_data_path(self.material.reciprocal_space_filename)
+        with self.assertRaises(RuntimeError):
+            stog.read_dataset({'Filename': filename}, xcol=99)
+
+    def test_stog_read_dataset_ycol_data_format_exception(self):
+        stog = StoG()
+        filename = get_data_path(self.material.reciprocal_space_filename)
+        with self.assertRaises(RuntimeError):
+            stog.read_dataset({'Filename': filename}, ycol=99)
+
+    def test_stog_read_dataset_dycol_too_large(self):
+        # Number of decimal places for precision
+        places = 5
+
+        # Load S(Q) for Argon from test data
+        stog = StoG(**{'<b_coh>^2': self.kwargs['<b_coh>^2'],
+                       '<b_tot^2>': self.kwargs['<b_tot^2>']})
+        info = {
+            'Filename': get_data_path(
+                self.material.reciprocal_space_filename),
+            'ReciprocalFunction': 'S(Q)',
+            'Qmin': 0.02,
+            'Qmax': 35.2,
+            'Y': {
+                'Offset': 0.0,
+                'Scale': 1.0},
+            'X': {
+                'Offset': 0.0}}
+
+        info['index'] = 0
+        stog.read_dataset(info, dycol=99)
+
+        # Check S(Q) data against targets
+        self.assertEqual(
+            stog.reciprocal_individuals[0][self.first],
+            self.reciprocal_xtarget)
+        self.assertAlmostEqual(
+            stog.reciprocal_individuals[1][self.first],
+            self.sq_target[0],
+            places=places)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
@@ -555,11 +729,11 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 
     def test_stog_read_all_data_assertion(self):
         stog = StoG()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(NoInputFilesException):
             stog.read_all_data()
 
         stog.files = list()
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(NoInputFilesException):
             stog.read_all_data()
 
     def test_stog_read_all_data_for_files_length(self):

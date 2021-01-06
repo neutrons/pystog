@@ -280,10 +280,18 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
             atol=self.atol)
         assert_allclose(dsq, np.ones_like(self.q) / self.q)
 
+    def F_to_S_with_no_dfq(self):
+        sq, dsq = self.converter.F_to_S(self.q, self.fq, **self.kwargs)
+        assert_allclose(
+            sq[self.first:self.last],
+            self.sq_target,
+            rtol=self.rtol,
+            atol=self.atol)
+        assert_allclose(dsq, np.zeros_like(dsq))
+
     def F_to_FK(self):
-        fq_keen, dfq_keen = self.converter.F_to_FK(self.q, self.fq,
-                                                   np.ones_like(self.q),
-                                                   **self.kwargs)
+        fq_keen, dfq_keen = self.converter.F_to_FK(
+            self.q, self.fq, np.ones_like(self.q), **self.kwargs)
         assert_allclose(
             fq_keen[self.first:self.last],
             self.fq_keen_target,
@@ -292,6 +300,16 @@ class TestConverterReciprocalSpaceBase(unittest.TestCase):
         assert_allclose(
             dfq_keen,
             np.ones_like(self.q) * self.kwargs['<b_coh>^2'] / self.q)
+
+    def F_to_FK_with_no_dfq(self):
+        fq_keen, dfq_keen = self.converter.F_to_FK(
+            self.q, self.fq, **self.kwargs)
+        assert_allclose(
+            fq_keen[self.first:self.last],
+            self.fq_keen_target,
+            rtol=self.rtol,
+            atol=self.atol)
+        assert_allclose(dfq_keen, np.zeros_like(dfq_keen))
 
     def F_to_DCS(self):
         dcs, ddcs = self.converter.F_to_DCS(self.q, self.fq,
@@ -395,8 +413,14 @@ class TestConverterReciprocalSpaceNickel(TestConverterReciprocalSpaceBase):
     def test_F_to_S(self):
         self.F_to_S()
 
+    def test_F_to_S_with_no_dfq(self):
+        self.F_to_S_with_no_dfq()
+
     def test_F_to_FK(self):
         self.F_to_FK()
+
+    def test_F_to_FK_with_no_dfq(self):
+        self.F_to_FK_with_no_dfq()
 
     def test_F_to_DCS(self):
         self.F_to_DCS()
@@ -438,8 +462,14 @@ class TestConverterReciprocalSpaceArgon(TestConverterReciprocalSpaceBase):
     def test_F_to_S(self):
         self.F_to_S()
 
+    def test_F_to_S_with_no_dfq(self):
+        self.F_to_S_with_no_dfq()
+
     def test_F_to_FK(self):
         self.F_to_FK()
+
+    def test_F_to_FK_with_no_dfq(self):
+        self.F_to_FK_with_no_dfq()
 
     def test_F_to_DCS(self):
         self.F_to_DCS()

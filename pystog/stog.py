@@ -17,6 +17,10 @@ from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
 
 
+class NoInputFilesException(Exception):
+    """Exception when no files are given to process"""
+
+
 class StoG(object):
     """
     The StoG class is used to put together
@@ -543,8 +547,8 @@ class StoG(object):
         return self.__reciprocal_individuals
 
     @reciprocal_individuals.setter
-    def reciprocal_individuals(self, df):
-        self.__reciprocal_individuals = df
+    def reciprocal_individuals(self, individuals):
+        self.__reciprocal_individuals = individuals
 
     @property
     def sq_individuals(self):
@@ -562,8 +566,8 @@ class StoG(object):
         return self.__sq_individuals
 
     @sq_individuals.setter
-    def sq_individuals(self, df):
-        self.__sq_individuals = df
+    def sq_individuals(self, individuals):
+        self.__sq_individuals = individuals
 
     @property
     def sq_master(self):
@@ -580,8 +584,8 @@ class StoG(object):
         return self.__sq_master
 
     @sq_master.setter
-    def sq_master(self, df):
-        self.__sq_master = df
+    def sq_master(self, sq):
+        self.__sq_master = sq
 
     @property
     def gr_master(self):
@@ -598,8 +602,8 @@ class StoG(object):
         return self.__gr_master
 
     @gr_master.setter
-    def gr_master(self, df):
-        self.__gr_master = df
+    def gr_master(self, gr):
+        self.__gr_master = gr
 
     @property
     def q_master(self):
@@ -616,8 +620,8 @@ class StoG(object):
         return self.__q_master
 
     @q_master.setter
-    def q_master(self, df):
-        self.__q_master = df
+    def q_master(self, q):
+        self.__q_master = q
 
     @property
     def r_master(self):
@@ -634,8 +638,8 @@ class StoG(object):
         return self.__r_master
 
     @r_master.setter
-    def r_master(self, df):
-        self.__r_master = df
+    def r_master(self, r):
+        self.__r_master = r
 
     @property
     def real_space_function(self):
@@ -801,9 +805,11 @@ class StoG(object):
         the **sq_individuals** numpy storage array in **add_dataset** method
         via **read_dataset** method.
         """
-        assert self.files is not None
-        assert len(self.files) != 0
+        # Check that we have files to operate on
+        if not self.files:
+            raise NoInputFilesException("No input files given in arguments")
 
+        # Read in all the data files
         for i, file_info in enumerate(self.files):
             self.read_dataset(file_info, **kwargs)
 
@@ -824,10 +830,12 @@ class StoG(object):
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
         :type info: dict
-        :param xcol: The column in the data file that contains the X-axis
+        :param xcol: Column in data file for X-axis
         :type xcol: int
-        :param ycol: The column in the data file that contains the Y-axis
+        :param ycol: Column in data file for Y-axis
         :type ycol: int
+        :param dycol: Column in data file for Y uncertainty
+        :type dycol: int
         :param sep: Separator for the file used by numpy.loadtxt
         :type sep: raw string
         :param skiprows: Number of rows to skip. Passed to numpy.loadtxt
@@ -905,10 +913,11 @@ class StoG(object):
                 xoffset = info['X']['Offset']
 
         if adjusting:
-            x, y, dy = self._apply_scales_and_offset(x, y, dy=dy,
-                                                     yscale=yscale,
-                                                     yoffset=yoffset,
-                                                     xoffset=xoffset)
+            x, y, dy = self.apply_scales_and_offset(
+                x, y, dy=dy,
+                yscale=yscale,
+                yoffset=yoffset,
+                xoffset=xoffset)
 
         # Save overal x-axis min and max
         self.xmin = min(self.xmin, xmin)
@@ -953,8 +962,8 @@ class StoG(object):
         array_seq = (self.sq_individuals, np.stack((x, y, dy)))
         self.sq_individuals = np.concatenate(array_seq, axis=1)
 
-    def _apply_scales_and_offset(
-            self,
+    @staticmethod
+    def apply_scales_and_offset(
             x,
             y,
             dy=None,
@@ -977,41 +986,13 @@ class StoG(object):
         :return: X and Y vectors after scales and offsets applied
         :rtype: numpy.array pair
         """
-        y = self._scale(y, yscale)
-        y = self._offset(y, yoffset)
-        x = self._offset(x, xoffset)
+        y = y * yscale
+        y = y + yoffset
+        x = x + xoffset
         if dy is None:
             dy = np.zeros_like(y)
-        dy = self._scale(dy, yscale)
+        dy = dy * yscale
         return x, y, dy
-
-    def _offset(self, data, offset):
-        """
-        Applies offset to data
-
-        :param data: Input data
-        :type data: numpy.array or list
-        :param offset: Offset to apply to data
-        :type offset: float
-        :return: Data with offset applied
-        :rtype: numpy.array
-        """
-        data = data + offset
-        return data
-
-    def _scale(self, data, scale):
-        """
-        Applies scale to data
-
-        :param data: Input data
-        :type data: numpy.array or list
-        :param offset: Scale to apply to data
-        :type offset: float
-        :return: Data with scale applied
-        :rtype: numpy.array
-        """
-        data = scale * data
-        return data
 
     def merge_data(self):
         """
@@ -1095,7 +1076,7 @@ class StoG(object):
         sq = data_merged[1]
         dsq = data_merged[2]
 
-        q, sq, dsq = self._apply_scales_and_offset(
+        q, sq, dsq = self.apply_scales_and_offset(
             q, sq,
             yscale=self.merged_opts['Y']['Scale'],
             yoffset=self.merged_opts['Y']['Offset'],
