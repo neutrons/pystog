@@ -1,3 +1,4 @@
+bandit
 mock
 pytest
 flake8

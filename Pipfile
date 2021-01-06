@@ -11,10 +11,11 @@ autopep8 = "*"
 tox = "*"
 notebook = "*"
 sphinx-rtd-theme = "*"
+bandit = "*"
 
 [packages]
 numpy = "*"
-pystog = {editable = true,path = "."}
+pystog = {path = "."}
 
 [requires]
 python_version = "3.6"
