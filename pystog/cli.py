@@ -23,8 +23,9 @@ def pystog_cli(kwargs=None):
                    If None, parsed from command line via get_cli_parser
     :type kwargs: dict
     """
+    parser = get_cli_parser()
+
     if not kwargs:
-        parser = get_cli_parser()
         args = parser.parse_args()
         if args.json:
             print("loading config from '%s'" % args.json)
