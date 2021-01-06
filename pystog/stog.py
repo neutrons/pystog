@@ -830,10 +830,12 @@ class StoG(object):
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
         :type info: dict
-        :param xcol: The column in the data file that contains the X-axis
+        :param xcol: Column in data file for X-axis
         :type xcol: int
-        :param ycol: The column in the data file that contains the Y-axis
+        :param ycol: Column in data file for Y-axis
         :type ycol: int
+        :param dycol: Column in data file for Y uncertainty
+        :type dycol: int
         :param sep: Separator for the file used by numpy.loadtxt
         :type sep: raw string
         :param skiprows: Number of rows to skip. Passed to numpy.loadtxt
@@ -911,7 +913,7 @@ class StoG(object):
                 xoffset = info['X']['Offset']
 
         if adjusting:
-            x, y, dy = self._apply_scales_and_offset(x, y, dy=dy,
+            x, y, dy = self.apply_scales_and_offset(x, y, dy=dy,
                                                      yscale=yscale,
                                                      yoffset=yoffset,
                                                      xoffset=xoffset)
@@ -959,8 +961,8 @@ class StoG(object):
         array_seq = (self.sq_individuals, np.stack((x, y, dy)))
         self.sq_individuals = np.concatenate(array_seq, axis=1)
 
-    def _apply_scales_and_offset(
-            self,
+    @staticmethod
+    def apply_scales_and_offset(
             x,
             y,
             dy=None,
@@ -983,41 +985,13 @@ class StoG(object):
         :return: X and Y vectors after scales and offsets applied
         :rtype: numpy.array pair
         """
-        y = self._scale(y, yscale)
-        y = self._offset(y, yoffset)
-        x = self._offset(x, xoffset)
+        y = y * yscale
+        y = y + yoffset
+        x = x + xoffset
         if dy is None:
             dy = np.zeros_like(y)
-        dy = self._scale(dy, yscale)
+        dy = dy * yscale
         return x, y, dy
-
-    def _offset(self, data, offset):
-        """
-        Applies offset to data
-
-        :param data: Input data
-        :type data: numpy.array or list
-        :param offset: Offset to apply to data
-        :type offset: float
-        :return: Data with offset applied
-        :rtype: numpy.array
-        """
-        data = data + offset
-        return data
-
-    def _scale(self, data, scale):
-        """
-        Applies scale to data
-
-        :param data: Input data
-        :type data: numpy.array or list
-        :param offset: Scale to apply to data
-        :type offset: float
-        :return: Data with scale applied
-        :rtype: numpy.array
-        """
-        data = scale * data
-        return data
 
     def merge_data(self):
         """
@@ -1101,7 +1075,7 @@ class StoG(object):
         sq = data_merged[1]
         dsq = data_merged[2]
 
-        q, sq, dsq = self._apply_scales_and_offset(
+        q, sq, dsq = self.apply_scales_and_offset(
             q, sq,
             yscale=self.merged_opts['Y']['Scale'],
             yoffset=self.merged_opts['Y']['Offset'],
