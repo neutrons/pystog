@@ -154,8 +154,10 @@ class TestStogInit(TestStogBase):
                     "Offset": 0.0, "Scale": 1.0}})
         self.assertEqual(stog.stem_name, "out")
         self.assertEqual(stog.reciprocal_individuals.size, 0)
+        self.assertEqual(stog.q_master, {})
         self.assertEqual(stog.sq_master, {})
         self.assertEqual(stog.sq_individuals.size, 0)
+        self.assertEqual(stog.r_master, {})
         self.assertEqual(stog.gr_master, {})
 
     def test_stog_init_kwargs_files(self):
@@ -342,10 +344,20 @@ class TestStogStorageArrays(TestStogBase):
         stog.sq_individuals = self.target
         np.testing.assert_allclose(stog.sq_individuals, self.target)
 
+    def test_stog_q_master_setter(self):
+        stog = StoG()
+        stog.q_master = self.target
+        np.testing.assert_allclose(stog.q_master, self.target)
+
     def test_stog_sq_master_setter(self):
         stog = StoG()
         stog.sq_master = self.target
         np.testing.assert_allclose(stog.sq_master, self.target)
+
+    def test_stog_r_master_setter(self):
+        stog = StoG()
+        stog.r_master = self.target
+        np.testing.assert_allclose(stog.r_master, self.target)
 
     def test_stog_gr_master_setter(self):
         stog = StoG()
