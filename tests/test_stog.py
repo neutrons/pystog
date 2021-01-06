@@ -413,7 +413,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         np.testing.assert_allclose(sq, self.sq + 2.0)
         np.testing.assert_allclose(dq, self.sq)
 
-    def test_stog_apply_scales_and_offset_with_yoffset(self):
+    def test_stog_apply_scales_and_offset_with_xoffset(self):
         q, sq, dq = StoG.apply_scales_and_offset(
             self.q, self.sq, dy=self.sq, xoffset=2.0)
         np.testing.assert_allclose(q, self.q + 2.0)
@@ -460,7 +460,9 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first + stride],
             self.fq_target[0],
             places=places)
-        self.assertEqual(stog.reciprocal_individuals[2][self.first + stride], 0.0)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
@@ -478,7 +480,9 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first + stride],
             self.fq_keen_target[0],
             places=places)
-        self.assertEqual(stog.reciprocal_individuals[2][self.first + stride], 0.0)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],
@@ -496,7 +500,9 @@ class TestStogDatasetSpecificMethods(TestStogBase):
             stog.reciprocal_individuals[1][self.first + stride],
             self.dcs_target[0],
             places=places)
-        self.assertEqual(stog.reciprocal_individuals[2][self.first + stride], 0.0)
+        self.assertEqual(
+            stog.reciprocal_individuals[2][self.first + stride],
+            0.0)
         self.assertAlmostEqual(
             stog.sq_individuals[1][self.first],
             self.sq_target[0],

@@ -913,10 +913,11 @@ class StoG(object):
                 xoffset = info['X']['Offset']
 
         if adjusting:
-            x, y, dy = self.apply_scales_and_offset(x, y, dy=dy,
-                                                     yscale=yscale,
-                                                     yoffset=yoffset,
-                                                     xoffset=xoffset)
+            x, y, dy = self.apply_scales_and_offset(
+                x, y, dy=dy,
+                yscale=yscale,
+                yoffset=yoffset,
+                xoffset=xoffset)
 
         # Save overal x-axis min and max
         self.xmin = min(self.xmin, xmin)
