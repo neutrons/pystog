@@ -636,6 +636,8 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         with self.assertRaises(ValueError):
             stog.add_dataset(info)
 
+    def test_stog_read_nexus_file_by_bank_dataset(self):
+
     def test_stog_read_dataset(self):
         # Number of decimal places for precision
         places = 5

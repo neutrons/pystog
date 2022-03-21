@@ -8,6 +8,11 @@ that tries to replicate the previous
 stog program behavior in an organized fashion
 with the ability to re-construct the workflow.
 """
+from __future__ import (absolute_import, division, print_function)
+
+import sys
+import os
+from h5py import File
 import json
 import numpy as np
 
@@ -812,6 +817,66 @@ class StoG(object):
         # Read in all the data files
         for i, file_info in enumerate(self.files):
             self.read_dataset(file_info, **kwargs)
+
+    def extract(hdf_file,path, index=None):
+        data = File(hdf_file, 'r')
+        base=path.split('/')[1]
+        #print(data[base+"/title"].value)
+        if index is not None:
+            return data[path][index]
+        return data[path].value
+
+    def extract_path_from_title(hdf_file, title, title_path="title", wksp_path="workspace"):
+        data = File(hdf_file, 'r')
+        choices = list()
+        for name, group in data.items():
+            index = os.path.join(name, title_path)
+            if data[index].value[0].decode('UTF-8') == title:
+                xpath = os.path.join("/",name, wksp_path, "axis1")
+                ypath = os.path.join("/", name, wksp_path, "values")
+                return xpath, ypath
+            else:
+                choices.append(data[index].value)
+
+        print("ERROR: Did not find a workspace with title: %s" % title)
+        print("       These are the workspaces titles found in this file")
+        for c in sorted(choices):
+            print("      %s" % c)
+        sys.exit("Stopping...") 
+        
+    
+    def extract_xy(hdf_file, xpath, ypath, **kwargs):
+        x = extract(hdf_file, xpath)
+        y = extract(hdf_file, ypath, **kwargs)
+        y = np.insert(y,0,y[0]) # hack for histogram xaxis
+        return x, y
+
+    
+
+    def save_xy(filename, xdata, ydata):
+        #assert(len(xdata) == len(ydata))
+        with open(filename, 'w') as f:
+            f.write("%d\n\n" % len(xdata))
+            for x, y in zip(xdata, ydata):
+                f.write("%f %f\n" % (x, y))
+
+    def read_nexus_file_by_bank(self,
+     nexus_file,
+      bank):
+        """
+        Reads an individual file bank by bank and uses the **extract_xy**
+        to handle extraction and **extract_path_from_title** to obtain
+        coord paths
+        """
+
+        # should this be an input?
+        title = "sample_minus_back_normalized_ms_abs_corrected_norm_by_atoms_multiply_by_vanSelfScat"
+        
+        xpath, ypath = extract_path_from_title(nexus_file, title)
+        output_file = "{}_bank{}".format(title, bank)
+        x, y = extract_xy(nexus_file, xpath, ypath, index=bank)
+        save_xy(output_file, x, y)
+
 
     def read_dataset(
             self,
