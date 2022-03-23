@@ -3,6 +3,8 @@ import os
 import tempfile
 import unittest
 
+from h5py import File
+
 from tests.utils import \
     get_data_path, \
     get_index_of_function, \
@@ -636,7 +638,45 @@ class TestStogDatasetSpecificMethods(TestStogBase):
         with self.assertRaises(ValueError):
             stog.add_dataset(info)
 
-    def test_stog_read_nexus_file_by_bank_dataset(self):
+    def test_stog_read_nexus_file_by_bank(self):
+        # Number of decimal places for precision
+        places = 5
+
+        stog = StoG()
+        bank = 1
+        nexus_file = './tests/test_data/nexus/pystog_test.nxs'
+
+        stog.read_nexus_file_by_bank(nexus_file, bank, "pystog_test")
+
+        self.compareResults('./outpystog_test_bank1.dat', './tests/test_data/nexus/pystog_test_bank1.dat')
+
+    def compareResults(self, current, expected, cleanup=True):
+        output = np.loadtxt(current, unpack = True,  skiprows=2)
+        expected_output = np.loadtxt(expected, unpack = True,  skiprows=2)
+
+        np.allclose(output, expected_output)
+        if cleanup and os.path.exists(current):
+            os.remove(current)
+
+    def test_stog_read_all_nexus_file_by_json(self):
+        self.nexus_kwargs = {
+                "NexusFile" : "./tests/test_data/nexus/pystog_test.nxs",
+                "WorkspaceName" : "pystog_test",
+                "Files" : [ 
+                            { "BankNumber" : "2"
+                            },
+                            { "BankNumber" : "3"
+                            },
+                            { "BankNumber" : "4"
+                            },
+                            { "BankNumber" : "5"}
+                        ],
+                "Outputs" : { "StemName" : "stem_" }
+        }
+        stog = StoG(**self.nexus_kwargs)
+        stog.read_all_nexus_file_banks()
+        for i in (2, 3, 4, 5):
+            self.compareResults('./stem_pystog_test_bank{}.dat'.format(i), './tests/test_data/nexus/pystog_test_bank{}.dat'.format(i))
 
     def test_stog_read_dataset(self):
         # Number of decimal places for precision
