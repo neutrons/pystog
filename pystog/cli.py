@@ -29,7 +29,7 @@ def pystog_cli(kwargs=None):
         args = parser.parse_args()
         if args.json:
             print("loading config from '%s'" % args.json)
-            with open(args.json, 'r') as f:
+            with open(args.json, "r") as f:
                 kwargs = json.load(f)
 
         else:
@@ -43,7 +43,7 @@ def pystog_cli(kwargs=None):
     stog = StoG(**kwargs)
     if "NexusFile" in kwargs:
         stog.read_all_nexus_file_banks()
-    else:  
+    else:
         stog.read_all_data(skiprows=3)
         stog.merge_data()
         stog.write_out_merged_sq()

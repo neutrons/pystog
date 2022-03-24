@@ -667,7 +667,8 @@ class StoG(object):
     def real_space_function(self, real_space_function):
         if real_space_function not in RealSpaceChoices:
             raise ValueError(
-                "real_space_function must be of %s" % ",".join(RealSpaceChoices.keys())
+                "real_space_function must be of %s"
+                % ",".join(RealSpaceChoices.keys())
             )
         self.__real_space_function = real_space_function
         self.__gr_ft_title = "%s FT" % real_space_function
@@ -807,7 +808,7 @@ class StoG(object):
 
     def extract(self, hdf_file, path, index=None):
         data = File(hdf_file, "r")
-        base = path.split("/")[1]
+        # base = path.split("/")[1]
         # print(data[base+"/title"].value)
         if index is not None:
             return data[path][index]
@@ -873,7 +874,9 @@ class StoG(object):
         # Read in all the data files
         for i, file_info in enumerate(self.files):
             self.read_nexus_file_by_bank(
-                self.nexus_file, int(file_info["BankNumber"]), self.workspace_name
+                self.nexus_file,
+                int(file_info["BankNumber"]),
+                self.workspace_name,
             )
 
     def read_all_data(self, **kwargs):
@@ -1036,7 +1039,9 @@ class StoG(object):
         self.sq_individuals = np.concatenate(array_seq, axis=1)
 
     @staticmethod
-    def apply_scales_and_offset(x, y, dy=None, yscale=1.0, yoffset=0.0, xoffset=0.0):
+    def apply_scales_and_offset(
+        x, y, dy=None, yscale=1.0, yoffset=0.0, xoffset=0.0
+    ):
         """
         Applies scales to the Y-axis and offsets to both X and Y axes.
 
@@ -1125,7 +1130,11 @@ class StoG(object):
             else:
                 if _n_total > 0:
                     data_merged.append(
-                        [_previous_x, _n_sum / _n_total, np.sqrt(_n_err) / _n_total]
+                        [
+                            _previous_x,
+                            _n_sum / _n_total,
+                            np.sqrt(_n_err) / _n_total,
+                        ]
                     )
                 _n_total = 1.0
                 _n_sum = item[1]
@@ -1197,9 +1206,13 @@ class StoG(object):
             "<b_coh>^2": self.bcoh_sqrd,
         }
         if self.real_space_function == "g(r)":
-            r, gofr, dgofr = self.transformer.S_to_g(q, sq, self.dr, **transform_kwargs)
+            r, gofr, dgofr = self.transformer.S_to_g(
+                q, sq, self.dr, **transform_kwargs
+            )
         elif self.real_space_function == "G(r)":
-            r, gofr, dgofr = self.transformer.S_to_G(q, sq, self.dr, **transform_kwargs)
+            r, gofr, dgofr = self.transformer.S_to_G(
+                q, sq, self.dr, **transform_kwargs
+            )
         elif self.real_space_function == "GK(r)":
             r, gofr, dgofr = self.transformer.S_to_GK(
                 q, sq, self.dr, **transform_kwargs
@@ -1311,13 +1324,19 @@ class StoG(object):
                 q, sq, r, **{"lorch": True, "rho": self.density}
             )
         elif self.real_space_function == "G(r)":
-            r, gr_lorch, _ = self.transformer.S_to_G(q, sq, r, **{"lorch": True})
+            r, gr_lorch, _ = self.transformer.S_to_G(
+                q, sq, r, **{"lorch": True}
+            )
         elif self.real_space_function == "GK(r)":
             r, gr_lorch, _ = self.transformer.S_to_GK(
                 q,
                 sq,
                 r,
-                **{"lorch": True, "rho": self.density, "<b_coh>^2": self.bcoh_sqrd}
+                **{
+                    "lorch": True,
+                    "rho": self.density,
+                    "<b_coh>^2": self.bcoh_sqrd,
+                }
             )
 
         self.gr_master[self.gr_lorch_title] = gr_lorch
