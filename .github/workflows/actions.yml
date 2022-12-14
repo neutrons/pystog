@@ -68,8 +68,11 @@ jobs:
         if: startsWith( github.ref, 'refs/tags/v')
         env:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+          IS_RC: ${{ contains(github.ref, 'rc') }}
         run: |
           conda install -y anaconda-client conda-build conda-verify
           cd conda.recipe
+          CONDA_LABEL="main"
+          if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
           conda build --output-folder . .
-          anaconda upload --label main noarch/*.tar.bz2
+          anaconda upload --label $CONDA_LABEL noarch/*.tar.bz2
