@@ -60,7 +60,7 @@ class Pre_Proc:
                 ynorm[bin] += scale1
                 ynorm[bin + 1] += scale2
 
-        for i in range(len(yout)):
+        for i in range(len(yout) - 1):
             yout[i] /= ynorm[i]
 
         return (xout, yout[:-1])
