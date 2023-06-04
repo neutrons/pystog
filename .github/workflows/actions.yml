@@ -70,6 +70,8 @@ jobs:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
           IS_RC: ${{ contains(github.ref, 'rc') }}
         run: |
+          pip uninstall urllib3
+          pip install --upgrade urllib3
           conda install -y anaconda-client conda-build conda-verify
           cd conda.recipe
           CONDA_LABEL="main"
