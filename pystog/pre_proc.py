@@ -6,6 +6,8 @@ pre_proc
 This module is for some pre-processing of data
 """
 
+import numpy as np
+
 
 class Pre_Proc:
     """
@@ -63,4 +65,4 @@ class Pre_Proc:
         for i in range(len(yout) - 1):
             yout[i] /= ynorm[i]
 
-        return (xout, yout[:-1])
+        return (np.asarray(xout), np.asarray(yout[:-1]))
