@@ -55,7 +55,8 @@ jobs:
 
       - name: Build Python package and Upload to PyPi
         shell: bash -l {0}
-        if: ${{ startsWith( github.ref, 'refs/tags/v') && matrix.python-version == env.PYTHON_MAIN_VERSION }}
+        if: false # disabled for now
+        #if: ${{ startsWith( github.ref, 'refs/tags/v') && matrix.python-version == env.PYTHON_MAIN_VERSION }}
         env:
             PYPI_TOKEN_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
