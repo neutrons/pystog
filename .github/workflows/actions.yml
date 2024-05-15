@@ -76,5 +76,4 @@ jobs:
           CONDA_LABEL="main"
           if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
           conda build --output-folder . .
-          ls -al /home/runner/work/pystog/pystog/conda.recipe
           anaconda upload --label $CONDA_LABEL noarch/*.tar.bz2
