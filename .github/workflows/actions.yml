@@ -20,7 +20,7 @@ jobs:
         python-version: ["3.10"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
@@ -71,9 +71,9 @@ jobs:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
           IS_RC: ${{ contains(github.ref, 'rc') }}
         run: |
-          conda install -y anaconda-client conda-build conda-verify
+          conda install -y anaconda-client conda-build conda-verify boa
           cd conda.recipe
           CONDA_LABEL="main"
           if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
-          conda build --output-folder . .
+          conda mambabuild --output-folder . .
           anaconda upload --label $CONDA_LABEL noarch/*.tar.bz2
