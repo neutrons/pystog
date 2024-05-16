@@ -25,6 +25,7 @@ requirements:
 test:
   imports:
     - pystog
+    - pystog.stog
 
 about:
   home: https://github.com/neutrons/pystog
