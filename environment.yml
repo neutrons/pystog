@@ -2,6 +2,7 @@ name: pystog
 channels:
   - conda-forge
 dependencies:
+  - conda-verify
   - h5py
   - numpy
   - pytest
