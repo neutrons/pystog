@@ -6,6 +6,5 @@ from pystog.pre_proc import Pre_Proc
 
 __all__ = ['StoG', 'Converter', 'Transformer', 'FourierFilter', 'Pre_Proc', ]
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+from .version import __version__
+

@@ -22,8 +22,8 @@ build:
   number: {{ git_describe_number }}
   string: py{{py}}
   script: {{ PYTHON }} -m pip install . --no-deps --ignore-installed -vvv
-  entry_points:
-    - pystog_cli = pystog.cli:pystog_cli
+  #entry_points:
+  #  - pystog_cli = pystog.cli:pystog_cli
 
 requirements:
   host:
@@ -47,7 +47,7 @@ test:
 about:
   home: {{ url }}
   license: {{ license }}
-  license_family: GPL3
+  license_family: GPL
   license_file:
   summary: "Transforms reciprocal and real space total scattering functions"
 

@@ -6,7 +6,7 @@ requires-python = ">=3.6"
 dependencies = [
   # list all runtime dependencies here
 ]
-license = { text = "GPL-3.0" }
+license = { text = "GPL3.0" }
 
 [project.urls]
 homepage = "https://github.com/neutrons/pystog/"  # if no homepage, use repo url
@@ -36,10 +36,10 @@ dirty = "{version}+d{build_date:%Y%m%d}"
 distance-dirty = "{next_version}.dev{distance}+d{build_date:%Y%m%d%H%M}"
 
 [tool.versioningit.write]
-file = "pystog/_version.py"
+file = "src/pystog/_version.py"
 
 [tool.setuptools.packages.find]
-where = ["pystog"]
+where = ["src"]
 exclude = ["fortran"]
 
 [tool.setuptools.package-data]
