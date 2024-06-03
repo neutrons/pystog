@@ -1,24 +1,41 @@
-{% set data = load_setup_py_data() %}
+# load information from pyproject.toml
+{% set pyproject = load_file_data('pyproject.toml') %}
+{% set project = pyproject.get('project', {}) %}
+{% set license = project.get('license').get('text') %}
+{% set description = project.get('description') %}
+{% set project_url = pyproject.get('project', {}).get('urls') %}
+{% set url = project_url.get('homepage') %}
+# this will get the version set by environment variable
+{% set version = environ.get('VERSION') %}
+{% set version_number = version.split('+')[0] %}
+{% set git_describe_number = environ.get('GIT_DESCRIBE_NUMBER', '0') | string %}
 
 package:
   name: pystog
-  version: "{{ data['version'] }}"
+  version: {{ version_number }}
 
 source:
   path: ..
 
 build:
   noarch: python
+  number: {{ git_describe_number }}
   string: py{{py}}
-  script: python setup.py install --single-version-externally-managed --record=record.txt
-  entry_points:
-    - pystog_cli = pystog.cli:pystog_cli
+  script: {{ PYTHON }} -m pip install . --no-deps --ignore-installed -vvv
+  #entry_points:
+  #  - pystog_cli = pystog.cli:pystog_cli
 
 requirements:
+  host:
+    - python
+    - versioningit
   build:
+    - setuptools
+    - versioningit
     - numpy
     - h5py
   run:
+    - python
     - numpy
     - h5py
 
@@ -28,9 +45,9 @@ test:
     - pystog.stog
 
 about:
-  home: https://github.com/neutrons/pystog
-  license: GPL (version 3)
-  license_family: GPL3
+  home: {{ url }}
+  license: {{ license }}
+  license_family: GPL
   license_file:
   summary: "Transforms reciprocal and real space total scattering functions"
 
