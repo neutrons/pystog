@@ -29,10 +29,10 @@ build:
 requirements:
   host:
     - python
-    - versiongit
+    - versioningit
   build:
     - setuptools
-    - versiongit
+    - versioningit
     - numpy
     - h5py
   run:
