@@ -1,0 +1,66 @@
+[project]
+name = "pystog"
+description = "Total scattering function manipulator"
+dynamic = ["version"]
+requires-python = ">=3.6,<=3.9"
+dependencies = [
+  # list all runtime dependencies here
+]
+license = { text = "GPL-3.0" }
+
+[project.urls]
+homepage = "https://github.com/neutrons/pystog/"  # if no homepage, use repo url
+
+[build-system]
+requires = [
+  "setuptools >= 40.6.0",
+  "wheel",
+  "toml",
+  "versioningit"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 119
+
+[tool.versioningit.vcs]
+method = "git"
+default-tag = "0.0.1"
+
+[tool.versioningit.next-version]
+method = "minor"
+
+[tool.versioningit.format]
+distance = "{next_version}.dev{distance}"
+dirty = "{version}+d{build_date:%Y%m%d}"
+distance-dirty = "{next_version}.dev{distance}+d{build_date:%Y%m%d%H%M}"
+
+[tool.versioningit.write]
+file = "pystog/_version.py"
+
+[tool.setuptools.packages.find]
+where = ["pystog"]
+exclude = ["fortran"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yml","*.yaml","*.ini"]
+
+[project.scripts]
+pystog-cli = "pystog.cli:pystog_cli"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "src", "scripts"
+]
+testpaths = ["tests"]
+python_files = ["test*.py"]
+norecursedirs = [".git", "tmp*", "_tmp*", "__pycache__", "*dataset*", "*data_set*"]
+markers = [
+    "mymarker: example markers goes here"
+]
+
+[tool.ruff]
+line-length = 120
+select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W"]
+
+# Add additional 3rd party tool configuration here as needed
