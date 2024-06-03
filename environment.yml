@@ -1,0 +1,9 @@
+name: pystog
+channels:
+  - conda-forge
+dependencies:
+  - h5py
+  - numpy
+  - pytest
+  - pytest-cov
+  - versioningit
