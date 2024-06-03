@@ -2,10 +2,16 @@ name: pystog
 channels:
   - conda-forge
 dependencies:
-  - boa
-  - conda-verify
   - h5py
   - numpy
   - pytest
   - pytest-cov
   - versioningit
+  # packaging
+  - anaconda-client
+  - boa
+  - conda-build
+  - conda-verify
+  - libmamba
+  - libarchive
+  - python-build
