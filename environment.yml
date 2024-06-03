@@ -10,7 +10,7 @@ dependencies:
   # packaging
   - anaconda-client
   - boa
-  - conda-build
+  - conda-build < 4
   - conda-verify
   - libmamba
   - libarchive
