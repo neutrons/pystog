@@ -2,7 +2,7 @@
 name = "pystog"
 description = "Total scattering function manipulator"
 dynamic = ["version"]
-requires-python = ">=3.6,<=3.9"
+requires-python = ">=3.6"
 dependencies = [
   # list all runtime dependencies here
 ]

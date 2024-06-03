@@ -1,6 +1,0 @@
-bandit
-mock
-pytest
-flake8
-tox
-sphinx_rtd_theme
