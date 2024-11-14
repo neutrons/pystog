@@ -31,7 +31,7 @@ or for a local install
 Using python setup.py
 =======================
 
-A setup.py is available to install but it is recommended to do 
+A setup.py is available to install but it is recommended to do
 this in a virtual environment. For system install, use `PyPi` instead.
 
 .. code:: sh
@@ -42,7 +42,7 @@ this in a virtual environment. For system install, use `PyPi` instead.
 Development
 ===========
 
-For a development environment, you can use virtualenv_ to setup an isolated environemnt, namely `ENV`:
+For a development environment, you can use virtualenv_ to setup an isolated environment, namely `ENV`:
 
 .. code:: sh
 
@@ -65,4 +65,3 @@ From the parent directory of the module, run:
 .. code:: sh
 
     python tests/runner.py
-

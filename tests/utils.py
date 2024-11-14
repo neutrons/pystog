@@ -1,9 +1,10 @@
 import os
+
 import numpy as np
 
-from pystog.utils import RealSpaceHeaders, ReciprocalSpaceHeaders
 from pystog.converter import Converter
 from pystog.transformer import Transformer
+from pystog.utils import RealSpaceHeaders, ReciprocalSpaceHeaders
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_DIR = os.path.join(TEST_DIR, "test_data")
@@ -16,7 +17,8 @@ TUTORIAL_DATA_DIR = os.path.join(TEST_DIR, "../tutorials/data")
 
 
 def multiplied_template(num):
-    return ('%f ' * len(num))[:-1] % tuple(num)
+    return ("%f " * len(num))[:-1] % tuple(num)
+
 
 # Test data utility functions
 
@@ -44,14 +46,15 @@ def get_index_of_function(func_string, headers):
     return None
 
 
-def write_functions_to_file(headers, data, output_filename, datadir='.'):
-    header_string = ' '.join(headers)
+def write_functions_to_file(headers, data, output_filename, datadir="."):
+    header_string = " ".join(headers)
     outfile_path = os.path.join(datadir, output_filename)
     with open(outfile_path, "w") as f:
         f.write("%d\n" % len(data))
         f.write("# %s\n" % header_string)
         for row in data:
             f.write("%s\n" % multiplied_template(row))
+
 
 # ------------------------------------------------
 # Real-space test data utility functions
@@ -68,30 +71,17 @@ def create_real_space_functions(gr_filename, **kwargs):
     return RealSpaceHeaders, data
 
 
-def create_and_write_real_space_functions(
-        gr_filename, output_filename, **kwargs):
+def create_and_write_real_space_functions(gr_filename, output_filename, **kwargs):
     headers, data = create_real_space_functions(gr_filename, **kwargs)
-    write_functions_to_file(
-        headers,
-        data,
-        output_filename,
-        datadir=TEST_DATA_DIR)
-    write_functions_to_file(
-        headers,
-        data,
-        output_filename,
-        datadir=TUTORIAL_DATA_DIR)
+    write_functions_to_file(headers, data, output_filename, datadir=TEST_DATA_DIR)
+    write_functions_to_file(headers, data, output_filename, datadir=TUTORIAL_DATA_DIR)
+
 
 # ------------------------------------------------
 # Real-space test data utility functions
 
 
-def create_reciprocal_space_functions(
-        gr_filename,
-        dq=0.02,
-        qmin=0.00,
-        qmax=35.0,
-        **kwargs):
+def create_reciprocal_space_functions(gr_filename, dq=0.02, qmin=0.00, qmax=35.0, **kwargs):
     r, gr = load_lammps_rdf(gr_filename)
     q = np.arange(qmin, qmax + dq, dq)
     t = Transformer()
@@ -105,37 +95,20 @@ def create_reciprocal_space_functions(
     return ReciprocalSpaceHeaders, data
 
 
-def create_and_write_reciprocal_space_functions(
-        gr_filename, output_filename, **kwargs):
+def create_and_write_reciprocal_space_functions(gr_filename, output_filename, **kwargs):
     headers, data = create_reciprocal_space_functions(gr_filename, **kwargs)
-    write_functions_to_file(
-        headers,
-        data,
-        output_filename,
-        datadir=TEST_DATA_DIR)
-    write_functions_to_file(
-        headers,
-        data,
-        output_filename,
-        datadir=TUTORIAL_DATA_DIR)
+    write_functions_to_file(headers, data, output_filename, datadir=TEST_DATA_DIR)
+    write_functions_to_file(headers, data, output_filename, datadir=TUTORIAL_DATA_DIR)
+
 
 # ------------------------------------------------
 # Real and Reciprocal test data utility function
 
 
-def create_and_write_both_type_of_functions(
-        gr_filename, real_out, reciprocal_out, **kwargs):
+def create_and_write_both_type_of_functions(gr_filename, real_out, reciprocal_out, **kwargs):
     headers, data = create_real_space_functions(gr_filename, **kwargs)
     write_functions_to_file(headers, data, real_out, datadir=TEST_DATA_DIR)
     write_functions_to_file(headers, data, real_out, datadir=TUTORIAL_DATA_DIR)
     headers, data = create_reciprocal_space_functions(gr_filename, **kwargs)
-    write_functions_to_file(
-        headers,
-        data,
-        reciprocal_out,
-        datadir=TEST_DATA_DIR)
-    write_functions_to_file(
-        headers,
-        data,
-        reciprocal_out,
-        datadir=TUTORIAL_DATA_DIR)
+    write_functions_to_file(headers, data, reciprocal_out, datadir=TEST_DATA_DIR)
+    write_functions_to_file(headers, data, reciprocal_out, datadir=TUTORIAL_DATA_DIR)

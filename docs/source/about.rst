@@ -27,7 +27,7 @@ Yet, migration to the Mantid Framework is still a goal since it feeds into the A
 
 
 PyStoG is not a Python replica of StoG but has the same goal as StoG.
-Yet, has capabilites that surpass StoG such as multiple input/output real
+Yet, has capabilities that surpass StoG such as multiple input/output real
 and reciprocal space functions and modules allowing for re-construction of the workflow for processing total scattering data.
 
 .. _RMCProfile: http://www.rmcprofile.org/Main_Page

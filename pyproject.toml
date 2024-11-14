@@ -20,9 +20,6 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 119
-
 [tool.versioningit.vcs]
 method = "git"
 default-tag = "0.0.1"
@@ -61,6 +58,12 @@ markers = [
 
 [tool.ruff]
 line-length = 120
-select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W"]
+# https://beta.ruff.rs/docs/rules/
+lint.select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W"]
+lint.ignore = [ "N802", "N806", # function should be lowercase
+"N816" # Variable in global scope should not be mixedCase
+]
+lint.mccabe.max-complexity = 20
+
 
 # Add additional 3rd party tool configuration here as needed

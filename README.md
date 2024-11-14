@@ -23,7 +23,7 @@ The original *StoG* program has been developed, in reverse chronological order, 
  * Matthew Tucker and Martin Dove (~2009)
  * Spencer Howells (~1989)
  * Jack Carpenter (prior to 1989)
- 
+
  A current state of the **StoG** program is kept in the `fortran` directory of this package.
 
 This project was initially just a "sandbox" for taking the capabilities of **StoG** and migrating them over to the [Mantid Framework](https://github.com/mantidproject/mantid).
@@ -40,7 +40,7 @@ And [conda](https://docs.conda.io/en/latest/):
 
 ## Getting started
 
-Once installed, you can access the packages classes that perform the function manipulation. 
+Once installed, you can access the packages classes that perform the function manipulation.
 
 ```python
 import pystog
@@ -115,7 +115,7 @@ or with pipenv:
 
 Using tox for all stages of testing (all python versions and linting), just run:
 `tox`
-NOTE: You must have the version of python installed to run a test suite against that verion via tox.
+NOTE: You must have the version of python installed to run a test suite against that version via tox.
 Recommended way to install python versions is `pyenv`
 
 ### Linting

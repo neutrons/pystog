@@ -34,14 +34,14 @@ class Converter:
     def _safe_divide(self, numerator, denominator):
         numerator = np.array(numerator)
         denominator = np.array(denominator)
-        mask = (denominator > 0.0)
+        mask = denominator > 0.0
         out = np.zeros_like(numerator)
         out[mask] = numerator[mask] / denominator[mask]
         return out
 
     # Reciprocal Space Conversions
 
-    def F_to_S(self, q, fq, dfq=None, **kwargs):
+    def F_to_S(self, q, fq, dfq=None, **kwargs):  # noqa: ARG002
         """
         Converts from :math:`Q[S(Q)-1]` to :math:`S(Q)`
 
@@ -57,7 +57,7 @@ class Converter:
         """
         if dfq is None:
             dfq = np.zeros_like(fq)
-        return (self._safe_divide(fq, q) + 1., self._safe_divide(dfq, q))
+        return (self._safe_divide(fq, q) + 1.0, self._safe_divide(dfq, q))
 
     def F_to_FK(self, q, fq, dfq=None, **kwargs):
         """
@@ -75,8 +75,7 @@ class Converter:
         """
         if dfq is None:
             dfq = np.zeros_like(fq)
-        return (kwargs['<b_coh>^2'] * self._safe_divide(fq, q),
-                kwargs['<b_coh>^2'] * self._safe_divide(dfq, q))
+        return (kwargs["<b_coh>^2"] * self._safe_divide(fq, q), kwargs["<b_coh>^2"] * self._safe_divide(dfq, q))
 
     def F_to_DCS(self, q, fq, dfq=None, **kwargs):
         """
@@ -98,7 +97,7 @@ class Converter:
         return self.FK_to_DCS(q, fq, dfq, **kwargs)
 
     # S(Q)
-    def S_to_F(self, q, sq, dsq=None, **kwargs):
+    def S_to_F(self, q, sq, dsq=None, **kwargs):  # noqa: ARG002
         """
         Convert :math:`S(Q)` to :math:`Q[S(Q)-1]`
 
@@ -116,7 +115,7 @@ class Converter:
         """
         if dsq is None:
             dsq = np.zeros_like(sq)
-        return (q * (sq - 1.), q * dsq)
+        return (q * (sq - 1.0), q * dsq)
 
     def S_to_FK(self, q, sq, dsq=None, **kwargs):
         """
@@ -170,8 +169,7 @@ class Converter:
         """
         if dfq_keen is None:
             dfq_keen = np.zeros_like(fq_keen)
-        return (q * fq_keen / kwargs['<b_coh>^2'],
-                q * dfq_keen / kwargs['<b_coh>^2'])
+        return (q * fq_keen / kwargs["<b_coh>^2"], q * dfq_keen / kwargs["<b_coh>^2"])
 
     def FK_to_S(self, q, fq_keen, dfq_keen=None, **kwargs):
         """
@@ -190,7 +188,7 @@ class Converter:
         fq, dfq = self.FK_to_F(q, fq_keen, dfq_keen, **kwargs)
         return self.F_to_S(q, fq, dfq)
 
-    def FK_to_DCS(self, q, fq, dfq=None, **kwargs):
+    def FK_to_DCS(self, q, fq, dfq=None, **kwargs):  # noqa: ARG002
         """
         Convert :math:`F(Q)` to :math:`\\frac{d \\sigma}{d \\Omega}(Q)`
 
@@ -205,7 +203,7 @@ class Converter:
                  uncertainty vector)
         :rtype: (numpy.array, numpy.array)
         """
-        return fq + kwargs['<b_tot^2>'], dfq
+        return fq + kwargs["<b_tot^2>"], dfq
 
     # Differential cross-section = d_simga / d_Omega
     def DCS_to_F(self, q, dcs, ddcs=None, **kwargs):
@@ -242,7 +240,7 @@ class Converter:
         fq, dfq = self.DCS_to_FK(q, dcs, ddcs, **kwargs)
         return self.FK_to_S(q, fq, dfq, **kwargs)
 
-    def DCS_to_FK(self, q, dcs, ddcs=None, **kwargs):
+    def DCS_to_FK(self, q, dcs, ddcs=None, **kwargs):  # noqa: ARG002
         """
         Convert :math:`\\frac{d \\sigma}{d \\Omega}(Q)` to :math:`F(Q)`
 
@@ -256,7 +254,7 @@ class Converter:
         :return: (:math:`F(Q)` vector, uncertainty vector)
         :rtype: (numpy.array, numpy.array)
         """
-        return (dcs - kwargs['<b_tot^2>'], ddcs)
+        return (dcs - kwargs["<b_tot^2>"], ddcs)
 
     # Real Space Conversions
 
@@ -275,11 +273,10 @@ class Converter:
         :return: :math:`G_{Keen Version}(r)` vector, uncertainty vector
         :rtype: (numpy.array, numpy.array)
         """
-        factor = kwargs['<b_coh>^2'] / (4. * np.pi * kwargs['rho'])
+        factor = kwargs["<b_coh>^2"] / (4.0 * np.pi * kwargs["rho"])
         if dgr is None:
             dgr = np.zeros_like(gr)
-        return (factor * self._safe_divide(gr, r),
-                factor * self._safe_divide(dgr, r))
+        return (factor * self._safe_divide(gr, r), factor * self._safe_divide(dgr, r))
 
     def G_to_g(self, r, gr, dgr=None, **kwargs):
         r"""
@@ -295,11 +292,10 @@ class Converter:
         :return: :math:`g(r)` vector, uncertainty vector
         :rtype: (numpy.array, numpy.array)
         """
-        factor = 4. * np.pi * kwargs['rho']
+        factor = 4.0 * np.pi * kwargs["rho"]
         if dgr is None:
             dgr = np.zeros_like(gr)
-        return (self._safe_divide(gr, factor * r) + 1.,
-                self._safe_divide(dgr, factor * r))
+        return (self._safe_divide(gr, factor * r) + 1.0, self._safe_divide(dgr, factor * r))
 
     # Keen's G(r)
     def GK_to_G(self, r, gr, dgr=None, **kwargs):
@@ -316,7 +312,7 @@ class Converter:
         :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
         :rtype: (numpy.array, numpy.array)
         """
-        factor = (4. * np.pi * kwargs['rho']) / kwargs['<b_coh>^2']
+        factor = (4.0 * np.pi * kwargs["rho"]) / kwargs["<b_coh>^2"]
         if dgr is None:
             dgr = np.zeros_like(gr)
         return (factor * r * gr, factor * r * dgr)
@@ -353,10 +349,10 @@ class Converter:
         :return: :math:`G_{PDFFIT}(r)` vector, uncertainty vector
         :rtype: (numpy.array, numpy.array)
         """
-        factor = 4. * np.pi * r * kwargs['rho']
+        factor = 4.0 * np.pi * r * kwargs["rho"]
         if dgr is None:
             dgr = np.zeros_like(gr)
-        return (factor * (gr - 1.), factor * dgr)
+        return (factor * (gr - 1.0), factor * dgr)
 
     def g_to_GK(self, r, gr, dgr=None, **kwargs):
         r"""

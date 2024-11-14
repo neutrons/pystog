@@ -1,5 +1,7 @@
 import argparse
+
 import pytest
+
 from pystog.io import get_cli_parser, parse_cli_args
 
 
@@ -9,8 +11,8 @@ def test_get_cli_parser():
     assert not args.json
     assert not args.density
     assert not args.filenames
-    assert args.stem_name == 'merged'
-    assert args.real_space_function == 'g(r)'
+    assert args.stem_name == "merged"
+    assert args.real_space_function == "g(r)"
     assert args.Rmax == 50.0
     assert args.Rpoints == 5000
     assert not args.Rdelta

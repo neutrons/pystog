@@ -1,3 +1,3 @@
 ignore:
   - "./versioneer.py"  # ignore versioneer from testing
-  - "./pystog/_version.py" 
+  - "./pystog/_version.py"
