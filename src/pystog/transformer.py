@@ -169,7 +169,7 @@ class Transformer:
         for i, x in enumerate(xout):
             kernel = factor * yin * np.sin(xin * x)
             ekernel = np.square(factor * err * np.sin(xin * x))
-            yout[i] = np.trapz(kernel, x=xin)
+            yout[i] = np.trapezoid(kernel, x=xin)
             eout[i] = np.sqrt((np.diff(xin) ** 2 * (ekernel[1:] + ekernel[:-1]) / 2).sum())
 
         if kwargs.get("OmittedXrangeCorrection", False):
