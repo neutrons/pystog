@@ -118,18 +118,14 @@ Using tox for all stages of testing (all python versions and linting), just run:
 NOTE: You must have the version of python installed to run a test suite against that version via tox.
 Recommended way to install python versions is `pyenv`
 
-### Linting
-[Flake8](https://flake8.pycqa.org/en/latest/) is used for style guide enforcement (i.e. linting):
-
-From the parent directory of the module, run:
-
-`flake8 .`
-
-Using pipenv and flake8:
-`pipenv run flake8 .`
-
-Using tox
-`tox -e lint`
-
-Using pipenv and tox:
-`pipenv run tox -e lint`
+### Formatting and Static analysis
+[pre-commit](https://pre-commit.com/) is used for style enforcement and static analysis.
+To install, after creating the environment run
+```sh
+pre-commit install
+```
+and it will run for every commit.
+```sh
+pre-commit run --all
+```
+will run it without committing.
