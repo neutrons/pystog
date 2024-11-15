@@ -1,4 +1,5 @@
 import pytest
+
 from pystog.cli import pystog_cli
 from pystog.stog import NoInputFilesException
 

@@ -8,4 +8,3 @@ PyStoG
     about
     install
     pystog
-

@@ -9,7 +9,7 @@
       integer, parameter :: mn=33000, maxqpts=20000
       double precision, allocatable :: xin(:),yin(:),xout(:),yout(:),y(:)
       double precision, allocatable :: ftxin(:),ftyin(:),ftxout(:),ftyout(:)
-      double precision, allocatable :: xin_m(:,:),yin_m(:,:),xout_m(:),yout_m(:),yweight_m(:) 
+      double precision, allocatable :: xin_m(:,:),yin_m(:,:),xout_m(:),yout_m(:),yweight_m(:)
       double precision :: delr,rmax,vmult,vadd,xd,pi,a,rho,delq,v,pi4r, &
                           yDS,SINUS1,SINUS,f1,f2,fs,afact,rp,vm,vp,r,average
       double precision :: xnew(mn),yw(mn),xoffset
@@ -23,8 +23,8 @@
       CHARACTER(len=10) :: char,yes
       character(len=32) :: version='new 3.1, oct 2011'
       character(len=80) :: filein,fileout,sqfileout,rmcsqfile,rmcgrfile,ftsqfile,ftgrfile,lorgrfile
-      character(len=80), allocatable :: file(:),title(:) 
-      
+      character(len=80), allocatable :: file(:),title(:)
+
       LOGICAL :: LMOD
 
 !      DANGLE=38.1*1.112/150.0/150.0
@@ -37,7 +37,7 @@
 !
 
 !
-!       MGT: Put in part to merge a number of files. 
+!       MGT: Put in part to merge a number of files.
 !            This assumes the each data set are binned on the same scale
 
           write(*,*) 'This is stog version',version
@@ -49,14 +49,14 @@
         allocate (title(nfiles))
         allocate (xin_m(nfiles,maxqpts))
         allocate (yin_m(nfiles,maxqpts))
-        
+
 
         do loop=1,nfiles
 
 
         write(*,'(a,$)') 'Enter file name: '
         read(*,'(a)') file(loop)
-        write(*,'(a,$)') 'enter qmin and qmax: ' 
+        write(*,'(a,$)') 'enter qmin and qmax: '
         read(*,*) qmin,qmax
         write(*,'(a,$)') 'enter yoffset and yscale: '
         read(*,*) yoffset,yscale
@@ -71,7 +71,7 @@
           stop
         endif
         read(10,'(a)') title(loop)
-       
+
         inpts=1
         do loop2=1,npts(loop)
 
@@ -81,7 +81,7 @@
         yin_m(loop,inpts)=(yin_m(loop,inpts)/yscale)+yoffset
         inpts=inpts+1
         endif
-        
+
         enddo
         npts(loop)=inpts-1
         close(10)
@@ -97,7 +97,7 @@
           maxx=max(maxx,xin_m(loop,loop2))
           enddo
         enddo
-        
+
 
         xdiv=xin_m(1,2)-xin_m(1,1)
         xdiv=dble(nint(xdiv*10000))/10000.0
@@ -108,7 +108,7 @@
         allocate(xout_m(noutpts))
         allocate(yout_m(noutpts))
         allocate(yweight_m(noutpts))
-        
+
        minx=minx-xdiv
        do mainloop=1,noutpts
           xout_m(mainloop)=minx+dble(mainloop)*xdiv
@@ -138,22 +138,22 @@
 	  do loop=1,noutpts
 	     xin(loop)=xout_m(loop)
 	     yin(loop)=yout_m(loop)
-         if (yweight_m(loop).gt.0) then            
+         if (yweight_m(loop).gt.0) then
             yin(loop)=yin(loop)/yweight_m(loop)
             if (nint(yweight_m(loop)) > nfiles) write(*,*) 'yweight', yweight_m(loop)
          else
             write(*,*) 'There is no data in this region', xin(loop)
          endif
         enddo
-        
+
        lptin=noutpts
-       
+
        write(*,'(a,$)') 'Enter file name for merged S(Q): '
         read(*,'(a)') sqfileout
-        
+
 !        open(10,file=sqfileout)
 !        write(10,*) noutpts
-!        write(10,'(a)') title(1) 
+!        write(10,'(a)') title(1)
 !        do loop=1,noutpts
 !        write(10,*) xin(loop),yin(loop),yweight_m(loop)
 !        enddo
@@ -173,7 +173,7 @@
 
 
 !
-!     MGT : Carry on as before 
+!     MGT : Carry on as before
 !
 
       write(6,'(a,$)') 'Output filename for G(r): '
@@ -208,20 +208,20 @@
 !      endif
       write(6,1008)
       read(5,*) RHO
-    
+
     lyes = .true.
     do while (lyes)
-    
-   
-    
+
+
+
       write(6,'(a,$)') 'Add values: '
       read(5,*) vadd
-      vmult = 1.0d0/(1.0d0+vadd)    
+      vmult = 1.0d0/(1.0d0+vadd)
       write(6,'(a)') '(F(Q) must tend to 1.0 at high Q)'
-      
+
          open(10,file=sqfileout)
         write(10,*) noutpts
-        write(10,'(a)') title(1) 
+        write(10,'(a)') title(1)
 !        do loop=1,noutpts
 !        write(10,*) xin(loop),yin(loop),yweight_m(loop)
 !        enddo
@@ -233,12 +233,12 @@
       enddo
       close(10)
       maxx=xin(lptin)
-    
-     call stog_bit(lptin,lptout,xin,y,delr,RHO,.false.,xout,yout)   
+
+     call stog_bit(lptin,lptout,xin,y,delr,RHO,.false.,xout,yout)
 !      call testsub(lptin,lptout,xin,y,xout,yout)
-     
-     
-     
+
+
+
 !      xcaptout='    R (Angstrom)     '
 !      ycaptout=' Radial Distribution    G of R'
 !
@@ -252,7 +252,7 @@
           write(11,*) xout(i),yout(i)
       enddo
       close(11)
-      
+
       average = 0.0d0
       i = 1
       do while (xout(i)<=1.01d0)
@@ -265,17 +265,17 @@
       yes = adjustl(yes)
       lyes = (yes(1:1)=='Y')
     end do
-    
+
       runft=.false.
       write(6,'(a,$)') 'Fourier filter data [Y/N]: '
       read(5,'(a)') yes
       yes = adjustl(yes)
       runft = (yes(1:1)=='Y'.or.yes(1:1)=='y')
-    
-           
+
+
     ft:if (runft) then
        allocate(ftxin(lptout),ftyin(lptout))
-       
+
        write(6,'(a,$)') 'Please enter r cut-off: '
        read(5,*) ftcut
        write(*,*) 'FT cut-off set to ',ftcut
@@ -283,8 +283,8 @@
         read(*,'(a)') ftsqfile
        write(*,'(a,$)') 'Enter file name for FT corrected G(r): '
         read(*,'(a)') ftgrfile
-       
- 
+
+
        ftpts=0
        do loop=1,lptout
        if (xout(loop) <= ftcut) then
@@ -300,7 +300,7 @@
        allocate(ftxout(ftptsout),ftyout(ftptsout))
        write(*,*) 'Number of ft points is', ftptsout
        call stog_bit(ftpts,ftptsout,ftxin,ftyin,xdiv,RHO,.false.,ftxout,ftyout)
-       
+
        open(10,file='ft.dat')
        ftoffset=1
        write(10,*) ftptsout
@@ -313,28 +313,28 @@
        enddo
        close(10)
 
-       if (ftoffset.eq.1) then 
+       if (ftoffset.eq.1) then
        write(*,*) ftxout(loop),xin(1)
        stop 'FT binning problem'
        endif
        ftoffset=ftoffset-1
-       
+
        write(*,*) 'FT offset', ftoffset
-   
+
 
 !      Apply fourier correction to S(Q) == y (after merging, scaling and shifting)
        do loop=1,lptin
 !       if (nint((ftxout(loop+ftoffset)-(xdiv/2))/xdiv) == nint((xin(loop)-(xdiv/2))/xdiv)) then
-       if (nint(ftxout(loop+ftoffset)/xdiv) == nint(xin(loop)/xdiv)) then       
+       if (nint(ftxout(loop+ftoffset)/xdiv) == nint(xin(loop)/xdiv)) then
        y(loop)=(y(loop)-(ftyout(loop+ftoffset)))+1
-       else 
+       else
        write(*,*) nint(ftxout(loop+ftoffset)/xdiv),nint(xin(loop)/xdiv)
 !        write(*,*) nint((ftxout(loop+ftoffset)-(xdiv/2))/xdiv),nint((xin(loop)-(xdiv/2))/xdiv)
 
        stop 'FT correction binning mismatch'
        end if
        enddo
-       
+
        open(10,file=ftsqfile)
        write(10,*) lptin
        write(10,'(a,a)') 'Ft corrected sq', title(1)
@@ -342,9 +342,9 @@
        write(10,*) xin(loop),y(loop)
        enddo
        close(10)
-       
+
        call stog_bit(lptin,lptout,xin,y,delr,RHO,.false.,xout,yout)
-       
+
        open(10,file=ftgrfile)
        write(10,*) lptout
        write(10,'(a,a)') 'Ft corrected gr and dr', title
@@ -357,13 +357,13 @@
        endif  ft
 
 
-       if (LMOD) then 
-       
+       if (LMOD) then
+
        write(*,'(a,$)') 'Enter file name for lorched FT corrected G(r): '
         read(*,'(a)') lorgrfile
-    
+
        call stog_bit(lptin,lptout,xin,y,delr,RHO,LMOD,xout,yout)
-       
+
        open(10,file=lorgrfile)
        write(10,*) lptout
        write(10,'(a,a)') 'Ft corrected gr', title(1)
@@ -371,39 +371,39 @@
        write(10,*) xout(loop),yout(loop)
        enddo
        close(10)
-      
-       endif 
-    
-       write(6,'(a,$)') 'Please enter the final scale number: ' 
+
+       endif
+
+       write(6,'(a,$)') 'Please enter the final scale number: '
        read(*,*) fscale
        write(6,'(a,$)') 'Filename for RMC S(Q): '
        read(*,'(a)') rmcsqfile
-       write(6,'(a,$)') 'Filename for RMC G(r): ' 
+       write(6,'(a,$)') 'Filename for RMC G(r): '
        read(*,'(a)') rmcgrfile
        write(*,'(a,$)') 'RMC cuttoff, 1st peak min and max'
        read(*,*) rmccut,rmcmin,rmcmax
        open(10,file=rmcsqfile)
        open(11,file=rmcgrfile)
-       
+
         write(10,*) noutpts
-        write(10,'(a,a)') 'rmc S(Q)',title(1) 
+        write(10,'(a,a)') 'rmc S(Q)',title(1)
         do loop=1,noutpts
         write(10,*) xin(loop),(y(loop)-1)*fscale
         enddo
         close(10)
 
         write(11,*) lptout
-        write(11,'(a,a)') 'rmc G(r)',title(1) 
+        write(11,'(a,a)') 'rmc G(r)',title(1)
         do loop=1,lptout
         if ((xout(loop).le.rmccut).and.(xout(loop).ge.rmcmax.or.xout(loop).le.rmcmin)) yout(loop)=0
         write(11,*) xout(loop),(yout(loop)-1)*fscale
         enddo
         close(11)
-       
-        
+
+
 !
 !      call TRANSFORM_OUT
-      STOP 'stog> ouput is in point mode'
+      STOP 'stog> output is in point mode'
  1001   FORMAT(' stog> window function (Y/N) [N] ? ',$)
  1005     FORMAT(' stog> increment in r =',f6.3)
  1006     FORMAT(' stog> number of r points ? ',$)
@@ -421,12 +421,12 @@
       implicit none
 
       integer, parameter :: mn=33000, maxqpts=20000
-      double precision   xin(*),xout(*),yout(*),y(*) 
+      double precision   xin(*),xout(*),yout(*),y(*)
       double precision :: delr,rmax,vmult,vadd,xd,pi,a,rho,delq,v,pi4r, &
                           yDS,SINUS1,SINUS,f1,f2,fs,afact,rp,vm,vp,r,average
       double precision :: xnew(mn),yw(mn), ynew(mn)
       integer :: lptin,lptout,i,n,nn,nr
-  
+
       LOGICAL :: LMOD
 
       write(*,*) 'In stog bit'
@@ -438,7 +438,7 @@
 !      IF (.not.ALLOCATED(y)) ALLOCATE(y(lptin))
 !      IF (.not.ALLOCATED(xout)) ALLOCATE(xout(lptout))
 !      IF (.not.ALLOCATED(yout)) ALLOCATE(yout(lptout))
-      
+
 !      allocate(xin(lptin),y(lptin))
 !      allocate(xout(lptout),yout(lptout))
 
@@ -458,20 +458,20 @@
 !      do i=1,lptin
 !         y(i)=yin(i)
 !      enddo
-    
+
 !      user_par_out(15)=RHO
 !
 !  FORM VECTOR OF EQUALLY-SPACED R'S AT WHICH THE  FOURIER TRANSFORM
 !  IS TO BE COMPUTED (RMAX IN ANGSTROMS), AND THE NUMBER OF R-POINTS.
 !
-        
+
         DO NR=1,lptout
-   
+
        xout(NR)=delr*dble(NR)
-      
+
       end do
-      
-         
+
+
 !
 !  THE NUMBER OF POINTS IN THE RANGE OF DATA TO BE TRANSFORMED.
 !
@@ -488,13 +488,13 @@
        xnew(n)=xin(n)
                                        !Qi(Q)
        ynew(n)=yw(n)*(y(n)-1.0d0)*xnew(n)
-       IF (LMOD) write(10,*) xnew(n),ynew(n)/xnew(n)+1 
-            
-       
+       IF (LMOD) write(10,*) xnew(n),ynew(n)/xnew(n)+1
+
+
       end do
       IF (LMOD) close(10)
 
- 
+
 
 !
 !  COMPUTE FOURIER TRANSFORM OF THE DATA
@@ -541,27 +541,27 @@
 end subroutine stog_bit
 
       subroutine testsub(lptin,lptout,xin,y,xout,yout)
-      
+
        implicit none
 
       double precision, allocatable ::    xin(:),y(:),xout(:),yout(:)
       integer :: lptin,lptout,i,n,nn,nr
-      
+
       write(*,*) 'xin', ALLOCATED(xin)
-      write(*,*) 'xin', ALLOCATED(xout) 
+      write(*,*) 'xin', ALLOCATED(xout)
       write(*,*) 'xin', ALLOCATED(y)
-      write(*,*) 'xin', ALLOCATED(yout) 
-      
+      write(*,*) 'xin', ALLOCATED(yout)
+
       allocate(xin(lptin),y(lptin))
       allocate(xout(lptout),yout(lptout))
-      
+
       write(*,*) 'xin', ALLOCATED(xin)
-      write(*,*) ALLOCATED(xout) 
-      
+      write(*,*) ALLOCATED(xout)
+
       do nr=1,lptin
       xout(nr)=dble(nr)
       enddo
-      
+
       return
-      
-      end subroutine testsub 
+
+      end subroutine testsub

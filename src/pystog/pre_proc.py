@@ -9,7 +9,7 @@ This module is for some pre-processing of data
 import numpy as np
 
 
-class Pre_Proc:
+class Pre_Proc:  # noqa: N801
     """
     The Pre_Proc class is used for performing some
     pre-processing task for the data
@@ -25,6 +25,7 @@ class Pre_Proc:
     def __init__(self):
         pass
 
+    @staticmethod
     def rebin(x, y, xmin, xdiv, xmax):
         """
         Rebin input data to the specified grid
@@ -48,19 +49,19 @@ class Pre_Proc:
         xout = list()
         for loop in range(numpts):
             xout.append(xmin + loop * xdiv)
-        yout = [0. for _ in range(len(xout) + 1)]
-        ynorm = [0. for _ in range(len(xout) + 1)]
+        yout = [0.0 for _ in range(len(xout) + 1)]
+        ynorm = [0.0 for _ in range(len(xout) + 1)]
 
         for i, x_tmp in enumerate(x):
             if xmin <= x_tmp <= xmax:
-                bin = int((x_tmp - xmin) / xdiv)
-                scale1 = 1 - (x_tmp - xout[bin]) / xdiv
+                bin_index = int((x_tmp - xmin) / xdiv)
+                scale1 = 1 - (x_tmp - xout[bin_index]) / xdiv
                 scale2 = 1 - scale1
 
-                yout[bin] += y[i] * scale1
-                yout[bin + 1] += y[i] * scale2
-                ynorm[bin] += scale1
-                ynorm[bin + 1] += scale2
+                yout[bin_index] += y[i] * scale1
+                yout[bin_index + 1] += y[i] * scale2
+                ynorm[bin_index] += scale1
+                ynorm[bin_index + 1] += scale2
 
         for i in range(len(yout) - 1):
             yout[i] /= ynorm[i]

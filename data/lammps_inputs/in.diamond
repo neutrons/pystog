@@ -1,39 +1,39 @@
-# ---------- Basic Variables --------------------- 
+# ---------- Basic Variables ---------------------
 variable myStep    equal 1000
 variable number_of_steps equal 20000
 variable dump_file string "dump.diamond.lammpstrj"
 variable rdf_file  string "diamond.gr"
 variable supercell equal 15
 
-# ---------- Initialize Simulation --------------------- 
-units metal 
-dimension 3 
-boundary p p p 
-atom_style atomic 
+# ---------- Initialize Simulation ---------------------
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
 
-# ---------- Create Atoms --------------------- 
+# ---------- Create Atoms ---------------------
 lattice     diamond 3.57
 region  box block 0 1 0 1 0 1 units lattice
 create_box  1 box
 create_atoms 1 box
 replicate ${supercell} ${supercell} ${supercell}
 
-# ---------- Define Interatomic Potential --------------------- 
-pair_style tersoff 
+# ---------- Define Interatomic Potential ---------------------
+pair_style tersoff
 pair_coeff * * ./SiC.tersoff C
-neighbor 2.0 bin 
+neighbor 2.0 bin
 
 mass 1 12.011
-#neigh_modify delay 10 check yes 
- 
-# ---------- Run Minimization --------------------- 
+#neigh_modify delay 10 check yes
+
+# ---------- Run Minimization ---------------------
 fix 1 all box/relax iso 0.0 vmax 0.001
 thermo ${myStep}
 thermo_style custom step pe lx ly lz press pxx pyy pzz pe
-min_style cg 
-minimize 1e-25 1e-25 5000 10000 
+min_style cg
+minimize 1e-25 1e-25 5000 10000
 
-variable natoms equal "count(all)" 
+variable natoms equal "count(all)"
 variable teng equal "pe"
 variable length equal "lx"
 variable ecoh equal "v_teng/v_natoms"
@@ -45,19 +45,19 @@ print "Number of atoms = ${natoms};"
 print "Lattice constant (Angstoms) = ${length};"
 print "Cohesive energy (eV) = ${ecoh};"
 
-print "All done!" 
+print "All done!"
 print "-------------------------------"
 print ""
 
-# ---------- Run Dynamics --------------------- 
-reset_timestep 0 
+# ---------- Run Dynamics ---------------------
+reset_timestep 0
 unfix 1
 velocity all create 500.0 87979
 dump 1 all atom ${myStep} ${dump_file}
 fix  2 all nve
 run  ${number_of_steps}
 
-# ---------- Compute RDF --------------------- 
+# ---------- Compute RDF ---------------------
 variable rho             equal atoms/vol
 variable natoms          equal atoms
 variable half_box_length equal "floor(vol^(1./3.)/2. - 2.)"
@@ -69,7 +69,7 @@ variable last_step       equal ${number_of_steps}
 variable Nfreq           equal "v_last_step - v_first_step"
 variable Nrepeat         equal "v_Nfreq / v_myStep"
 
-reset_timestep 0 
+reset_timestep 0
 comm_modify cutoff  ${half_box_length}
 pair_style   lj/cut ${rdf_cutoff}
 pair_coeff   * * 1.0 1.0
@@ -94,4 +94,3 @@ uncompute      myRDF
 
 clear
 quit
-

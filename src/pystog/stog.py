@@ -8,22 +8,26 @@ that tries to replicate the previous
 stog program behavior in an organized fashion
 with the ability to re-construct the workflow.
 """
+
 from __future__ import absolute_import, division, print_function
 
-import sys
-import os
-from h5py import File
 import json
+import os
+import sys
+
 import numpy as np
+from h5py import File
 
-from pystog.utils import create_domain, RealSpaceChoices, ReciprocalSpaceChoices
 from pystog.converter import Converter
-from pystog.transformer import Transformer
 from pystog.fourier_filter import FourierFilter
+from pystog.transformer import Transformer
+from pystog.utils import RealSpaceChoices, ReciprocalSpaceChoices, create_domain
 
 
-class NoInputFilesException(Exception):
+class NoInputFilesException(Exception):  # noqa: N818
     """Exception when no files are given to process"""
+
+    pass
 
 
 class StoG(object):
@@ -123,11 +127,11 @@ class StoG(object):
         # Use key-word arguments to set attributes
         self.__kwargs2attr(kwargs)
 
-    def __kwargs2attr(self, kwargs):
+    def __kwargs2attr(self, kwargs):  # noqa: C901
         """
         Takes the key-word arguments supplied to the
         initialization of the class and maps them to
-        attirbutes in the class. Commonly get the **kwargs**
+        attributes in the class. Commonly get the **kwargs**
         from the JSON input file.
         """
         if "Files" in kwargs:
@@ -395,7 +399,7 @@ class StoG(object):
         :setter: Set the value for :math:`\\langle b_{coh} \\rangle^2`
         :type: float
         """
-        # TODO: Add an example with code to demostrate
+        # TODO: Add an example with code to demonstrate
         return self.__bcoh_sqrd
 
     @bcoh_sqrd.setter
@@ -428,7 +432,7 @@ class StoG(object):
         :setter: Set the value for :math:`\\sum_{i} c_{i} b_{tot,i}^2`
         :type: float
         """
-        # TODO: Add an example with code to demostrate
+        # TODO: Add an example with code to demonstrate
         return self.__btot_sqrd
 
     @btot_sqrd.setter
@@ -504,7 +508,7 @@ class StoG(object):
         """
         This sets the cutoff in :math:`r`-space for the Fourier
         filter. The minimum is automatically 0.0. Thus, from
-        0.0 to **fourier_filter_cutoff** is reverse transfomed,
+        0.0 to **fourier_filter_cutoff** is reverse transformed,
         subtracted in reciprocal space, and then the difference
         is back-transformed.
 
@@ -548,7 +552,7 @@ class StoG(object):
 
         :getter: Returns the current individual, input reciprocal space
                  functions numpy array.
-                 The dimenions is :math:`3 x N*M` where N is the number
+                 The dimensions is :math:`3 x N*M` where N is the number
                  of patterns stored and M is the length of the patterns.
         :setter: Sets the numpy array
         :type: numpy.ndarray
@@ -567,7 +571,7 @@ class StoG(object):
 
         :getter: Returns the current individual :math:`S(Q)` reciprocal space
                  functions numpy array.
-                 The dimenions is :math:`3 x N*M` where N is the number
+                 The dimensions is :math:`3 x N*M` where N is the number
                  of patterns stored and M is the length of the patterns.
         :setter: Sets the numpy array
         :type: numpy.ndarray
@@ -666,10 +670,7 @@ class StoG(object):
     @real_space_function.setter
     def real_space_function(self, real_space_function):
         if real_space_function not in RealSpaceChoices:
-            raise ValueError(
-                "real_space_function must be of %s"
-                % ",".join(RealSpaceChoices.keys())
-            )
+            raise ValueError("real_space_function must be of %s" % ",".join(RealSpaceChoices.keys()))
         self.__real_space_function = real_space_function
         self.__gr_ft_title = "%s FT" % real_space_function
         self.__gr_lorch_title = "%s FT Lorched" % real_space_function
@@ -814,9 +815,7 @@ class StoG(object):
             return data[path][index]
         return data[path][()]
 
-    def extract_path_from_title(
-        self, hdf_file, title, title_path="title", wksp_path="workspace"
-    ):
+    def extract_path_from_title(self, hdf_file, title, title_path="title", wksp_path="workspace"):
         data = File(hdf_file, "r")
         choices = list()
         for name, group in data.items():
@@ -847,7 +846,7 @@ class StoG(object):
             for x, y in zip(xdata, ydata):
                 f.write("%f %f\n" % (x, y))
 
-    def read_nexus_file_by_bank(self, nexus_file, bank, title, **kwargs):
+    def read_nexus_file_by_bank(self, nexus_file, bank, title, **kwargs):  # noqa: ARG002
         """
         Reads an individual file bank by bank and uses the **extract_xy**
         to handle extraction and **extract_path_from_title** to obtain
@@ -855,7 +854,7 @@ class StoG(object):
         """
 
         xpath, ypath = self.extract_path_from_title(nexus_file, title)
-        output_file = "{}_bank{}.dat".format(title, bank)
+        output_file = f"{title}_bank{bank}.dat"
 
         output_file = self.stem_name + output_file
 
@@ -897,9 +896,7 @@ class StoG(object):
         for i, file_info in enumerate(self.files):
             self.read_dataset(file_info, **kwargs)
 
-    def read_dataset(
-        self, info, xcol=0, ycol=1, dycol=2, sep=r"\s+", skiprows=2, **kwargs
-    ):
+    def read_dataset(self, info, xcol=0, ycol=1, dycol=2, sep=r"\s+", skiprows=2, **kwargs):  # noqa: ARG002
         """
         Reads an individual file and uses the **add_dataset**
         method to apply all dataset manipulations, such as
@@ -919,9 +916,7 @@ class StoG(object):
         :param skiprows: Number of rows to skip. Passed to numpy.loadtxt
         :type skiprows: int
         """
-        _data = np.loadtxt(
-            info["Filename"], skiprows=skiprows, comments="#", unpack=True
-        )
+        _data = np.loadtxt(info["Filename"], skiprows=skiprows, comments="#", unpack=True)
         if _data.shape[0] <= xcol or _data.shape[0] <= ycol:
             raise RuntimeError("Data format incompatible with input parameters")
         if _data.shape[0] <= dycol:
@@ -932,13 +927,11 @@ class StoG(object):
         info["data"] = data
         self.add_dataset(info, **kwargs)
 
-    def add_dataset(
-        self, info, yscale=1.0, yoffset=0.0, xoffset=0.0, ydecimals=16, **kwargs
-    ):
+    def add_dataset(self, info, yscale=1.0, yoffset=0.0, xoffset=0.0, ydecimals=16, **kwargs):  # noqa: ARG002
         """
         Takes the info with the dataset and manipulations,
         such as scales, offsets, cropping, etc., and creates
-        an invidual numpy array for the pattern.
+        an individual numpy array for the pattern.
 
         :param info: Dict with information for dataset
                      (filename, manipulations, etc.)
@@ -984,25 +977,19 @@ class StoG(object):
                 xoffset = info["X"]["Offset"]
 
         if adjusting:
-            x, y, dy = self.apply_scales_and_offset(
-                x, y, dy=dy, yscale=yscale, yoffset=yoffset, xoffset=xoffset
-            )
+            x, y, dy = self.apply_scales_and_offset(x, y, dy=dy, yscale=yscale, yoffset=yoffset, xoffset=xoffset)
 
-        # Save overal x-axis min and max
+        # Save overall x-axis min and max
         self.xmin = min(self.xmin, xmin)
         self.xmax = max(self.xmax, xmax)
 
         # Use Qmin and Qmax to crop datasets
         if self.qmin is not None:
             if self.xmin < self.qmin:
-                x, y, dy = self.transformer.apply_cropping(
-                    x, y, self.qmin, self.xmax, dy=dy
-                )
+                x, y, dy = self.transformer.apply_cropping(x, y, self.qmin, self.xmax, dy=dy)
         if self.qmax is not None:
             if self.xmax > self.qmax:
-                x, y, dy = self.transformer.apply_cropping(
-                    x, y, self.xmin, self.qmax, dy=dy
-                )
+                x, y, dy = self.transformer.apply_cropping(x, y, self.xmin, self.qmax, dy=dy)
 
         # Default to S(Q) if function type not defined
         if "ReciprocalFunction" not in info:
@@ -1010,7 +997,7 @@ class StoG(object):
 
         if info["ReciprocalFunction"] not in ReciprocalSpaceChoices:
             error = "ReciprocalFunction was equal to {given}.\n"
-            error += "ReciprocalFunction must be one of the folloing {options}"
+            error += "ReciprocalFunction must be one of the following {options}"
             error = error.format(
                 given=info["ReciprocalFunction"],
                 options=json.dumps(ReciprocalSpaceChoices),
@@ -1025,23 +1012,14 @@ class StoG(object):
         if info["ReciprocalFunction"] == "Q[S(Q)-1]":
             y, dy = self.converter.F_to_S(x, y, dfq=dy)
         elif info["ReciprocalFunction"] == "FK(Q)":
-            y, dy = self.converter.FK_to_S(
-                x, y, dfq_keen=dy, **{"<b_coh>^2": self.bcoh_sqrd}
-            )
+            y, dy = self.converter.FK_to_S(x, y, dfq_keen=dy, **{"<b_coh>^2": self.bcoh_sqrd})
         elif info["ReciprocalFunction"] == "DCS(Q)":
-            y, dy = self.converter.DCS_to_S(
-                x,
-                y,
-                ddcs=dy,
-                **{"<b_coh>^2": self.bcoh_sqrd, "<b_tot^2>": self.btot_sqrd}
-            )
+            y, dy = self.converter.DCS_to_S(x, y, ddcs=dy, **{"<b_coh>^2": self.bcoh_sqrd, "<b_tot^2>": self.btot_sqrd})
         array_seq = (self.sq_individuals, np.stack((x, y, dy)))
         self.sq_individuals = np.concatenate(array_seq, axis=1)
 
     @staticmethod
-    def apply_scales_and_offset(
-        x, y, dy=None, yscale=1.0, yoffset=0.0, xoffset=0.0
-    ):
+    def apply_scales_and_offset(x, y, dy=None, yscale=1.0, yoffset=0.0, xoffset=0.0):
         """
         Applies scales to the Y-axis and offsets to both X and Y axes.
 
@@ -1116,9 +1094,7 @@ class StoG(object):
         zipped = zip(_x, _y, _dy)
         ordered = sorted(zipped, key=lambda a: a[0])
         _x, _y, _dy = zip(*ordered)
-        self.sq_individuals = np.stack(
-            (np.asarray(_x), np.asarray(_y), np.asarray(_dy))
-        )
+        self.sq_individuals = np.stack((np.asarray(_x), np.asarray(_y), np.asarray(_dy)))
 
         # Go through the data and compute the average of points
         # with the same Q.
@@ -1141,9 +1117,7 @@ class StoG(object):
                 _n_err = item[2] ** 2
             _previous_x = item[0]
         if _n_total > 0:
-            data_merged.append(
-                [_previous_x, _n_sum / _n_total, np.sqrt(_n_err) / _n_total]
-            )
+            data_merged.append([_previous_x, _n_sum / _n_total, np.sqrt(_n_err) / _n_total])
 
         data_merged = np.asarray(data_merged).T
 
@@ -1206,17 +1180,11 @@ class StoG(object):
             "<b_coh>^2": self.bcoh_sqrd,
         }
         if self.real_space_function == "g(r)":
-            r, gofr, dgofr = self.transformer.S_to_g(
-                q, sq, self.dr, **transform_kwargs
-            )
+            r, gofr, dgofr = self.transformer.S_to_g(q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "G(r)":
-            r, gofr, dgofr = self.transformer.S_to_G(
-                q, sq, self.dr, **transform_kwargs
-            )
+            r, gofr, dgofr = self.transformer.S_to_G(q, sq, self.dr, **transform_kwargs)
         elif self.real_space_function == "GK(r)":
-            r, gofr, dgofr = self.transformer.S_to_GK(
-                q, sq, self.dr, **transform_kwargs
-            )
+            r, gofr, dgofr = self.transformer.S_to_GK(q, sq, self.dr, **transform_kwargs)
 
         self.gr_master[self.gr_title] = gofr
         self.r_master[self.gr_title] = r
@@ -1248,10 +1216,7 @@ class StoG(object):
 
         # Get reciprocal and real space data
         if self.gr_title not in self.gr_master:
-            msg = (
-                "WARNING: Fourier filtered before initial transform. "
-                "Peforming now..."
-            )
+            msg = "WARNING: Fourier filtered before initial transform. " "Performing now..."
             print(msg)
             self.transform_merged()
 
@@ -1264,17 +1229,11 @@ class StoG(object):
         # NOTE: Real space function setter will catch ValueError so
         # so no need for `else` to catch error
         if self.real_space_function == "g(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.g_using_S(
-                r, gr, q, sq, cutoff, **kwargs
-            )
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.g_using_S(r, gr, q, sq, cutoff, **kwargs)
         elif self.real_space_function == "G(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.G_using_S(
-                r, gr, q, sq, cutoff, **kwargs
-            )
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.G_using_S(r, gr, q, sq, cutoff, **kwargs)
         elif self.real_space_function == "GK(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.GK_using_S(
-                r, gr, q, sq, cutoff, **kwargs
-            )
+            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.GK_using_S(r, gr, q, sq, cutoff, **kwargs)
 
         # Round to avoid mismatch index in domain and NaN
         q = np.around(q, decimals=self.__xdecimals)
@@ -1320,13 +1279,9 @@ class StoG(object):
         :rtype: tuple of numpy.array
         """
         if self.real_space_function == "g(r)":
-            r, gr_lorch, _ = self.transformer.S_to_g(
-                q, sq, r, **{"lorch": True, "rho": self.density}
-            )
+            r, gr_lorch, _ = self.transformer.S_to_g(q, sq, r, **{"lorch": True, "rho": self.density})
         elif self.real_space_function == "G(r)":
-            r, gr_lorch, _ = self.transformer.S_to_G(
-                q, sq, r, **{"lorch": True}
-            )
+            r, gr_lorch, _ = self.transformer.S_to_G(q, sq, r, **{"lorch": True})
         elif self.real_space_function == "GK(r)":
             r, gr_lorch, _ = self.transformer.S_to_GK(
                 q,
@@ -1336,7 +1291,7 @@ class StoG(object):
                     "lorch": True,
                     "rho": self.density,
                     "<b_coh>^2": self.bcoh_sqrd,
-                }
+                },
             )
 
         self.gr_master[self.gr_lorch_title] = gr_lorch
@@ -1347,9 +1302,9 @@ class StoG(object):
 
     def _get_lowR_mean_square(self):
         """
-        Retuns the low-R mean square value for the real space function stored
+        Returns the low-R mean square value for the real space function stored
         in the "master" real space function, **gr_master**.
-        Used as a cost function for optimiziation of the :math:`Q_{max}` value
+        Used as a cost function for optimization of the :math:`Q_{max}` value
         by an iterative adjustment. Calls **_lowR_mean_square* method.
         **Currently not used in PyStoG workflow since was done manually.**
 
@@ -1364,7 +1319,7 @@ class StoG(object):
     def _lowR_mean_square(self, r, gr, limit=1.01):
         """
         Calculates the low-R mean square value from a given real space function.
-        Used as a cost function for optimiziation of the :math:`Q_{max}` value
+        Used as a cost function for optimization of the :math:`Q_{max}` value
         by an iterative adjustment.
         **Currently not used in PyStoG workflow since was done manually.**
 

@@ -1,6 +1,6 @@
 {
 
-    "Files" : [ 
+    "Files" : [
                 { "Filename" : "../data/co2_2k_original.sq",
                   "ReciprocalFunction" : "S(Q)",
                   "Qmin" : 0.8,
@@ -27,4 +27,3 @@
     "LorchFlag" : "True",
     "Outputs" : { "StemName" : "merged" }
 }
-    

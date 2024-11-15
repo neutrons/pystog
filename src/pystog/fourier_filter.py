@@ -16,7 +16,7 @@ from pystog.transformer import Transformer
 
 class FourierFilter:
     """
-    The FourierFilter class is used to exlude a given
+    The FourierFilter class is used to exclude a given
     range in the current function by a back Fourier Transform
     of that section, followed by a difference from the non-excluded
     function, and then a forward transform of the difference function
@@ -74,24 +74,20 @@ class FourierFilter:
         # setup qmin, qmax, and get low-r region to back transform
         qmin = min(q)
         qmax = max(q)
-        r_tmp, gr_tmp_init, dgr_tmp_init = self.transformer.apply_cropping(
-            r, gr, 0.0, cutoff, dy=dgr)
+        r_tmp, gr_tmp_init, dgr_tmp_init = self.transformer.apply_cropping(r, gr, 0.0, cutoff, dy=dgr)
 
         # Shift low-r so it goes to 1 at "high-r" for this section. Reduces the
         # sinc function issue.
         gr_tmp = gr_tmp_init + 1
 
         # Transform the shifted low-r region to F(Q) to get F(Q)_ft
-        q_ft, fq_ft, dfq_ft = self.transformer.g_to_F(
-            r_tmp, gr_tmp, q, dgr=dgr_tmp_init, **kwargs)
+        q_ft, fq_ft, dfq_ft = self.transformer.g_to_F(r_tmp, gr_tmp, q, dgr=dgr_tmp_init, **kwargs)
 
-        q_ft, fq_ft, dfq_ft = self.transformer.apply_cropping(
-            q_ft, fq_ft, qmin, qmax, dy=dfq_ft)
+        q_ft, fq_ft, dfq_ft = self.transformer.apply_cropping(q_ft, fq_ft, qmin, qmax, dy=dfq_ft)
 
         # Subtract F(Q)_ft from original F(Q) = delta_F(Q)
-        q, fq, dfq = self.transformer.apply_cropping(
-            q, fq, qmin, qmax, dy=dfq)
-        fq = (fq - fq_ft)
+        q, fq, dfq = self.transformer.apply_cropping(q, fq, qmin, qmax, dy=dfq)
+        fq = fq - fq_ft
         dfq = np.sqrt(dfq**2 + dfq_ft**2)
 
         # Transform delta_F(Q) for g(r) with low-r removed
@@ -126,8 +122,7 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
         sq_ft, dsq_ft = self.converter.F_to_S(q_ft, fq_ft, dfq=dfq_ft)
         sq, dsq = self.converter.F_to_S(q, fq, dfq=dfq)
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
@@ -159,10 +154,8 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -197,10 +190,8 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q_ft, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr
 
@@ -238,8 +229,7 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         gr, dgr = self.converter.G_to_g(r, gr, dgr=dgr, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
         gr, dgr = self.converter.g_to_G(r, gr, dgr=dgr, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -276,8 +266,7 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
         sq_ft, dsq_ft = self.converter.F_to_S(q_ft, fq_ft, dfq_ft)
         sq, dsq = self.converter.F_to_S(q, fq, dfq)
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
@@ -315,10 +304,8 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -353,10 +340,8 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.G_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr
 
@@ -395,8 +380,7 @@ class FourierFilter:
         """
 
         gr, dgr = self.converter.GK_to_g(r, gr, dgr=dgr, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.g_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
         gr, dgr = self.converter.g_to_GK(r, gr, dgr=dgr, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
@@ -434,8 +418,7 @@ class FourierFilter:
         """
 
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
         sq_ft, dsq_ft = self.converter.F_to_S(q_ft, fq_ft, dfq=dfq_ft)
         sq, dsq = self.converter.F_to_S(q, fq, dfq=dfq)
         return q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr
@@ -474,15 +457,12 @@ class FourierFilter:
         """
 
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        fq_ft, dfq_ft = self.converter.F_to_FK(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        fq_ft, dfq_ft = self.converter.F_to_FK(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         fq, dfq = self.converter.F_to_FK(q, fq, dfq=dfq, **kwargs)
         return q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr
 
-    def GK_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None,
-                     **kwargs):
+    def GK_using_DCS(self, r, gr, q, dcs, cutoff, dgr=None, ddcs=None, **kwargs):
         """
         Fourier filters real space :math:`G_{Keen Version}(r)`
         using the reciprocal space
@@ -513,9 +493,7 @@ class FourierFilter:
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.DCS_to_F(q, dcs, ddcs=ddcs, **kwargs)
-        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(
-            r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
-        dcs_ft, ddcs_ft = self.converter.F_to_DCS(
-            q_ft, fq_ft, dfq=dfq_ft, **kwargs)
+        q_ft, fq_ft, q, fq, r, gr, dfq_ft, dfq, dgr = self.GK_using_F(r, gr, q, fq, cutoff, dgr=dgr, dfq=dfq, **kwargs)
+        dcs_ft, ddcs_ft = self.converter.F_to_DCS(q_ft, fq_ft, dfq=dfq_ft, **kwargs)
         dcs, ddcs = self.converter.F_to_DCS(q, fq, dfq=dfq, **kwargs)
         return q_ft, dcs_ft, q, dcs, r, gr, ddcs_ft, ddcs, dgr

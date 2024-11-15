@@ -40,7 +40,7 @@ class Transformer:
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
         """
         Omitted low-x range correction performed in the
-        space you have transformed to. Does so by assumming a
+        space you have transformed to. Does so by assuming a
         linear extrapolation to zero.
         Original author: Jack Carpenter
 
@@ -57,13 +57,13 @@ class Transformer:
         """
         """
         TODO: Refactor correction to just
-        1) peform linear extrapolation in space before transform
+        1) perform linear extrapolation in space before transform
         2) transform with extrapolated function
         Compare that implementation to this one.
         Replace this if equal (within tolerance)
         """
 
-        lorch_flag = kwargs.get('lorch', False)
+        lorch_flag = kwargs.get("lorch", False)
 
         xmin = min(xin)
         xmax = max(xin)
@@ -78,24 +78,23 @@ class Transformer:
             if lorch_flag:
                 vm = xmin * (x - PiOverXmax)
                 vp = xmin * (x + PiOverXmax)
-                term1 = (vm * np.sin(vm) + np.cos(vm) - 1.) / \
-                    (x - PiOverXmax)**2.
-                term2 = (vp * np.sin(vp) + np.cos(vp) - 1.) / \
-                    (x + PiOverXmax)**2.
-                F1 = (term1 - term2) / (2. * PiOverXmax)
-                F2 = (np.sin(vm) / (x - PiOverXmax) - np.sin(vp) / # noqa
-                      (x + PiOverXmax)) / (2. * PiOverXmax)
+                term1 = (vm * np.sin(vm) + np.cos(vm) - 1.0) / (x - PiOverXmax) ** 2.0
+                term2 = (vp * np.sin(vp) + np.cos(vp) - 1.0) / (x + PiOverXmax) ** 2.0
+                F1 = (term1 - term2) / (2.0 * PiOverXmax)
+                F2 = (
+                    np.sin(vm) / (x - PiOverXmax)
+                    - np.sin(vp)  # noqa
+                    / (x + PiOverXmax)
+                ) / (2.0 * PiOverXmax)
             else:
-                F1 = (2. * v * np.sin(v) - (v * v - 2.) * np.cos(v) - 2.)
-                F1 = np.divide(
-                    F1, x * x * x, out=np.zeros_like(F1), where=x != 0)
+                F1 = 2.0 * v * np.sin(v) - (v * v - 2.0) * np.cos(v) - 2.0
+                F1 = np.divide(F1, x * x * x, out=np.zeros_like(F1), where=x != 0)
 
-                F2 = (np.sin(v) - v * np.cos(v))
+                F2 = np.sin(v) - v * np.cos(v)
                 F2 = np.divide(F2, x * x, out=np.zeros_like(F2), where=x != 0)
 
             num = F1 * yin_xmin
-            factor = np.divide(
-                num, xmin, out=np.zeros_like(num), where=xmin != 0)
+            factor = np.divide(num, xmin, out=np.zeros_like(num), where=xmin != 0)
             correction[i] = (2 / np.pi) * (factor - F2)
 
         yout += correction
@@ -128,14 +127,7 @@ class Transformer:
         indices = np.logical_and(x >= xmin, x <= xmax)
         return x[indices], y[indices], err[indices]
 
-    def fourier_transform(self,
-                          xin,
-                          yin,
-                          xout,
-                          xmin=None,
-                          xmax=None,
-                          dyin=None,
-                          **kwargs):
+    def fourier_transform(self, xin, yin, xout, xmin=None, xmax=None, dy_in=None, **kwargs):
         """
         The Fourier transform function. The kwargs
         argument allows for different modifications:
@@ -151,8 +143,8 @@ class Transformer:
         :type xmin: float
         :param xmax: maximum x-value for crop
         :type xmax: float
-        :param dyin: uncertainty vector for yin
-        :type dyin: numpy.array or list
+        :param dy_in: uncertainty vector for yin
+        :type dy_in: numpy.array or list
         :return: vector pair of transformed domain, range vectors,
                  and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
@@ -163,10 +155,10 @@ class Transformer:
         if xmin is None:
             xmin = min(xin)
 
-        xin, yin, err = self.apply_cropping(xin, yin, xmin, xmax, dyin)
+        xin, yin, err = self.apply_cropping(xin, yin, xmin, xmax, dy_in)
 
         factor = np.ones_like(yin)
-        if kwargs.get('lorch', False):
+        if kwargs.get("lorch", False):
             PiOverXmax = np.pi / xmax
             num = np.sin(PiOverXmax * xin)
             denom = PiOverXmax * xin
@@ -178,10 +170,9 @@ class Transformer:
             kernel = factor * yin * np.sin(xin * x)
             ekernel = np.square(factor * err * np.sin(xin * x))
             yout[i] = np.trapz(kernel, x=xin)
-            eout[i] = np.sqrt(
-                (np.diff(xin)**2 * (ekernel[1:] + ekernel[:-1]) / 2).sum())
+            eout[i] = np.sqrt((np.diff(xin) ** 2 * (ekernel[1:] + ekernel[:-1]) / 2).sum())
 
-        if kwargs.get('OmittedXrangeCorrection', False):
+        if kwargs.get("OmittedXrangeCorrection", False):
             self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout, eout
@@ -205,9 +196,9 @@ class Transformer:
         :return: :math:`r`, :math:`G_{PDFFIT}(r)`, and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
-        r, gr, dgr = self.fourier_transform(q, fq, r, dyin=dfq, **kwargs)
-        gr *= 2. / np.pi
-        dgr *= 2. / np.pi
+        r, gr, dgr = self.fourier_transform(q, fq, r, dy_in=dfq, **kwargs)
+        gr *= 2.0 / np.pi
+        dgr *= 2.0 / np.pi
         return r, gr, dgr
 
     def F_to_GK(self, q, fq, r, dfq=None, **kwargs):
@@ -458,7 +449,7 @@ class Transformer:
         :return: :math:`Q`, :math:`Q[S(Q)-1]`, and uncertainties
         :rtype: numpy.array, numpy.array, numpy.array
         """
-        return self.fourier_transform(r, gr, q, dyin=dgr, **kwargs)
+        return self.fourier_transform(r, gr, q, dy_in=dgr, **kwargs)
 
     def G_to_S(self, r, gr, q, dgr=None, **kwargs):
         """

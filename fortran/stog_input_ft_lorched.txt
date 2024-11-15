@@ -24,4 +24,3 @@ merged_ft_lorched.gr
 merged_rmc.fq
 merged_rmc.gr
 0.0 0.0 0.0
-

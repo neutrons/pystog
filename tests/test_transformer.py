@@ -1,12 +1,12 @@
 import unittest
+
 import numpy
-from numpy.testing import assert_array_equal, assert_allclose
-from tests.utils import \
-    load_data, get_index_of_function
-from tests.materials import Nickel, Argon
-from pystog.utils import \
-    RealSpaceHeaders, ReciprocalSpaceHeaders
+from numpy.testing import assert_allclose, assert_array_equal
+
 from pystog.transformer import Transformer
+from pystog.utils import RealSpaceHeaders, ReciprocalSpaceHeaders
+from tests.materials import Argon, Nickel
+from tests.utils import get_index_of_function, load_data
 
 # Real Space Function
 
@@ -40,14 +40,10 @@ class TestTransformerBase(unittest.TestCase):
 
         data = load_data(self.material.reciprocal_space_filename)
         self.q = data[:, get_index_of_function("Q", ReciprocalSpaceHeaders)]
-        self.sq = data[:, get_index_of_function(
-            "S(Q)", ReciprocalSpaceHeaders)]
-        self.fq = data[:, get_index_of_function(
-            "Q[S(Q)-1]", ReciprocalSpaceHeaders)]
-        self.fq_keen = data[:, get_index_of_function(
-            "FK(Q)", ReciprocalSpaceHeaders)]
-        self.dcs = data[:, get_index_of_function(
-            "DCS(Q)", ReciprocalSpaceHeaders)]
+        self.sq = data[:, get_index_of_function("S(Q)", ReciprocalSpaceHeaders)]
+        self.fq = data[:, get_index_of_function("Q[S(Q)-1]", ReciprocalSpaceHeaders)]
+        self.fq_keen = data[:, get_index_of_function("FK(Q)", ReciprocalSpaceHeaders)]
+        self.dcs = data[:, get_index_of_function("DCS(Q)", ReciprocalSpaceHeaders)]
 
         # targets for 1st peaks
         self.sq_target = self.material.sq_target
@@ -64,9 +60,8 @@ class TestTransformerBase(unittest.TestCase):
         self._ft_last = 35
         fs = 100  # sample rate
         f = 10  # the frequency of the signal
-        self._ft_xin = numpy.linspace(0.0, 100., 1000)
-        self._ft_yin = numpy.asarray(
-            [numpy.sin(2 * numpy.pi * f * (i / fs)) for i in self._ft_xin])
+        self._ft_xin = numpy.linspace(0.0, 100.0, 1000)
+        self._ft_yin = numpy.asarray([numpy.sin(2 * numpy.pi * f * (i / fs)) for i in self._ft_xin])
         self._ft_xout = numpy.linspace(0.0, 2.0, 100)
 
     def tearDown(self):
@@ -82,300 +77,172 @@ class TestTransformerBase(unittest.TestCase):
         assert_array_equal(y, [4.6, 4.65, 4.7])
 
     def test_fourier_transform(self):
-        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
-                                                           self._ft_yin,
-                                                           self._ft_xout)
-        yout_target = [-0.14265772,
-                       -10.8854444,
-                       18.13582784,
-                       49.72976782,
-                       26.3590524,
-                       -8.08540764,
-                       -3.38810001]
-        assert_allclose(yout[self._ft_first:self._ft_last],
-                        yout_target,
-                        rtol=self.rtol, atol=self.atol)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin, self._ft_yin, self._ft_xout)
+        yout_target = [-0.14265772, -10.8854444, 18.13582784, 49.72976782, 26.3590524, -8.08540764, -3.38810001]
+        assert_allclose(yout[self._ft_first : self._ft_last], yout_target, rtol=self.rtol, atol=self.atol)
 
     def test_fourier_transform_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
-                                                           self._ft_yin,
-                                                           self._ft_xout,
-                                                           **kwargs)
-        yout_target = [-1.406162,
-                       3.695632,
-                       18.788041,
-                       29.370677,
-                       21.980533,
-                       6.184271,
-                       -1.234159]
-        assert_allclose(yout[self._ft_first:self._ft_last],
-                        yout_target,
-                        rtol=self.rtol, atol=self.atol)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin, self._ft_yin, self._ft_xout, **kwargs)
+        yout_target = [-1.406162, 3.695632, 18.788041, 29.370677, 21.980533, 6.184271, -1.234159]
+        assert_allclose(yout[self._ft_first : self._ft_last], yout_target, rtol=self.rtol, atol=self.atol)
 
     def test_fourier_transform_with_low_x(self):
         kwargs = {"OmittedXrangeCorrection": True}
-        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
-                                                           self._ft_yin,
-                                                           self._ft_xout,
-                                                           **kwargs)
-        yout_target = [-0.142658,
-                       -10.885444,
-                       18.135828,
-                       49.729768,
-                       26.359052,
-                       -8.085408,
-                       -3.388100]
-        assert_allclose(yout[self._ft_first:self._ft_last],
-                        yout_target,
-                        rtol=self.rtol, atol=self.atol)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin, self._ft_yin, self._ft_xout, **kwargs)
+        yout_target = [-0.142658, -10.885444, 18.135828, 49.729768, 26.359052, -8.085408, -3.388100]
+        assert_allclose(yout[self._ft_first : self._ft_last], yout_target, rtol=self.rtol, atol=self.atol)
 
     def test_low_x_correction(self):
         kwargs = {"lorch": False}
-        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
-                                                           self._ft_yin,
-                                                           self._ft_xout,
-                                                           **kwargs)
-        yout = self.transformer._low_x_correction(self._ft_xin,
-                                                  self._ft_yin,
-                                                  xout, yout,
-                                                  **kwargs)
-        yout_target = [-0.142658,
-                       -10.885444,
-                       18.135828,
-                       49.729768,
-                       26.359052,
-                       -8.085408,
-                       -3.388100]
-        assert_allclose(yout[self._ft_first:self._ft_last],
-                        yout_target,
-                        rtol=self.rtol, atol=self.atol)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin, self._ft_yin, self._ft_xout, **kwargs)
+        yout = self.transformer._low_x_correction(self._ft_xin, self._ft_yin, xout, yout, **kwargs)
+        yout_target = [-0.142658, -10.885444, 18.135828, 49.729768, 26.359052, -8.085408, -3.388100]
+        assert_allclose(yout[self._ft_first : self._ft_last], yout_target, rtol=self.rtol, atol=self.atol)
 
     def test_low_x_correction_with_lorch(self):
         kwargs = {"lorch": True}
-        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin,
-                                                           self._ft_yin,
-                                                           self._ft_xout,
-                                                           **kwargs)
-        yout = self.transformer._low_x_correction(self._ft_xin,
-                                                  self._ft_yin,
-                                                  xout, yout,
-                                                  **kwargs)
-        yout_target = [-1.406162,
-                       3.695632,
-                       18.788041,
-                       29.370677,
-                       21.980533,
-                       6.184271,
-                       -1.234159]
-        assert_allclose(yout[self._ft_first:self._ft_last],
-                        yout_target,
-                        rtol=self.rtol, atol=self.atol)
+        xout, yout, _ = self.transformer.fourier_transform(self._ft_xin, self._ft_yin, self._ft_xout, **kwargs)
+        yout = self.transformer._low_x_correction(self._ft_xin, self._ft_yin, xout, yout, **kwargs)
+        yout_target = [-1.406162, 3.695632, 18.788041, 29.370677, 21.980533, 6.184271, -1.234159]
+        assert_allclose(yout[self._ft_first : self._ft_last], yout_target, rtol=self.rtol, atol=self.atol)
 
     # Real space
 
     # g(r) tests
 
     def g_to_S(self):
-        q, sq, _ = self.transformer.g_to_S(
-            self.r, self.gofr, self.q, **self.kwargs)
+        q, sq, _ = self.transformer.g_to_S(self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(sq[first:last],
-                        self.sq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(sq[first:last], self.sq_target, rtol=self.rtol, atol=self.atol)
 
     def g_to_F(self):
-        q, fq, _ = self.transformer.g_to_F(
-            self.r, self.gofr, self.q, **self.kwargs)
+        q, fq, _ = self.transformer.g_to_F(self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq[first:last],
-                        self.fq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq[first:last], self.fq_target, rtol=self.rtol, atol=self.atol)
 
     def g_to_FK(self):
-        q, fq_keen, _ = self.transformer.g_to_FK(
-            self.r, self.gofr, self.q, **self.kwargs)
+        q, fq_keen, _ = self.transformer.g_to_FK(self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq_keen[first:last],
-                        self.fq_keen_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq_keen[first:last], self.fq_keen_target, rtol=self.rtol, atol=self.atol)
 
     def g_to_DCS(self):
-        q, dcs, _ = self.transformer.g_to_DCS(
-            self.r, self.gofr, self.q, **self.kwargs)
+        q, dcs, _ = self.transformer.g_to_DCS(self.r, self.gofr, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(dcs[first:last],
-                        self.dcs_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(dcs[first:last], self.dcs_target, rtol=self.rtol, atol=self.atol)
 
     # G(r) tests
 
     def G_to_S(self):
-        q, sq, _ = self.transformer.G_to_S(
-            self.r, self.GofR, self.q, **self.kwargs)
+        q, sq, _ = self.transformer.G_to_S(self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(sq[first:last],
-                        self.sq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(sq[first:last], self.sq_target, rtol=self.rtol, atol=self.atol)
 
     def G_to_F(self):
-        q, fq, _ = self.transformer.G_to_F(
-            self.r, self.GofR, self.q, **self.kwargs)
+        q, fq, _ = self.transformer.G_to_F(self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq[first:last],
-                        self.fq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq[first:last], self.fq_target, rtol=self.rtol, atol=self.atol)
 
     def G_to_FK(self):
-        q, fq_keen, _ = self.transformer.G_to_FK(
-            self.r, self.GofR, self.q, **self.kwargs)
+        q, fq_keen, _ = self.transformer.G_to_FK(self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq_keen[first:last],
-                        self.fq_keen_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq_keen[first:last], self.fq_keen_target, rtol=self.rtol, atol=self.atol)
 
     def G_to_DCS(self):
-        q, dcs, _ = self.transformer.G_to_DCS(
-            self.r, self.GofR, self.q, **self.kwargs)
+        q, dcs, _ = self.transformer.G_to_DCS(self.r, self.GofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(dcs[first:last],
-                        self.dcs_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(dcs[first:last], self.dcs_target, rtol=self.rtol, atol=self.atol)
+
     # GK(r) tests
 
     def GK_to_S(self):
-        q, sq, _ = self.transformer.GK_to_S(
-            self.r, self.GKofR, self.q, **self.kwargs)
+        q, sq, _ = self.transformer.GK_to_S(self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(sq[first:last],
-                        self.sq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(sq[first:last], self.sq_target, rtol=self.rtol, atol=self.atol)
 
     def GK_to_F(self):
-        q, fq, _ = self.transformer.GK_to_F(
-            self.r, self.GKofR, self.q, **self.kwargs)
+        q, fq, _ = self.transformer.GK_to_F(self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq[first:last],
-                        self.fq_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq[first:last], self.fq_target, rtol=self.rtol, atol=self.atol)
 
     def GK_to_FK(self):
-        q, fq_keen, _ = self.transformer.GK_to_FK(
-            self.r, self.GKofR, self.q, **self.kwargs)
+        q, fq_keen, _ = self.transformer.GK_to_FK(self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(fq_keen[first:last],
-                        self.fq_keen_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(fq_keen[first:last], self.fq_keen_target, rtol=self.rtol, atol=self.atol)
 
     def GK_to_DCS(self):
-        q, dcs, _ = self.transformer.GK_to_DCS(
-            self.r, self.GKofR, self.q, **self.kwargs)
+        q, dcs, _ = self.transformer.GK_to_DCS(self.r, self.GKofR, self.q, **self.kwargs)
         first, last = self.reciprocal_space_first, self.reciprocal_space_last
-        assert_allclose(dcs[first:last],
-                        self.dcs_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(dcs[first:last], self.dcs_target, rtol=self.rtol, atol=self.atol)
 
     # Reciprocal space
 
     # S(Q) tests
     def S_to_g(self):
-        r, gofr, _ = self.transformer.S_to_g(
-            self.q, self.sq, self.r, **self.kwargs)
+        r, gofr, _ = self.transformer.S_to_g(self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(gofr[first:last],
-                        self.gofr_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(gofr[first:last], self.gofr_target, rtol=self.rtol, atol=self.atol)
 
     def S_to_G(self):
-        r, GofR, _ = self.transformer.S_to_G(
-            self.q, self.sq, self.r, **self.kwargs)
+        r, GofR, _ = self.transformer.S_to_G(self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GofR[first:last],
-                        self.GofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GofR[first:last], self.GofR_target, rtol=self.rtol, atol=self.atol)
 
     def S_to_GK(self):
-        r, GKofR, _ = self.transformer.S_to_GK(
-            self.q, self.sq, self.r, **self.kwargs)
+        r, GKofR, _ = self.transformer.S_to_GK(self.q, self.sq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GKofR[first:last],
-                        self.GKofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GKofR[first:last], self.GKofR_target, rtol=self.rtol, atol=self.atol)
+
     # Q[S(Q)-1] tests
 
     def F_to_g(self):
-        r, gofr, _ = self.transformer.F_to_g(
-            self.q, self.fq, self.r, **self.kwargs)
+        r, gofr, _ = self.transformer.F_to_g(self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(gofr[first:last],
-                        self.gofr_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(gofr[first:last], self.gofr_target, rtol=self.rtol, atol=self.atol)
 
     def F_to_G(self):
-        r, GofR, _ = self.transformer.F_to_G(
-            self.q, self.fq, self.r, **self.kwargs)
+        r, GofR, _ = self.transformer.F_to_G(self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GofR[first:last],
-                        self.GofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GofR[first:last], self.GofR_target, rtol=self.rtol, atol=self.atol)
 
     def F_to_GK(self):
-        r, GKofR, _ = self.transformer.F_to_GK(
-            self.q, self.fq, self.r, **self.kwargs)
+        r, GKofR, _ = self.transformer.F_to_GK(self.q, self.fq, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GKofR[first:last],
-                        self.GKofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GKofR[first:last], self.GKofR_target, rtol=self.rtol, atol=self.atol)
+
     # FK(Q) tests
 
     def FK_to_g(self):
-        r, gofr, _ = self.transformer.FK_to_g(
-            self.q, self.fq_keen, self.r, **self.kwargs)
+        r, gofr, _ = self.transformer.FK_to_g(self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(gofr[first:last],
-                        self.gofr_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(gofr[first:last], self.gofr_target, rtol=self.rtol, atol=self.atol)
 
     def FK_to_G(self):
-        r, GofR, _ = self.transformer.FK_to_G(
-            self.q, self.fq_keen, self.r, **self.kwargs)
+        r, GofR, _ = self.transformer.FK_to_G(self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GofR[first:last],
-                        self.GofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GofR[first:last], self.GofR_target, rtol=self.rtol, atol=self.atol)
 
     def FK_to_GK(self):
-        r, GKofR, _ = self.transformer.FK_to_GK(
-            self.q, self.fq_keen, self.r, **self.kwargs)
+        r, GKofR, _ = self.transformer.FK_to_GK(self.q, self.fq_keen, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GKofR[first:last],
-                        self.GKofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GKofR[first:last], self.GKofR_target, rtol=self.rtol, atol=self.atol)
+
     # DCS(Q) tests
 
     def DCS_to_g(self):
-        r, gofr, _ = self.transformer.DCS_to_g(
-            self.q, self.dcs, self.r, **self.kwargs)
+        r, gofr, _ = self.transformer.DCS_to_g(self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(gofr[first:last],
-                        self.gofr_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(gofr[first:last], self.gofr_target, rtol=self.rtol, atol=self.atol)
 
     def DCS_to_G(self):
-        r, GofR, _ = self.transformer.DCS_to_G(
-            self.q, self.dcs, self.r, **self.kwargs)
+        r, GofR, _ = self.transformer.DCS_to_G(self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GofR[first:last],
-                        self.GofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GofR[first:last], self.GofR_target, rtol=self.rtol, atol=self.atol)
 
     def DCS_to_GK(self):
-        r, GKofR, _ = self.transformer.DCS_to_GK(
-            self.q, self.dcs, self.r, **self.kwargs)
+        r, GKofR, _ = self.transformer.DCS_to_GK(self.q, self.dcs, self.r, **self.kwargs)
         first, last = self.real_space_first, self.real_space_last
-        assert_allclose(GKofR[first:last],
-                        self.GKofR_target,
-                        rtol=self.rtol, atol=self.atol)
+        assert_allclose(GKofR[first:last], self.GKofR_target, rtol=self.rtol, atol=self.atol)
 
 
 class TestTransformerNickel(TestTransformerBase):
@@ -500,5 +367,5 @@ class TestTransformerArgon(TestTransformerBase):
         self.DCS_to_GK()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()  # pragma: no cover

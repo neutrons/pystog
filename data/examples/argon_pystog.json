@@ -1,6 +1,6 @@
 {
 
-    "Files" : [ 
+    "Files" : [
                 { "Filename" : "../data/argon.sq",
                   "ReciprocalFunction" : "S(Q)",
                   "Qmin" : 0.8,
@@ -44,4 +44,3 @@
     "LorchFlag" : false,
     "Outputs" : { "StemName" : "merged_argon" }
 }
-    
