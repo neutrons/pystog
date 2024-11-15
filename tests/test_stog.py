@@ -314,7 +314,8 @@ class TestStogAttributes(TestStogBase):
 class TestStogStorageArrays(TestStogBase):
     def setUp(self):
         super(TestStogStorageArrays, self).setUp()
-        self.target = np.random.randn(3, 10)
+        randn = np.random.default_rng()
+        self.target = randn.random(size=(3, 10))
 
     def test_stog_reciprocal_individuals_setter(self):
         stog = StoG()

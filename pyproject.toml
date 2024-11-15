@@ -59,7 +59,7 @@ markers = [
 [tool.ruff]
 line-length = 120
 # https://beta.ruff.rs/docs/rules/
-lint.select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W"]
+lint.select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W", "NPY"]
 lint.ignore = [ "N802", "N806", # function should be lowercase
 "N816" # Variable in global scope should not be mixedCase
 ]

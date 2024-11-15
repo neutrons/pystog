@@ -32,11 +32,11 @@ requirements:
   build:
     - setuptools
     - versioningit
-    - numpy
+    - numpy=2
     - h5py
   run:
     - python
-    - numpy
+    - numpy=2
     - h5py
 
 test:

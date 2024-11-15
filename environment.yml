@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - h5py
-  - numpy=1 # for now
+  - numpy=2
   - pre-commit
   - pytest
   - pytest-cov
