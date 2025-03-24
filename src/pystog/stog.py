@@ -1216,7 +1216,7 @@ class StoG(object):
 
         # Get reciprocal and real space data
         if self.gr_title not in self.gr_master:
-            msg = "WARNING: Fourier filtered before initial transform. " "Performing now..."
+            msg = "WARNING: Fourier filtered before initial transform. Performing now..."
             print(msg)
             self.transform_merged()
 
