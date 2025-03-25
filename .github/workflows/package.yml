@@ -51,7 +51,7 @@ jobs:
           IS_RC: ${{ contains(github.ref, 'rc') }}
         run: |
           # label is main or rc depending on the tag-name
-          CONDA_LABEL="master"
+          CONDA_LABEL="main"
           if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
           conda install anaconda-client
           echo pushing ${{ github.ref }} with label $CONDA_LABEL
