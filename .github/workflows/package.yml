@@ -53,5 +53,6 @@ jobs:
           # label is main or rc depending on the tag-name
           CONDA_LABEL="master"
           if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
+          conda install anaconda-client
           echo pushing ${{ github.ref }} with label $CONDA_LABEL
           anaconda upload --label $CONDA_LABEL conda.recipe/noarch/pystog*.tar.bz2
