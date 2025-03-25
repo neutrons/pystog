@@ -1,28 +1,38 @@
-name: conda packaging and deployment
+name: mantid_total_scattering_ci
+
+env:
+  PYTHON_MAIN_VERSION: 3.11
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [master]
     tags: ['v*']
 
 jobs:
   linux:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
           channels: conda-forge,defaults
-          mamba-version: "*"
-          environment-file: environment.yml
-      - name: install additional dependencies
+
+      - name: Conda install deps
+        shell: bash -l {0}
         run: |
-          echo "installing additional dependencies from environment_development.yml"
+          conda env create -f environment.yml
+          conda activate pystog
+
       - name: build conda package
         run: |
           # set up environment
