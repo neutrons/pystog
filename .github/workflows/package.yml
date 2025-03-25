@@ -1,4 +1,4 @@
-name: mantid_total_scattering_ci
+name: pystog
 
 env:
   PYTHON_MAIN_VERSION: 3.11
@@ -31,11 +31,11 @@ jobs:
         shell: bash -l {0}
         run: |
           conda env create -f environment.yml
-          conda activate pystog
 
       - name: build conda package
         run: |
           # set up environment
+          conda activate pystog
           cd conda.recipe
           echo "versioningit $(versioningit ../)"
           # build the package
