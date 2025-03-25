@@ -35,8 +35,12 @@ def pystog_cli(kwargs=None):
             kwargs = parse_cli_args(args)
 
     if not kwargs.get("Files"):
+        print("\n========================================================")
+        print("[Error] No input file provided. Refer to the help below.")
+        print("========================================================\n")
         parser.print_help()
-        raise NoInputFilesException("No input files given in arguments")
+
+        return
 
     # Merge S(Q) files
     stog = StoG(**kwargs)
