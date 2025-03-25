@@ -51,8 +51,7 @@ from pystog import StoG
 ```
 ** WARNING: Testing of the CLI is still ongoing**
 
-Also, there is a beta-version of a python script in the package that can be run on JSON input files and operates similarly to the original **StoG** program.
-This is `python cli` and can be used as follows:
+Also, there is a python script included in the package and it can be run with JSON input files. The script will be installed into the `bin` directory in the conda environment directory. For example, my `pystog` conda environment is located at `/SNS/users/y8z/miniconda/envs/pystog` and I can find `pystog_cli` under `/SNS/users/y8z/miniconda/envs/pystog/bin`. We can copy `pystog_cli` from there to a location in our system environment path so we can access the script from anywhere. The script can be run as follows,
 
 ```bash
 pystog_cli --json <input json>
