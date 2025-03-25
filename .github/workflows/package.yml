@@ -22,6 +22,9 @@ jobs:
           environment-file: environment.yml
           cache-environment-key: ${{ runner.os }}-env-${{ hashFiles('**/environment.yml') }}
           cache-downloads-key: ${{ runner.os }}-downloads-${{ hashFiles('**/environment.yml') }}
+      - name: Create conda environment
+        run: |
+          mamba create -n test --file environment.yml
       - name: install additional dependencies
         run: |
           echo "installing additional dependencies from environment_development.yml"
