@@ -11,7 +11,6 @@ import json
 
 from pystog import StoG
 from pystog.io import get_cli_parser, parse_cli_args
-from pystog.stog import NoInputFilesException
 
 
 def pystog_cli(kwargs=None):
