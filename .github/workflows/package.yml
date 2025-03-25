@@ -35,6 +35,7 @@ jobs:
       - name: build conda package
         run: |
           # set up environment
+          conda init
           conda activate pystog
           cd conda.recipe
           echo "versioningit $(versioningit ../)"
