@@ -40,7 +40,7 @@ class Transformer:
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
         """
         Omitted low-x range correction performed in the
-        space you have transformed to. Does so by assuming a
+        space you have transformed to. Does so by assumming a
         linear extrapolation to zero.
         Original author: Jack Carpenter
 
@@ -55,49 +55,45 @@ class Transformer:
         :return: range vector for space transformed to with correction applied
         :rtype: numpy.array
         """
-        """
-        TODO: Refactor correction to just
-        1) perform linear extrapolation in space before transform
-        2) transform with extrapolated function
-        Compare that implementation to this one.
-        Replace this if equal (within tolerance)
-        """
 
-        lorch_flag = kwargs.get("lorch", False)
+        lorch_flag = kwargs.get('lorch', False)
 
-        xmin = min(xin)
-        xmax = max(xin)
-        yin_xmin = yin[0]
-        np.pi / xmax
+        xnew = xin
+        yin = yin / xin + 1.
 
-        PiOverXmax = np.pi / xmax
-
-        correction = np.zeros_like(yout)
-        for i, x in enumerate(xout):
-            v = xmin * x
+        for NR in range(len(yout)):
+            R = xout[NR]
+            V = xin[0] * R
             if lorch_flag:
-                vm = xmin * (x - PiOverXmax)
-                vp = xmin * (x + PiOverXmax)
-                term1 = (vm * np.sin(vm) + np.cos(vm) - 1.0) / (x - PiOverXmax) ** 2.0
-                term2 = (vp * np.sin(vp) + np.cos(vp) - 1.0) / (x + PiOverXmax) ** 2.0
-                F1 = (term1 - term2) / (2.0 * PiOverXmax)
+                A = np.pi / xin[-1]
+                VM = xnew[0] * (R - A)
+                VP = xnew[0] * (R + A)
+                F1 = (
+                    ((VM * np.sin(VM) + np.cos(VM) - 1.0) / (R - A) ** 2
+                        - (VP * np.sin(VP) + np.cos(VP) - 1.0) / (R + A) ** 2)
+                    / 2.0 / A
+                )
                 F2 = (
-                    np.sin(vm) / (x - PiOverXmax)
-                    - np.sin(vp)  # noqa
-                    / (x + PiOverXmax)
-                ) / (2.0 * PiOverXmax)
+                    (np.sin(VM) / (R - A) - np.sin(VP) / (R + A))
+                    / 2.0 / A
+                )
             else:
-                F1 = 2.0 * v * np.sin(v) - (v * v - 2.0) * np.cos(v) - 2.0
-                F1 = np.divide(F1, x * x * x, out=np.zeros_like(F1), where=x != 0)
+                if R != 0.:
+                    F1 = (
+                        (2.0 * V * np.sin(V) - (V * V - 2.0) * np.cos(V) - 2.0)
+                        / R / R / R
+                    )
+                    F2 = (np.sin(V) - V * np.cos(V)) / R / R
+                else:
+                    F1 = 0.
+                    F2 = 0.
 
-                F2 = np.sin(v) - v * np.cos(v)
-                F2 = np.divide(F2, x * x, out=np.zeros_like(F2), where=x != 0)
+            if xin[0] == 0:
+                yDS = (2.0 / np.pi) * (F1 * yin[1] / xin[1] - F2)
+            else:
+                yDS = (2.0 / np.pi) * (F1 * yin[0] / xin[0] - F2)
 
-            num = F1 * yin_xmin
-            factor = np.divide(num, xmin, out=np.zeros_like(num), where=xmin != 0)
-            correction[i] = (2 / np.pi) * (factor - F2)
-
-        yout += correction
+            yout[NR] += (yDS * np.pi / 2.)
 
         return yout
 
@@ -172,7 +168,7 @@ class Transformer:
             yout[i] = np.trapezoid(kernel, x=xin)
             eout[i] = np.sqrt((np.diff(xin) ** 2 * (ekernel[1:] + ekernel[:-1]) / 2).sum())
 
-        if kwargs.get("OmittedXrangeCorrection", False):
+        if kwargs.get("OmittedXrangeCorrection", True):
             self._low_x_correction(xin, yin, xout, yout, **kwargs)
 
         return xout, yout, eout
