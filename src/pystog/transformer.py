@@ -40,7 +40,7 @@ class Transformer:
     def _low_x_correction(self, xin, yin, xout, yout, **kwargs):
         """
         Omitted low-x range correction performed in the
-        space you have transformed to. Does so by assumming a
+        space you have transformed to. Does so by assuming a
         linear extrapolation to zero.
         Original author: Jack Carpenter
 
@@ -56,7 +56,7 @@ class Transformer:
         :rtype: numpy.array
         """
 
-        lorch_flag = kwargs.get('lorch', False)
+        lorch_flag = kwargs.get("lorch", False)
 
         xnew = xin
 
@@ -71,31 +71,28 @@ class Transformer:
                 VM = xnew[0] * (R - A)
                 VP = xnew[0] * (R + A)
                 F1 = (
-                    ((VM * np.sin(VM) + np.cos(VM) - 1.0) / (R - A) ** 2
-                        - (VP * np.sin(VP) + np.cos(VP) - 1.0) / (R + A) ** 2)
-                    / 2.0 / A
-                )
-                F2 = (
-                    (np.sin(VM) / (R - A) - np.sin(VP) / (R + A))
-                    / 2.0 / A
-                )
-            else:
-                if R != 0.:
-                    F1 = (
-                        (2.0 * V * np.sin(V) - (V * V - 2.0) * np.cos(V) - 2.0)
-                        / R / R / R
+                    (
+                        (VM * np.sin(VM) + np.cos(VM) - 1.0) / (R - A) ** 2
+                        - (VP * np.sin(VP) + np.cos(VP) - 1.0) / (R + A) ** 2
                     )
+                    / 2.0
+                    / A
+                )
+                F2 = (np.sin(VM) / (R - A) - np.sin(VP) / (R + A)) / 2.0 / A
+            else:
+                if R != 0.0:
+                    F1 = (2.0 * V * np.sin(V) - (V * V - 2.0) * np.cos(V) - 2.0) / R / R / R
                     F2 = (np.sin(V) - V * np.cos(V)) / R / R
                 else:
-                    F1 = 0.
-                    F2 = 0.
+                    F1 = 0.0
+                    F2 = 0.0
 
             if xin[0] == 0:
                 yDS = (2.0 / np.pi) * (F1 * yin[1] / xin[1] - F2)
             else:
                 yDS = (2.0 / np.pi) * (F1 * yin[0] / xin[0] - F2)
 
-            yout[NR] += (yDS * np.pi / 2.)
+            yout[NR] += yDS * np.pi / 2.0
 
         return yout
 
