@@ -59,7 +59,9 @@ class Transformer:
         lorch_flag = kwargs.get('lorch', False)
 
         xnew = xin
-        yin = yin / xin + 1.
+
+        mask = xin != 0
+        yin[mask] = yin[mask] / xin[mask] + 1.0
 
         for NR in range(len(yout)):
             R = xout[NR]

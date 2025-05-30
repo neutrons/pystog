@@ -794,7 +794,7 @@ class TestStogDatasetSpecificMethods(TestStogBase):
 class TestStogTransformSpecificMethods(TestStogDatasetSpecificMethods):
     def setUp(self):
         super(TestStogTransformSpecificMethods, self).setUp()
-        self.lowR_target = 0.4720653
+        self.lowR_target = 0.4720648
 
     def test_stog_transform_merged_default(self):
         # Number of decimal places for precision
