@@ -57,10 +57,23 @@ from pystog import StoG
 
 ** WARNING: Testing of the CLI is still ongoing**
 
-Also, there is a python script included in the package and it can be run with JSON input files. The script will be installed into the `bin` directory in the conda environment directory. For example, my `pystog` conda environment is located at `/SNS/users/y8z/miniconda/envs/pystog` and I can find `pystog_cli` under `/SNS/users/y8z/miniconda/envs/pystog/bin`. We can copy `pystog_cli` from there to a location in our system environment path so we can access the script from anywhere. The script can be run as follows,
+A CLI command is also included, which can be run with JSON input files. The script will be installed into the `bin` directory in your virtual environment directory.
+For example:
+
+- `.pixi/envs/default/bin/`
+- `pystog/.venv/bin/`
+- `.../miniconda/envs/pystog/bin/`
+
+You can simply activate your virtual environment (`pixi shell`, `. .venv/bin/activate`, or `conda activate pystog`) and run `pystog-cli`:
 
 ```bash
-pystog_cli --json <input json>
+pystog-cli --json <input json>
+```
+
+For a list of available options, run:
+
+```bash
+pystog-cli --help
 ```
 
 An example JSON can be found [here](https://github.com/neutrons/pystog/blob/master/data/examples/argon_pystog.json)

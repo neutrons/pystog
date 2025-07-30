@@ -54,8 +54,6 @@ jobs:
           package-name: refred
           local-channel: /tmp/local-channel
           python-version: "3.10"
-          extra-channels: mantid-ornl neutrons/label/rc
-          extra-commands: pixi run python -c "import lr_reduction; import mantid; import qtpy; import configobj"
 
       - name: Upload conda package as artifact
         uses: actions/upload-artifact@v4
