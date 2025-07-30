@@ -94,7 +94,7 @@ jobs:
           pixi run anaconda upload --label $CONDA_LABEL --user neutrons ${{ env.PKG_NAME }}-*.conda
 
   pypi-package:
-    name: Upload release to PyPI
+    name: Build and publish PyPI package
     runs-on: ubuntu-latest
     needs: tests
     permissions:
