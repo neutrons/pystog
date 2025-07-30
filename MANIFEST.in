@@ -1,3 +1,0 @@
-include versioneer.py
-include pystog/_version.py
-include requirements*.txt
