@@ -51,7 +51,7 @@ jobs:
       - name: Verify conda package
         uses: neutrons/conda-verify@main
         with:
-          package-name: refred
+          package-name: ${{ env.PKG_NAME }}
           local-channel: /tmp/local-channel
           python-version: "3.10"
 
