@@ -1,69 +1,210 @@
+########################
+### Project Metadata ###
+########################
+
 [project]
 name = "pystog"
 description = "Total scattering function manipulator"
 dynamic = ["version"]
-requires-python = ">=3.6"
-dependencies = [
-  # list all runtime dependencies here
-]
-license = { text = "GPL3.0" }
+requires-python = ">=3.10"
+license = { text = "GPL version 3.0" }
+readme = "README.md"
+keywords = ["neutrons", "pystog"]
 
 [project.urls]
-homepage = "https://github.com/neutrons/pystog/"  # if no homepage, use repo url
+homepage = "https://github.com/neutrons/pystog/"
+repository = "https://github.com/neutrons/pystog/"
+issues = "https://github.com/neutrons/pystog/issues"
+
+[project.scripts]
+pystog-cli = "pystog.cli:pystog_cli"
+
+####################
+### Build config ###
+####################
 
 [build-system]
-requires = [
-  "setuptools >= 40.6.0",
-  "wheel",
-  "toml",
-  "versioningit"
-]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+requires = ["hatchling", "versioningit"]
+
+[tool.hatch.version]
+source = "versioningit"
+
+[tool.hatch.build.hooks.versioningit-onbuild]
+source-file = "src/pystog/_version.py"
+build-file = "src/pystog/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pystog"]
 
 [tool.versioningit.vcs]
 method = "git"
-default-tag = "0.0.1"
+default-tag = "0.0.0"
 
 [tool.versioningit.next-version]
 method = "minor"
 
 [tool.versioningit.format]
 distance = "{next_version}.dev{distance}"
-dirty = "{version}+d{build_date:%Y%m%d}"
-distance-dirty = "{next_version}.dev{distance}+d{build_date:%Y%m%d%H%M}"
+dirty = "{version}"
+distance-dirty = "{next_version}.dev{distance}"
 
 [tool.versioningit.write]
 file = "src/pystog/_version.py"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-exclude = ["fortran"]
+###################
+### Pixi config ###
+###################
 
-[tool.setuptools.package-data]
-"*" = ["*.yml","*.yaml","*.ini"]
+[tool.pixi.workspace]
+name = "pystog"
+platforms = ["linux-64"]
+channels = ["conda-forge", "https://prefix.dev/pixi-build-backends"]
+# Required until the build feature becomes stable
+preview = ["pixi-build"]
 
-[project.scripts]
-pystog-cli = "pystog.cli:pystog_cli"
+[tool.pixi.package]
+name = "pystog"
+version = "0.0.0"
+
+[tool.pixi.package.build]
+backend = { name = "pixi-build-python", version = "0.1.*" }
+
+[tool.pixi.package.host-dependencies]
+hatchling = "*"
+versioningit = "*"
+
+[tool.pixi.package.run-dependencies]
+h5py = "*"
+numpy = "==2"
+
+[tool.pixi.dependencies]
+h5py = "*"
+numpy = "==2"
+
+[tool.pixi.pypi-dependencies]
+pystog = { path = ".", editable = true }
+
+# Environments and features
+
+[tool.pixi.environments]
+default = { features = [
+    "dev",
+    "docs",
+    "test",
+    "build",
+], solve-group = "default" }
+docs = { features = ["dev", "docs"], no-default-feature = true }
+build = { features = ["build"], no-default-feature = true }
+
+[tool.pixi.feature.build.dependencies]
+anaconda-client = ">=1.13.0"
+hatch = "*"
+twine = ">=6.1.0,<7"
+versioningit = ">=3.3.0"
+
+[tool.pixi.feature.build.pypi-dependencies]
+toml-cli = "*"
+
+[tool.pixi.feature.dev.dependencies]
+pip = ">=25.1.1"
+pip-audit = ">=2.9.0"
+pre-commit = ">=4.2.0"
+ruff = "*"
+versioningit = ">=3.2.0"
+
+[tool.pixi.feature.docs.dependencies]
+sphinx = ">=8"
+sphinx_rtd_theme = ">=3.0.1"
+
+[tool.pixi.feature.test.dependencies]
+codecov = ">=2.1.13"
+pytest = ">=8.4.1"
+pytest-cov = ">=6.2.1"
+
+[tool.pixi.tasks]
+# Documentation
+build-docs = { cmd = 'sphinx-build -b html docs/source docs/_build/html', description = "Build documentation" }
+test-docs = { cmd = "sphinx-build -M doctest docs/source docs/_build/html", description = "Test building the documentation" }
+# Testing
+test = { description = "Run the test suite", cmd = "pytest" }
+# Packaging
+conda-build-command = { cmd = "pixi build", description = "Wrapper for building the conda package - used by `conda-build`" }
+conda-build = { description = "Build the conda package", depends-on = [
+    "backup-toml",
+    "sync-version",
+    "conda-build-command",
+    "reset-toml",
+] }
+conda-publish = { cmd = "anaconda upload *.conda", description = "Publish the .conda package to anaconda.org", depends-on = [
+    "conda-build",
+] }
+pypi-build = { cmd = "hatch build", description = "Build the package for PyPI" }
+pypi-publish = { cmd = "twine upload dist/*", description = "Publish the package to PyPI", depends-on = [
+    "pypi-build",
+] }
+pypi-publish-test = { cmd = "twine upload --repository testpypi dist/*", description = "Publish the package to TestPyPI", depends-on = [
+    "pypi-build",
+] }
+# Misc
+audit-deps = { cmd = "pip-audit --local -s osv", description = "Audit the package dependencies for vulnerabilities" }
+clean = { cmd = 'rm -rf .mypy_cache .pytest_cache .ruff_cache **/*.egg-info **/dist **/__pycache__ **/_version.py', description = "Clean up various caches and build artifacts" }
+clean-conda = { cmd = "rm -f *.conda", description = "Clean the local .conda build artifacts" }
+clean-docs = { cmd = "rm -rf docs/_build", description = "Clean up documentation build artifacts" }
+clean-pypi = { cmd = "rm -rf dist", description = "Clean the PyPI build artifacts" }
+clean-test = { cmd = "rm -rf dog* ft.dat out*", description = "Clean up test output" }
+clean-all = { description = "Clean all artifacts", depends-on = [
+    "clean",
+    "clean-conda",
+    "clean-docs",
+    "clean-pypi",
+    "clean-test",
+] }
+sync-version = { cmd = 'version=$(python -m versioningit); toml set tool.pixi.package.version "$version" --toml-path pyproject.toml', description = "Sync pyproject.toml version with Git version" }
+backup-toml = { cmd = "cp pyproject.toml pyproject.toml.bak", description = "Backup the pyproject.toml file" }
+reset-toml = { cmd = "cp pyproject.toml.bak pyproject.toml; rm pyproject.toml.bak", description = "Reset the pyproject.toml file to the original state" }
+
+
+##########################
+### Pytest and CodeCov ###
+##########################
+
+[tool.coverage.run]
+source = ["src/pystog"]
+omit = ["test/*"]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  ".", "src", "scripts"
-]
+pythonpath = [".", "src"]
 testpaths = ["tests"]
 python_files = ["test*.py"]
-norecursedirs = [".git", "tmp*", "_tmp*", "__pycache__", "*dataset*", "*data_set*"]
-markers = [
-    "mymarker: example markers goes here"
-]
+
+############
+### Ruff ###
+############
 
 [tool.ruff]
 line-length = 120
-# https://beta.ruff.rs/docs/rules/
-lint.select = ["A", "ARG","ASYNC","BLE","C90", "E", "F", "I", "N", "UP032", "W", "NPY"]
-lint.ignore = [ "N802", "N806", # function should be lowercase
-"N816" # Variable in global scope should not be mixedCase
+
+[tool.ruff.lint]
+select = [
+    "A",
+    "ARG",
+    "ASYNC",
+    "BLE",
+    "C90",
+    "E",
+    "F",
+    "I",
+    "N",
+    "UP032",
+    "W",
+    "NPY",
 ]
-lint.mccabe.max-complexity = 20
+ignore = [
+    "N802",
+    "N806", # function should be lowercase
+    "N816", # Variable in global scope should not be mixedCase
+]
 
-
-# Add additional 3rd party tool configuration here as needed
+[tool.ruff.lint.mccabe]
+max-complexity = 20
