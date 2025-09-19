@@ -59,9 +59,9 @@ class FourierFilter:
                  for the 0. to cutoff transform,
                  the corrected :math:`Q` and :math:`Q[S(Q)-1]`,
                  and the filtered :math:`r` and :math:`g(r)`.
-                 
+
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`Q[S(Q)-1]_{FF}`,
@@ -70,9 +70,9 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`g(r)_{FF}`
                     ]
-                
+
         :rtype: tuple of numpy.array
-        
+
         """
         # setup qmin, qmax, and get low-r region to back transform
         qmin = min(q)
@@ -120,7 +120,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`g(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`S(Q)_{FF}`,
@@ -129,7 +129,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`g(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
@@ -229,7 +229,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`Q[S(Q)-1]_{FF}`,
@@ -238,7 +238,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{PDFFIT}(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
         gr, dgr = self.converter.G_to_g(r, gr, dgr=dgr, **kwargs)
@@ -268,7 +268,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`S(Q)_{FF}`,
@@ -277,7 +277,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{PDFFIT}(r)_{FF}`
                     ]
-                
+
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.S_to_F(q, sq, dsq=dsq)
@@ -308,7 +308,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{PDFFIT}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`F(Q)_{FF}`,
@@ -317,7 +317,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{PDFFIT}(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
         fq, dfq = self.converter.FK_to_F(q, fq, dfq=dfq, **kwargs)
@@ -385,7 +385,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`Q[S(Q)-1]_{FF}`,
@@ -394,7 +394,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{Keen Version}(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
 
@@ -425,7 +425,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`S(Q)_{FF}`,
@@ -434,7 +434,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{Keen Version}(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
 
@@ -466,7 +466,7 @@ class FourierFilter:
                  and the filtered :math:`r` and :math:`G_{Keen Version}(r)`.
 
                  Thus::
-                 
+
                     [
                         :math:`Q_{FF}`,
                         :math:`F(Q)_{FF}`,
@@ -475,7 +475,7 @@ class FourierFilter:
                         :math:`r_{FF}`,
                         :math:`G_{Keen Version}(r)_{FF}`
                     ]
-                    
+
         :rtype: tuple of numpy.array
         """
 

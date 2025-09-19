@@ -1077,7 +1077,7 @@ class StoG(object):
                         }
                     }
                 }
-        
+
         """
         data_merged = []
         _n_total = 0

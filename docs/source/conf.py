@@ -37,10 +37,10 @@ release = ".".join(version.split(".")[:-1])
 # for autodoc: automodule will automatically pick up these docstrings
 # autodoc_default_flags = ["members", "undoc-members"]
 autodoc_default_options = {
-    'members': True,
-    'undoc-members': True,
-    'show-inheritance': True,
-    'ignore-module-all': True,
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": True,
+    "ignore-module-all": True,
 }
 
 # If your documentation needs a minimal Sphinx version, state it here.
