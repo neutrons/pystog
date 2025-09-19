@@ -124,7 +124,7 @@ pytest-cov = ">=6.2.1"
 
 [tool.pixi.tasks]
 # Documentation
-build-docs = { cmd = 'sphinx-build -b html docs/source docs/_build/html', description = "Build documentation" }
+build-docs = { cmd = 'sphinx-build -c docs/source/ -b html docs/source docs/_build/html', description = "Build documentation" }
 test-docs = { cmd = "sphinx-build -M doctest docs/source docs/_build/html", description = "Test building the documentation" }
 # Testing
 test = { description = "Run the test suite", cmd = "pytest" }

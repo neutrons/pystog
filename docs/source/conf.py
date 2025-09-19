@@ -15,7 +15,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../../pystog"))
+import versioningit
+
+sys.path.insert(0, os.path.abspath("../../pystog"))
 
 
 # -- Project information -----------------------------------------------------
@@ -25,13 +27,21 @@ project_copyright = "2018, Marshall McDonnell"
 author = "Marshall McDonnell"
 
 # The short X.Y version
-version = ""
+# NOTE: need to specify the location of the pyproject.toml file instead of the
+#       location of the source tree
+version = versioningit.get_version("../../")
 # The full version, including alpha/beta/rc tags
-release = "0.1.3"
+release = ".".join(version.split(".")[:-1])
 
 # -- General configuration ---------------------------------------------------
 # for autodoc: automodule will automatically pick up these docstrings
-autodoc_default_flags = ["members", "undoc-members"]
+# autodoc_default_flags = ["members", "undoc-members"]
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'show-inheritance': True,
+    'ignore-module-all': True,
+}
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
