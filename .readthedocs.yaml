@@ -13,4 +13,4 @@ build:
       - pixi install
     build:
       html:
-        - pixi run sphinx-build -T -b html docs/source $READTHEDOCS_OUTPUT/html
+        - pixi run sphinx-build -T -c docs/source/ -b html docs/source $READTHEDOCS_OUTPUT/html
