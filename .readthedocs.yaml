@@ -9,6 +9,7 @@ build:
       # Install pixi
       - curl -fsSL https://pixi.sh/install.sh | bash
     post_install:
+      # Use pixi with full path to install dependencies
       - $HOME/.pixi/bin/pixi --version
       - $HOME/.pixi/bin/pixi install
 
