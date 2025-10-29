@@ -2542,8 +2542,8 @@ packages:
   timestamp: 1733217331982
 - pypi: ./
   name: pystog
-  version: 0.6.0.dev5
-  sha256: 0ff654d6348b38717f3a9c4b0f0aa2c1646f15f34dffebe92e5ef576f1360013
+  version: 0.7.0.dev2
+  sha256: 23f11352fe6fe25cd07dfcd7942d2016c3ab30aba163a0d5ca7931222c3dfa79
   requires_python: '>=3.10'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-8.4.2-pyhd8ed1ab_0.conda

@@ -7,7 +7,7 @@ name = "pystog"
 description = "Total scattering function manipulator"
 dynamic = ["version"]
 requires-python = ">=3.10"
-license = { text = "GPL version 3.0" }
+license = { text = "GPL-3.0-or-later" }
 readme = "README.md"
 keywords = ["neutrons", "pystog"]
 
@@ -68,7 +68,7 @@ name = "pystog"
 version = "0.0.0"
 
 [tool.pixi.package.build]
-backend = { name = "pixi-build-python", version = "0.1.*" }
+backend = { name = "pixi-build-python", version = "0.4.*" }
 
 [tool.pixi.package.host-dependencies]
 hatchling = "*"
