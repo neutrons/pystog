@@ -1270,11 +1270,17 @@ class StoG(object):
         # NOTE: Real space function setter will catch ValueError so
         # so no need for `else` to catch error
         if self.real_space_function == "g(r)":
-            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.g_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.g_using_S(
+                r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs
+            )
         elif self.real_space_function == "G(r)":
-            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.G_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.G_using_S(
+                r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs
+            )
         elif self.real_space_function == "GK(r)":
-            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.GK_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.GK_using_S(
+                r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs
+            )
 
         # Round to avoid mismatch index in domain and NaN
         q = np.around(q, decimals=self.__xdecimals)
