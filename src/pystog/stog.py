@@ -1462,7 +1462,7 @@ class StoG(object):
             f.write("%d \n" % len(x))
             f.write("# Comment line\n")
         with open(filename, "a") as f:
-            if dy is not None and not np.all(dy == 0.):
+            if dy is not None and not np.all(dy == 0.0):
                 for i, j, e in zip(x, y, dy):
                     fmt = "{:.{places}f} {:.{places}f} {:.{places}f}\n"
                     f.write(fmt.format(i, j, e, places=places))
