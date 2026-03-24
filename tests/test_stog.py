@@ -1158,7 +1158,7 @@ class TestStogOutputMethods(TestStogDatasetSpecificMethods):
                 write_out_func()
 
                 data = {}
-                data["x"], data["y"] = np.genfromtxt(filename, skip_header=2, unpack=True)
+                data["x"], data["y"], _ = np.genfromtxt(filename, skip_header=2, unpack=True)
 
                 np.testing.assert_allclose(data["x"], x)
                 np.testing.assert_allclose(
@@ -1176,7 +1176,7 @@ class TestStogOutputMethods(TestStogDatasetSpecificMethods):
 
                 write_out_func(filename=tmp_filename)
 
-                data["x"], data["y"] = np.genfromtxt(tmp_filename, skip_header=2, unpack=True)
+                data["x"], data["y"], _ = np.genfromtxt(tmp_filename, skip_header=2, unpack=True)
 
                 np.testing.assert_allclose(data["x"], x)
                 np.testing.assert_allclose(data["y"], y)

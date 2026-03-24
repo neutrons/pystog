@@ -61,7 +61,9 @@ def pystog_cli(kwargs=None):
         r = stog.r_master[stog.gr_title]
         q = stog.q_master[stog.sq_title]
         sq = stog.sq_master[stog.sq_title]
+        dsq = stog.dsq_master.get(stog.sq_title)
         gr_out = stog.gr_master[stog.gr_title]
+        dgr_out = stog.dgr_master.get(stog.gr_title)
 
         # Apply Fourier Filter
         if "FourierFilter" in kwargs:
@@ -69,11 +71,11 @@ def pystog_cli(kwargs=None):
 
         # Apply Lorch Modification
         if kwargs["LorchFlag"]:
-            r, gr_out = stog.apply_lorch(q, sq, r)
+            r, gr_out = stog.apply_lorch(q, sq, r, dsq=dsq)
 
         # Apply final scale number
-        stog._add_keen_fq(q, sq)
-        stog._add_keen_gr(r, gr_out)
+        stog._add_keen_fq(q, sq, dsq=dsq)
+        stog._add_keen_gr(r, gr_out, dgr=dgr_out)
 
 
 if __name__ == "__main__":

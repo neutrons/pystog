@@ -58,7 +58,7 @@ file = "src/pystog/_version.py"
 
 [tool.pixi.workspace]
 name = "pystog"
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 channels = ["conda-forge", "https://prefix.dev/pixi-build-backends"]
 # Required until the build feature becomes stable
 preview = ["pixi-build"]

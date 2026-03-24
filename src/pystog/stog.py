@@ -85,8 +85,10 @@ class StoG(object):
         self.__sq_individuals = np.empty([3, 0])
         self.__q_master = {}
         self.__sq_master = {}
+        self.__dsq_master = {}
         self.__r_master = {}
         self.__gr_master = {}
+        self.__dgr_master = {}
 
         # Attributes that do not (currently) change
         self.__sq_title = "S(Q) Merged"
@@ -601,6 +603,23 @@ class StoG(object):
         self.__sq_master = sq
 
     @property
+    def dsq_master(self):
+        """
+        The "master" dictionary for the :math:`S(Q)` uncertainties
+        that are generated for each processing step.
+
+        :getter: Returns the current "master" :math:`S(Q)` uncertainty
+                 dictionary generated up to the current step in the workflow.
+        :setter: Sets the "master" :math:`S(Q)` uncertainty dictionary
+        :type: dict[str:numpy.ndarray]
+        """
+        return self.__dsq_master
+
+    @dsq_master.setter
+    def dsq_master(self, dsq):
+        self.__dsq_master = dsq
+
+    @property
     def gr_master(self):
         """
         The "master" dictionary for the real space functions
@@ -617,6 +636,23 @@ class StoG(object):
     @gr_master.setter
     def gr_master(self, gr):
         self.__gr_master = gr
+
+    @property
+    def dgr_master(self):
+        """
+        The "master" dictionary for the real space function uncertainties
+        that are generated for each processing step.
+
+        :getter: Returns the current "master" real space uncertainty
+                 dictionary generated up to the current step in the workflow.
+        :setter: Sets the "master" real space uncertainty dictionary
+        :type: dict[str:numpy.ndarray]
+        """
+        return self.__dgr_master
+
+    @dgr_master.setter
+    def dgr_master(self, dgr):
+        self.__dgr_master = dgr
 
     @property
     def q_master(self):
@@ -1152,6 +1188,7 @@ class StoG(object):
         sq, dsq = self.converter.F_to_S(q, fofq, dfq=dfofq)
         sq[np.isnan(sq)] = 0
         self.sq_master[self.sq_title] = sq
+        self.dsq_master[self.sq_title] = dsq
 
     # -------------------------------------#
     # Transform Utilities
@@ -1172,6 +1209,7 @@ class StoG(object):
         # Get Q and S(Q)
         q = self.q_master[self.sq_title]
         sq = self.sq_master[self.sq_title]
+        dsq = self.dsq_master.get(self.sq_title)
 
         # Perform the Fourier transform to selected real space function
         transform_kwargs = {
@@ -1180,13 +1218,14 @@ class StoG(object):
             "<b_coh>^2": self.bcoh_sqrd,
         }
         if self.real_space_function == "g(r)":
-            r, gofr, dgofr = self.transformer.S_to_g(q, sq, self.dr, **transform_kwargs)
+            r, gofr, dgofr = self.transformer.S_to_g(q, sq, self.dr, dsq=dsq, **transform_kwargs)
         elif self.real_space_function == "G(r)":
-            r, gofr, dgofr = self.transformer.S_to_G(q, sq, self.dr, **transform_kwargs)
+            r, gofr, dgofr = self.transformer.S_to_G(q, sq, self.dr, dsq=dsq, **transform_kwargs)
         elif self.real_space_function == "GK(r)":
-            r, gofr, dgofr = self.transformer.S_to_GK(q, sq, self.dr, **transform_kwargs)
+            r, gofr, dgofr = self.transformer.S_to_GK(q, sq, self.dr, dsq=dsq, **transform_kwargs)
 
         self.gr_master[self.gr_title] = gofr
+        self.dgr_master[self.gr_title] = dgofr
         self.r_master[self.gr_title] = r
 
     def fourier_filter(self):
@@ -1222,18 +1261,20 @@ class StoG(object):
 
         r = self.r_master[self.gr_title]
         gr = self.gr_master[self.gr_title]
+        dgr = self.dgr_master.get(self.gr_title)
         q = self.q_master[self.sq_title]
         sq = self.sq_master[self.sq_title]
+        dsq = self.dsq_master.get(self.sq_title)
 
         # Fourier filter g(r)
         # NOTE: Real space function setter will catch ValueError so
         # so no need for `else` to catch error
         if self.real_space_function == "g(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.g_using_S(r, gr, q, sq, cutoff, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.g_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
         elif self.real_space_function == "G(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.G_using_S(r, gr, q, sq, cutoff, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.G_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
         elif self.real_space_function == "GK(r)":
-            q_ft, sq_ft, q, sq, r, gr, _, _, _ = self.filter.GK_using_S(r, gr, q, sq, cutoff, **kwargs)
+            q_ft, sq_ft, q, sq, r, gr, dsq_ft, dsq, dgr = self.filter.GK_using_S(r, gr, q, sq, cutoff, dgr=dgr, dsq=dsq, **kwargs)
 
         # Round to avoid mismatch index in domain and NaN
         q = np.around(q, decimals=self.__xdecimals)
@@ -1244,19 +1285,22 @@ class StoG(object):
         # Add output to master dataframes and write files
         self.q_master[self._ft_title] = q_ft
         self.sq_master[self._ft_title] = sq_ft
+        self.dsq_master[self._ft_title] = dsq_ft
         self.write_out_ft()
 
         self.q_master[self.sq_ft_title] = q
         self.sq_master[self.sq_ft_title] = sq
+        self.dsq_master[self.sq_ft_title] = dsq
         self.write_out_ft_sq()
 
         self.r_master[self.gr_ft_title] = r
         self.gr_master[self.gr_ft_title] = gr
+        self.dgr_master[self.gr_ft_title] = dgr
         self.write_out_ft_gr()
 
         return q, sq, r, gr
 
-    def apply_lorch(self, q, sq, r):
+    def apply_lorch(self, q, sq, r, dsq=None):
         """
         Performs the Fourier transform using the Lorch
         dampening correction on the merged :math:`S(Q)` from
@@ -1275,18 +1319,22 @@ class StoG(object):
         :type sq: numpy.array or list
         :param r: :math:`r`-space vector
         :type r: numpy.array or list
+        :param dsq: :math:`S(Q)` uncertainty vector
+        :type dsq: numpy.array or list, optional
+
         :return: Returns a tuple with :math:`r` and selected real space function
         :rtype: tuple of numpy.array
         """
         if self.real_space_function == "g(r)":
-            r, gr_lorch, _ = self.transformer.S_to_g(q, sq, r, **{"lorch": True, "rho": self.density})
+            r, gr_lorch, dgr = self.transformer.S_to_g(q, sq, r, dsq=dsq, **{"lorch": True, "rho": self.density})
         elif self.real_space_function == "G(r)":
-            r, gr_lorch, _ = self.transformer.S_to_G(q, sq, r, **{"lorch": True})
+            r, gr_lorch, dgr = self.transformer.S_to_G(q, sq, r, dsq=dsq, **{"lorch": True})
         elif self.real_space_function == "GK(r)":
-            r, gr_lorch, _ = self.transformer.S_to_GK(
+            r, gr_lorch, dgr = self.transformer.S_to_GK(
                 q,
                 sq,
                 r,
+                dsq=dsq,
                 **{
                     "lorch": True,
                     "rho": self.density,
@@ -1296,6 +1344,7 @@ class StoG(object):
 
         self.gr_master[self.gr_lorch_title] = gr_lorch
         self.r_master[self.gr_lorch_title] = r
+        self.dgr_master[self.gr_lorch_title] = dgr
         self.write_out_lorched_gr()
 
         return r, gr_lorch
@@ -1340,7 +1389,7 @@ class StoG(object):
         average = sum(gr_sq)
         return np.sqrt(average)
 
-    def _add_keen_fq(self, q, sq):
+    def _add_keen_fq(self, q, sq, dsq=None):
         """
         Adds the Keen version of :math:`F(Q)` to the
         "master" recprical space storage array, **sq_master**, and
@@ -1350,14 +1399,17 @@ class StoG(object):
         :type q: numpy.array or list
         :param sq: :math:`S(Q)` vector
         :type sq: numpy.array or list
+        :param dsq: :math:`S(Q)` uncertainty vector
+        :type dsq: numpy.array or list, optional
         """
         kwargs = {"rho": self.density, "<b_coh>^2": self.bcoh_sqrd}
-        fq, dfq = self.converter.S_to_FK(q, sq, **kwargs)
+        fq, dfq = self.converter.S_to_FK(q, sq, dsq=dsq, **kwargs)
         self.sq_master[self.fq_title] = fq
         self.q_master[self.fq_title] = q
+        self.dsq_master[self.fq_title] = dfq
         self.write_out_rmc_fq()
 
-    def _add_keen_gr(self, r, gr):
+    def _add_keen_gr(self, r, gr, dgr=None):
         """
         Adds the Keen version of :math:`G(r)` to the
         "master" real space storage array, **gr_master**, and
@@ -1367,22 +1419,26 @@ class StoG(object):
         :type r: numpy.array or list
         :param gr: real space function vector
         :type gr: numpy.array or list
+        :param dgr: uncertainty vector for real space function
+        :type dgr: numpy.array or list, optional
         """
         kwargs = {"rho": self.density, "<b_coh>^2": self.bcoh_sqrd}
         if self.real_space_function == "g(r)":
-            GKofR, dGKofR = self.converter.g_to_GK(r, gr, **kwargs)
+            GKofR, dGKofR = self.converter.g_to_GK(r, gr, dgr=dgr, **kwargs)
         elif self.real_space_function == "G(r)":
-            GKofR, dGKofR = self.converter.G_to_GK(r, gr, **kwargs)
+            GKofR, dGKofR = self.converter.G_to_GK(r, gr, dgr=dgr, **kwargs)
         elif self.real_space_function == "GK(r)":
             GKofR = gr
+            dGKofR = dgr
 
         self.gr_master[self.GKofR_title] = GKofR
         self.r_master[self.GKofR_title] = r
+        self.dgr_master[self.GKofR_title] = dGKofR
         self.write_out_rmc_gr()
 
     # -------------------------------------#
     # Output Utilities
-    def _write_out_to_file(self, x, y, filename, places=12):
+    def _write_out_to_file(self, x, y, filename, dy=None, places=12):
         """
         Helper function for writing out X Y data
         to the filename in the RMCProfile format.
@@ -1393,14 +1449,21 @@ class StoG(object):
         :type y: list
         :param filename: Filename to write to
         :type filename: str
+        :param dy: Optional uncertainty data for the Y column
+        :type dy: numpy.ndarray or None
         """
         with open(filename, "w") as f:
             f.write("%d \n" % len(x))
             f.write("# Comment line\n")
         with open(filename, "a") as f:
-            for i, j in zip(x, y):
-                fmt = "{:.{places}f} {:.{places}f}\n"
-                f.write(fmt.format(i, j, places=places))
+            if dy is not None and not np.all(dy == 0.):
+                for i, j, e in zip(x, y, dy):
+                    fmt = "{:.{places}f} {:.{places}f} {:.{places}f}\n"
+                    f.write(fmt.format(i, j, e, places=places))
+            else:
+                for i, j in zip(x, y):
+                    fmt = "{:.{places}f} {:.{places}f}\n"
+                    f.write(fmt.format(i, j, places=places))
 
     def write_out_merged_sq(self, filename=None):
         """
@@ -1413,7 +1476,8 @@ class StoG(object):
             filename = "%s.sq" % self.stem_name
         x = self.q_master[self.sq_title]
         y = self.sq_master[self.sq_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dsq_master.get(self.sq_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_merged_gr(self, filename=None):
         """
@@ -1426,7 +1490,8 @@ class StoG(object):
             filename = "%s.gr" % self.stem_name
         x = self.r_master[self.gr_title]
         y = self.gr_master[self.gr_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dgr_master.get(self.gr_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_ft(self, filename=None):
         """
@@ -1439,7 +1504,8 @@ class StoG(object):
             filename = "ft.dat"
         x = self.q_master[self._ft_title]
         y = self.sq_master[self._ft_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dsq_master.get(self._ft_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_ft_sq(self, filename=None):
         """
@@ -1452,7 +1518,8 @@ class StoG(object):
             filename = "%s_ft.sq" % self.stem_name
         x = self.q_master[self.sq_ft_title]
         y = self.sq_master[self.sq_ft_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dsq_master.get(self.sq_ft_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_ft_gr(self, filename=None):
         """
@@ -1465,7 +1532,8 @@ class StoG(object):
             filename = "%s_ft.gr" % self.stem_name
         x = self.r_master[self.gr_ft_title]
         y = self.gr_master[self.gr_ft_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dgr_master.get(self.gr_ft_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_lorched_gr(self, filename=None):
         """
@@ -1478,7 +1546,8 @@ class StoG(object):
             filename = "%s_ft_lorched.gr" % self.stem_name
         x = self.r_master[self.gr_lorch_title]
         y = self.gr_master[self.gr_lorch_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dgr_master[self.gr_lorch_title]
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_rmc_fq(self, filename=None):
         """
@@ -1491,7 +1560,8 @@ class StoG(object):
             filename = "%s_rmc.fq" % self.stem_name
         x = self.q_master[self.fq_title]
         y = self.sq_master[self.fq_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dsq_master.get(self.fq_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
 
     def write_out_rmc_gr(self, filename=None):
         """
@@ -1504,4 +1574,5 @@ class StoG(object):
             filename = "%s_rmc.gr" % self.stem_name
         x = self.r_master[self.GKofR_title]
         y = self.gr_master[self.GKofR_title]
-        self._write_out_to_file(x, y, filename)
+        dy = self.dgr_master.get(self.GKofR_title)
+        self._write_out_to_file(x, y, filename, dy=dy)
