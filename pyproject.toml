@@ -76,11 +76,11 @@ versioningit = "*"
 
 [tool.pixi.package.run-dependencies]
 h5py = "*"
-numpy = "*"
+numpy = ">=2.1,<3"
 
 [tool.pixi.dependencies]
 h5py = "*"
-numpy = "*"
+numpy = ">=2.1,<3"
 
 [tool.pixi.pypi-dependencies]
 pystog = { path = ".", editable = true }
