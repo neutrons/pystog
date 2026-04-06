@@ -59,3 +59,6 @@ ENV/
 
 # pixi env
 .pixi
+
+# local dev
+.notes
