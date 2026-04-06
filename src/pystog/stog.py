@@ -885,11 +885,29 @@ class StoG(object):
     def save_xy(self, filename, xdata, ydata, edata=None):
         # assert(len(xdata) == len(ydata))
         with open(filename, "w") as f:
-            f.write("%d\n\n" % len(xdata))
             if edata is not None:
-                for x, y, e in zip(xdata, ydata, edata):
+                def _is_valid_e(e):
+                    try:
+                        v = float(e)
+                        return v != 0.0 and not (v != v)  # non-zero and not NaN
+                    except (TypeError, ValueError):
+                        return False
+
+                valid_mask = [_is_valid_e(e) for e in edata]
+                # Trim leading invalid points
+                start = 0
+                while start < len(valid_mask) and not valid_mask[start]:
+                    start += 1
+                # Trim trailing invalid points
+                end = len(valid_mask)
+                while end > start and not valid_mask[end - 1]:
+                    end -= 1
+                trimmed = list(zip(xdata, ydata, edata))[start:end]
+                f.write("%d\n\n" % len(trimmed))
+                for x, y, e in trimmed:
                     f.write("%f %f %f\n" % (x, y, e))
             else:
+                f.write("%d\n\n" % len(xdata))
                 for x, y in zip(xdata, ydata):
                     f.write("%f %f\n" % (x, y))
 
