@@ -893,20 +893,29 @@ class StoG(object):
                 for x, y in zip(xdata, ydata):
                     f.write("%f %f\n" % (x, y))
 
-    def read_nexus_file_by_bank(self, nexus_file, bank, title, **kwargs):  # noqa: ARG002
+    def read_nexus_file_by_bank(self, nexus_file, bank, title, err=False, **kwargs):  # noqa: ARG002
         """
         Reads an individual file bank by bank and uses the **extract_xy**
         to handle extraction and **extract_path_from_title** to obtain
         coord paths
         """
 
-        xpath, ypath, epath = self.extract_path_from_title(nexus_file, title)
-        output_file = f"{title}_bank{bank}.dat"
+        if err:
+            xpath, ypath, epath = self.extract_path_from_title(nexus_file, title)
+            output_file = f"{title}_bank{bank}.dat"
 
-        output_file = self.stem_name + output_file
+            output_file = self.stem_name + output_file
 
-        x, y, e = self.extract_xy(nexus_file, xpath, ypath, epath=epath, index=bank)
-        self.save_xy(output_file, x, y, edata=e)
+            x, y, e = self.extract_xy(nexus_file, xpath, ypath, epath=epath, index=bank)
+            self.save_xy(output_file, x, y, edata=e)
+        else:
+            xpath, ypath, _ = self.extract_path_from_title(nexus_file, title)
+            output_file = f"{title}_bank{bank}.dat"
+
+            output_file = self.stem_name + output_file
+
+            x, y, _ = self.extract_xy(nexus_file, xpath, ypath, index=bank)
+            self.save_xy(output_file, x, y)
 
     def read_all_nexus_file_banks(self):
         # Check that we have files to operate on
