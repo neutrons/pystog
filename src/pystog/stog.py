@@ -859,7 +859,11 @@ class StoG(object):
             if data[index][(0)].decode("UTF-8") == title:
                 xpath = os.path.join("/", name, wksp_path, "axis1")
                 ypath = os.path.join("/", name, wksp_path, "values")
-                return xpath, ypath
+                epath = os.path.join("/", name, wksp_path, "errors")
+                if epath in data:
+                    return xpath, ypath, epath
+
+                return xpath, ypath, None
             else:
                 choices.append(data[index][()])
 
@@ -869,18 +873,25 @@ class StoG(object):
             print("      %s" % c)
         sys.exit("Stopping...")
 
-    def extract_xy(self, hdf_file, xpath, ypath, **kwargs):
+    def extract_xy(self, hdf_file, xpath, ypath, epath=None, **kwargs):
         x = self.extract(hdf_file, xpath)
         y = self.extract(hdf_file, ypath, **kwargs)
         y = np.insert(y, 0, y[0])  # hack for histogram xaxis
-        return x, y
+        if epath is not None:
+            e = self.extract(hdf_file, epath, **kwargs)
+            e = np.insert(e, 0, e[0])
+        return x, y, e if epath is not None else None
 
-    def save_xy(self, filename, xdata, ydata):
+    def save_xy(self, filename, xdata, ydata, edata=None):
         # assert(len(xdata) == len(ydata))
         with open(filename, "w") as f:
             f.write("%d\n\n" % len(xdata))
-            for x, y in zip(xdata, ydata):
-                f.write("%f %f\n" % (x, y))
+            if edata is not None:
+                for x, y, e in zip(xdata, ydata, edata):
+                    f.write("%f %f %f\n" % (x, y, e))
+            else:
+                for x, y in zip(xdata, ydata):
+                    f.write("%f %f\n" % (x, y))
 
     def read_nexus_file_by_bank(self, nexus_file, bank, title, **kwargs):  # noqa: ARG002
         """
@@ -889,13 +900,13 @@ class StoG(object):
         coord paths
         """
 
-        xpath, ypath = self.extract_path_from_title(nexus_file, title)
+        xpath, ypath, epath = self.extract_path_from_title(nexus_file, title)
         output_file = f"{title}_bank{bank}.dat"
 
         output_file = self.stem_name + output_file
 
-        x, y = self.extract_xy(nexus_file, xpath, ypath, index=bank)
-        self.save_xy(output_file, x, y)
+        x, y, e = self.extract_xy(nexus_file, xpath, ypath, epath=epath, index=bank)
+        self.save_xy(output_file, x, y, edata=e)
 
     def read_all_nexus_file_banks(self):
         # Check that we have files to operate on
