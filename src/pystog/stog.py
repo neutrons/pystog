@@ -883,13 +883,13 @@ class StoG(object):
         return x, y, e if epath is not None else None
 
     def save_xy(self, filename, xdata, ydata, edata=None):
-        # assert(len(xdata) == len(ydata))
         with open(filename, "w") as f:
             if edata is not None:
+
                 def _is_valid_e(e):
                     try:
                         v = float(e)
-                        return v != 0.0 and not (v != v)  # non-zero and not NaN
+                        return v != 0.0 and not (v != v)
                     except (TypeError, ValueError):
                         return False
 
