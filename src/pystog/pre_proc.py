@@ -26,7 +26,7 @@ class Pre_Proc:  # noqa: N801
         pass
 
     @staticmethod
-    def rebin(x, y, xmin, xdiv, xmax):
+    def rebin(x, y, xmin, xdiv, xmax, dy=None):
         """
         Rebin input data to the specified grid
 
@@ -39,10 +39,12 @@ class Pre_Proc:  # noqa: N801
         :param xdiv: X interval
         :type xdiv: float
         :param xmax: Xmax
-        :type xmax: Xmax
+        :type xmax: float
+        :param dy: optional Y errors
+        :type dy: numpy.array or list, optional
 
-        :return: (output X array, output Y array)
-        :rtype: (list, list)
+        :return: (output X array, output Y array, output Y errors array)
+        :rtype: (list, list, list)
         """
 
         numpts = int((xmax - xmin) / xdiv) + 1
@@ -51,6 +53,8 @@ class Pre_Proc:  # noqa: N801
             xout.append(xmin + loop * xdiv)
         yout = [0.0 for _ in range(len(xout) + 1)]
         ynorm = [0.0 for _ in range(len(xout) + 1)]
+        if dy is not None:
+            dyout = [0.0 for _ in range(len(xout) + 1)]
 
         for i, x_tmp in enumerate(x):
             if xmin <= x_tmp <= xmax:
@@ -62,8 +66,16 @@ class Pre_Proc:  # noqa: N801
                 yout[bin_index + 1] += y[i] * scale2
                 ynorm[bin_index] += scale1
                 ynorm[bin_index + 1] += scale2
+                if dy is not None:
+                    dyout[bin_index] += (dy[i] * scale1) ** 2
+                    dyout[bin_index + 1] += (dy[i] * scale2) ** 2
 
         for i in range(len(yout) - 1):
             yout[i] /= ynorm[i]
+            if dy is not None:
+                dyout[i] = np.sqrt(dyout[i]) / ynorm[i]
 
-        return (np.asarray(xout), np.asarray(yout[:-1]))
+        if dy is not None:
+            return (np.asarray(xout), np.asarray(yout[:-1]), np.asarray(dyout[:-1]))
+        else:
+            return (np.asarray(xout), np.asarray(yout[:-1]))
