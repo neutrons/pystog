@@ -59,7 +59,7 @@ class StoG(object):
 
     def __init__(self, **kwargs):
         # General attributes
-        self.__xdecimals = 2
+        self.__xdecimals = 3
         self.__ydecimals = 16
         self.__xmin = 100
         self.__xmax = 0
