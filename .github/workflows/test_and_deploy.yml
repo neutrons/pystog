@@ -50,12 +50,19 @@ jobs:
           mkdir -p /tmp/local-channel/linux-64
           cp *.conda /tmp/local-channel/linux-64
 
-      - name: Verify conda package
-        uses: neutrons/conda-verify@main
+      - name: Install conda package
+        id: install
+        uses: neutrons/gh-actions/pkg-install@46e28a74c8872901c571e0493d26871afe2662fb # v2.1
         with:
           package-name: ${{ env.PKG_NAME }}
           local-channel: /tmp/local-channel
           python-version: "3.10"
+
+      - name: Verify conda package
+        uses: neutrons/gh-actions/pkg-verify@46e28a74c8872901c571e0493d26871afe2662fb # v2.1
+        with:
+          package-name: ${{ env.PKG_NAME }}
+          conda-env-name: ${{ steps.install.outputs.conda-env }}
 
       - name: Upload conda package as artifact
         uses: actions/upload-artifact@v4
@@ -86,15 +93,11 @@ jobs:
           name: artifact-conda-package
 
       - name: Upload package to anaconda
-        env:
-          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-          IS_RC: ${{ contains(github.ref, 'rc') }}
-        run: |
-          # label is main or rc depending on the tag-name
-          CONDA_LABEL="main"
-          if [ "${IS_RC}" = "true" ]; then CONDA_LABEL="rc"; fi
-          echo pushing ${{ github.ref }} with label $CONDA_LABEL
-          pixi run anaconda upload --label $CONDA_LABEL --user neutrons ${{ env.PKG_NAME }}-*.conda
+        uses: neutrons/gh-actions/publish@46e28a74c8872901c571e0493d26871afe2662fb # v2.1
+        with:
+          anaconda-token: ${{ secrets.ANACONDA_TOKEN }}
+          organization: neutrons
+          package-path: ${{ env.PKG_NAME }}-*.conda
 
   pypi-package:
     name: Build and Publish PyPI package
