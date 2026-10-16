@@ -68,7 +68,7 @@ name = "pystog"
 version = "0.0.0"
 
 [tool.pixi.package.build]
-backend = { name = "pixi-build-python", version = "0.4.*" }
+backend = { name = "pixi-build-python", version = "*" }
 
 [tool.pixi.package.host-dependencies]
 hatchling = "*"
